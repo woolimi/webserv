@@ -59,6 +59,15 @@ Provide a custom address for a specific host and port pair.
 -- resolve <host:port:addr[,addr]...>
 ```
 
+## telnet
+```
+telnet> open localhost 8080
+Connecting To 127.0.0.1...
+GET /index.html HTTP/1.0
+(Hit enter twice to send the terminating blank line ...)
+... HTTP response message ...
+```
+
 ## nginx
 ```
 nginx -c ~/mynginx.conf
