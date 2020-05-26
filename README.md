@@ -66,5 +66,10 @@ nginx -c ~/mynginx.conf
 
 ## resource
 * [what do you need to know to build a simple http-server](https://medium.com/from-the-scratch/http-server-what-do-you-need-to-know-to-build-a-simple-http-server-from-scratch-d1ef8945e4fa)
-* [RFC 7231](https://tools.ietf.org/html/rfc7231)
-* [man curl](https://curl.haxx.se/docs/manpage.html#--resolve)
+* [rfc7230](https://tools.ietf.org/html/rfc7230)
+* [rfc7231](https://tools.ietf.org/html/rfc7231)
+* [rfc7232](https://tools.ietf.org/html/rfc7232)
+* [rfc7233](https://tools.ietf.org/html/rfc7233)
+* [rfc7234](https://tools.ietf.org/html/rfc7234)
+* [rfc7235](https://tools.ietf.org/html/rfc7235)
+* [HTTP basics](https://www.ntu.edu.sg/home/ehchua/programming/webprogramming/HTTP_Basics.html)
