@@ -47,5 +47,24 @@ socket() -> bind() -> listen()
 -> close()
 ```
 
+## curl
+1. -X
+choose method, POST, GET, HEAD, PUT, DELETE
+2. -H
+redifine header request value
+3. --data
+4. --resolve
+Provide a custom address for a specific host and port pair. 
+```
+-- resolve <host:port:addr[,addr]...>
+```
+
+## nginx
+```
+nginx -c ~/mynginx.conf
+```
+
 ## resource
 * [what do you need to know to build a simple http-server](https://medium.com/from-the-scratch/http-server-what-do-you-need-to-know-to-build-a-simple-http-server-from-scratch-d1ef8945e4fa)
+* [RFC 7231](https://tools.ietf.org/html/rfc7231)
+* [man curl](https://curl.haxx.se/docs/manpage.html#--resolve)
