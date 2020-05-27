@@ -102,6 +102,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 		// send response
 		if (it->req_arrived && !it->res_sent && FD_ISSET(it->socket, &write_set))
 		{
+			// chunk
 			write(it->socket, it->res.raw.c_str(), it->res.raw.size());
 			it->res_sent = true;
 			printf("server responded\n");
@@ -119,7 +120,6 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 			continue;
 		}
 		// if no request from client after connection ?
-
 	}
 }
 
@@ -140,7 +140,7 @@ void HTTP::manage_servers(fd_set &read_set, fd_set &init_set, std::set<int> &fds
 				throw FailToSetClientSocket();
 			new_client.server = *it;
 			clients.push_back(new_client);
-			fds.insert(new_client.socket);
+			fds.insert(new_client.socket); //fdmax
 			FD_SET(new_client.socket, &init_set);
 			printf("client connected\n");
 		}
