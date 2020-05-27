@@ -32,6 +32,7 @@ void ConfigParser::parsing(int fd)
 	sv.client_max_body_size = 1; // 1MB = 1,000,000 bytes
 	sv.server_name = "localhost";
 	sv.root = "/home/wpark/Documents/webserv/www/";
+
 	// make location info
 	t_location loc;
 	loc.allow = "GET POST";

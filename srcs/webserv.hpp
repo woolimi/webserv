@@ -36,6 +36,7 @@ typedef struct s_server
 	int socket;
 	struct sockaddr_in addr;
 	socklen_t addr_len;
+	/* config */
 	int listen;
 	std::string server_name;
 	std::string root;
@@ -50,7 +51,7 @@ typedef struct s_req
 	/* server info */
 	t_server server;
 	/* raw data */
-	std::string raw;
+	std::string raw; // 100 + 100
 	/* request line */
 	std::string method;	 // essential
 	std::string path;	 // essential

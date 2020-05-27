@@ -8,6 +8,7 @@ class ConfigParser
 private:
 	ConfigParser();
 	std::vector<t_server> srvs;
+	
 public:
 	ConfigParser(int ac, char **av);
 	// ConfigParser(ConfigParser const &other);
