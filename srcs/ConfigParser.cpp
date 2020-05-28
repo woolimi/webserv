@@ -31,8 +31,7 @@ void ConfigParser::parsing(int fd)
 	trim_data(raw);
 	// std::cout << "trimed data" << std::endl;
 	// std::cout << raw << std::endl;
-
-	std::cout << "token data" << std::endl;
+	// std::cout << "token data" << std::endl;
 	tokenizing(raw, tokens);
 
 	std::vector<std::string>::iterator it;
