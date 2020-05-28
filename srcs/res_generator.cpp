@@ -9,7 +9,7 @@ void res_generator(t_req &req, t_res &res, t_server &server)
 	res.status_msg = "OK";	
 	res.content_type = "text/html";
 	res.server = "webserv";
-	int fd = open("/home/wpark/Documents/webserv/www/default.html", O_RDONLY);
+	int fd = open("/home/user42/Desktop/mashar/projects/webserv/www/default.html", O_RDONLY);
 	char buff[1001];
 	int ret = read(fd, buff, 1001);
 	close(fd);
