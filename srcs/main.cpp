@@ -6,7 +6,7 @@
 /*   By: wpark <wpark@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/05/19 14:02:48 by wpark             #+#    #+#             */
-/*   Updated: 2020/05/27 13:45:15 by wpark            ###   ########.fr       */
+/*   Updated: 2020/05/28 04:18:17 by wpark            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,20 +29,19 @@
 #include "ConfigParser.hpp"
 #include "HTTP.hpp"
 #include "webserv.hpp"
-#include "libft.h"
 
 int main(int ac, char **av, char **env)
 {
 	(void)env;
 	try
 	{
-		ft_putchar_fd('x', 1);
 		// get config file param. If not exist, use default config
 		ConfigParser conf(ac, av);
+
 		// set server
-		HTTP http(conf.servers());
+		// HTTP http(conf.servers());
 		// run server
-		http.run();
+		// http.run();
 	}
 	catch(const std::exception& e)
 	{
