@@ -18,8 +18,9 @@
 # include <set>
 # include <netinet/in.h>
 # include <iostream>
+# include "libft.h"
 
-# define DEFAULT_CONF "/home/wpark/Documents/webserv/webserv.conf"
+# define DEFAULT_CONF_NAME "webserv.conf"
 # define MAX_BUFFER_SIZE 100
 
 typedef std::string route;
@@ -27,12 +28,13 @@ typedef struct s_location
 {
 	std::string root;
 	std::string autoindex;
-	std::string index;
-	std::string allow;
+	std::vector<std::string> index;
+	std::vector<std::string> allow;
 } t_location;
 
 typedef struct s_server
 {
+	/* run server */
 	int socket;
 	struct sockaddr_in addr;
 	socklen_t addr_len;
@@ -40,7 +42,7 @@ typedef struct s_server
 	int listen;
 	std::string server_name;
 	std::string root;
-	std::string eror_page;
+	std::string error_page;
 	int client_max_body_size;
 	/* access with route ex) server[0].location["/"] */
 	std::map<route, t_location> location;
