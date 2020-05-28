@@ -59,25 +59,26 @@ typedef struct s_req
 	std::string path;	 // essential
 	std::string version; // essential
 	/* header */
-	//client request headers
-	std::string accept_charsets;
-	std::string accept_language;
-	std::string authorization;
-	std::string host; // essential
-	std::string referer;
-	std::string user_agent;
+	std::map<std::string, std::string> headers;
+	// //client request headers
+	// std::string accept_charsets;
+	// std::string accept_language;
+	// std::string authorization;
+	// std::string host; // essential
+	// std::string referer;
+	// std::string user_agent;
 
-	//common headers	
-	std::string date;
-	std::string transfer_encoding;
+	// //common headers	
+	// std::string date;
+	// std::string transfer_encoding;
 
-	//entity headers
-	std::string allow;
-	std::string content_language;
-	std::string content_length;
-	std::string content_location;
-	std::string content_type;
-	std::string last_modified;
+	// //entity headers
+	// std::string allow;
+	// std::string content_language;
+	// std::string content_length;
+	// std::string content_location;
+	// std::string content_type;
+	// std::string last_modified;
 
 	/* body */
 	std::string body;
@@ -124,6 +125,12 @@ typedef struct s_client
 	t_server server;
 } t_client;
 
+class BadRequestException : public std::exception
+	{
+		virtual const char *what() const throw();
+	};
+
+void free_tab(char **args, int length);
 void req_interpreter(t_req &req);
 void res_generator(t_req &req, t_res &res, t_server &server);
 
