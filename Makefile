@@ -2,8 +2,8 @@ NAME = webserv
 CC = clang++
 
 # FLAG = -Wall -Wextra -Werror
-# FLAG = -g3 -fsanitize=address
-FLAG = 
+FLAG = -g3 -fsanitize=address
+# FLAG =
 
 SRC_NAME = ConfigParser.cpp \
 	HTTP.cpp \
@@ -17,20 +17,28 @@ OBJ_NAME = $(SRC_NAME:.cpp=.o)
 OBJ_PATH = ./obj
 OBJ = $(addprefix $(OBJ_PATH)/, $(OBJ_NAME))
 
-all: $(NAME)
+INC_LINK = -I./lib
+LIBFT = -L./lib -lft
 
-$(NAME): $(OBJ)
-	$(CC) $(FLAG) $(OBJ) -o $(NAME)
+all: $(NAME)
+	
+$(NAME): $(OBJ) libft
+	@$(CC) $(FLAG) $(INC_LINK) $(OBJ) $(LIBFT) -o $(NAME)
+
+libft :
+	@$(MAKE) -C ./lib all
 
 $(OBJ_PATH)/%.o: $(SRC_PATH)/%.cpp
 	@mkdir $(OBJ_PATH) 2> /dev/null || true
-	$(CC) $(FLAG) -o $@ -c $<
+	$(CC) $(FLAG) $(INC_LINK) -o $@ -c $<
 
 clean:
-	rm -rf ./obj
+	@$(MAKE) -C ./lib clean
+	@rm -rf ./obj
 
 fclean: clean
-	rm -rf ./obj $(NAME)
+	@$(MAKE) -C ./lib fclean
+	@rm -rf ./obj $(NAME)
 
 re: fclean all
 
