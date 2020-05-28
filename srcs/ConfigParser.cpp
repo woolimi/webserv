@@ -31,13 +31,13 @@ void ConfigParser::parsing(int fd)
 	sv.listen = 8080;
 	sv.client_max_body_size = 1; // 1MB = 1,000,000 bytes
 	sv.server_name = "localhost";
-	sv.root = "/home/wpark/Documents/webserv/www/";
+	sv.root = "/home/user42/Desktop/mashar/projects/webserv/www/";
 	// make location info
 	t_location loc;
 	loc.allow = "GET POST";
 	loc.autoindex = "on";
 	loc.index = "index.html";
-	loc.root = "/home/wpark/Documents/webserv/www/";
+	loc.root = "/home/user42/Desktop/mashar/projects/webserv/www/";
 	sv.location["/"] = loc;
 
 	srvs.push_back(sv);

@@ -19,7 +19,7 @@
 # include <netinet/in.h>
 # include <iostream>
 
-# define DEFAULT_CONF "/home/wpark/Documents/webserv/webserv.conf"
+# define DEFAULT_CONF "/home/user42/Desktop/mashar/projects/webserv/webserv.conf"
 # define MAX_BUFFER_SIZE 100
 
 typedef std::string route;
@@ -56,8 +56,26 @@ typedef struct s_req
 	std::string path;	 // essential
 	std::string version; // essential
 	/* header */
+	//client request headers
+	std::string accept_charsets;
+	std::string accept_language;
+	std::string authorization;
 	std::string host; // essential
-	std::string accept;
+	std::string referer;
+	std::string user_agent;
+
+	//common headers	
+	std::string date;
+	std::string transfer_encoding;
+
+	//entity headers
+	std::string allow;
+	std::string content_language;
+	std::string content_length;
+	std::string content_location;
+	std::string content_type;
+	std::string last_modified;
+
 	/* body */
 	std::string body;
 } t_req;
@@ -70,23 +88,23 @@ typedef struct s_res
 	std::string status_code;
 	std::string status_msg;
 	/* header */
-	std::string accept_charsets;
-	std::string accept_language;
+	//server response headers
+	std::string location;
+	std::string retry_after;
+	std::string server;
+	std::string www_authenticate;
+	
+	//common headers	
+	std::string date;
+	std::string transfer_encoding;
+
+	//entity headers
 	std::string allow;
-	std::string authorization;
 	std::string content_language;
 	std::string content_length;
 	std::string content_location;
 	std::string content_type;
-	std::string date;
-	std::string host; // essential
 	std::string last_modified;
-	std::string location;
-	std::string referer;
-	std::string server;
-	std::string transfer_encoding;
-	std::string user_agent;
-	std::string www_authenticate;
 	/* body */
 	std::string body;
 } t_res;

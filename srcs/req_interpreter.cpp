@@ -17,6 +17,15 @@
 
 void req_interpreter(t_req &req)
 {
-	// need to get data from raw
 	(void)req;
+	// need to get data from raw
+	// int x = req.raw.find("\r\n", 18);
+	// if (x >= 0)
+	// {
+	// 	std::cout <<x;	
+	// 	std::cout << " :Body exists\n";
+	// }
+	// std::cout << "---------------" << std::endl;
+	// std::cout << req.raw << std::endl;
+	// std::cout << "---------------" << std::endl;
 }
