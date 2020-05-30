@@ -165,9 +165,9 @@ int main(int ac, char **av)
 		send_request_and_receive_respond("NGINX", it->second);
 	}
 
-	// if ((it = cl->conf.find("WEBSERV_PORT")) != cl->conf.end() && !it->second.empty())
-	// {
-	// 	send_request_and_receive_respond("WEBSERV", it->second);
-	// }
+	if ((it = cl->conf.find("WEBSERV_PORT")) != cl->conf.end() && !it->second.empty())
+	{
+		send_request_and_receive_respond("WEBSERV", it->second);
+	}
 	return 0;
 }
