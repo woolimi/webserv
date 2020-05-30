@@ -13,6 +13,7 @@
 # include <fcntl.h>
 # include <string>
 # include <string.h>
+# include <algorithm>
 # include <vector>
 # include <map>
 # include <set>
@@ -58,28 +59,10 @@ typedef struct s_req
 	std::string method;	 // essential
 	std::string path;	 // essential
 	std::string version; // essential
+
 	/* header */
 	std::map<std::string, std::string> headers;
-	// //client request headers
-	// std::string accept_charsets;
-	// std::string accept_language;
-	// std::string authorization;
-	// std::string host; // essential
-	// std::string referer;
-	// std::string user_agent;
-
-	// //common headers	
-	// std::string date;
-	// std::string transfer_encoding;
-
-	// //entity headers
-	// std::string allow;
-	// std::string content_language;
-	// std::string content_length;
-	// std::string content_location;
-	// std::string content_type;
-	// std::string last_modified;
-
+	
 	/* body */
 	std::string body;
 } t_req;
@@ -92,23 +75,8 @@ typedef struct s_res
 	std::string status_code;
 	std::string status_msg;
 	/* header */
-	//server response headers
-	std::string location;
-	std::string retry_after;
-	std::string server;
-	std::string www_authenticate;
+	std::map<std::string, std::string> headers;
 	
-	//common headers	
-	std::string date;
-	std::string transfer_encoding;
-
-	//entity headers
-	std::string allow;
-	std::string content_language;
-	std::string content_length;
-	std::string content_location;
-	std::string content_type;
-	std::string last_modified;
 	/* body */
 	std::string body;
 } t_res;
@@ -125,13 +93,8 @@ typedef struct s_client
 	t_server server;
 } t_client;
 
-class BadRequestException : public std::exception
-	{
-		virtual const char *what() const throw();
-	};
-
 void free_tab(char **args, int length);
-void req_interpreter(t_req &req);
+std::string req_interpreter(t_req &req);
 void res_generator(t_req &req, t_res &res, t_server &server);
 
 #endif
