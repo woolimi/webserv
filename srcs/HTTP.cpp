@@ -94,6 +94,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 			{
 				printf("client sent request\n");
 				it->req_arrived = true;
+				std::cout << it->req.raw << std::endl;
 				req_interpreter(it->req);
 				res_generator(it->req, it->res, it->server);
 			}
