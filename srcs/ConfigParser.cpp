@@ -331,7 +331,7 @@ void ConfigParser::tokenizing(std::string &raw, std::vector<std::string> &tokens
 	for (size_t i = 0; char_tokens[i] != 0; i++)
 	{
 		tokens.push_back(std::string(char_tokens[i]));
-		std::cout << char_tokens[i] << ", " << std::endl;
+		// std::cout << char_tokens[i] << ", " << std::endl;
 	}
 	for (size_t i = 0; char_tokens[i] != 0; i++)
 		free(char_tokens[i]);
