@@ -1,0 +1,3 @@
+GET / HTTP/500
+Host: localhost
+
