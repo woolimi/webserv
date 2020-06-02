@@ -1,3 +1,2 @@
-GET / HTTP/500
-Host: localhost
+GET / HTTP/1.22222
 
