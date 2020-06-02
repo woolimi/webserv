@@ -93,6 +93,9 @@ static std::string trim(const std::string& s)
 // 2. throw t_client
 // don't need to setup message and body
 
+// if error is not occured
+// 1. set method ex) req.method = "GET"
+
 void req_interpreter(t_client &client)
 {
 	t_req &req = client.req;
