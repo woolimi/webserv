@@ -97,7 +97,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 				}
 				catch(t_client& client)
 				{
-					// make res raw depends on status code
+					// make res.raw depends on status code
 					res_generator(client);
 				}
 			}
@@ -179,6 +179,16 @@ void HTTP::http_select(int fdmax, fd_set &read_set, fd_set &write_set, struct ti
 	/* debug */
 	if (ret == 0)
 		printf("waiting client\n");
+}
+
+void HTTP::handle_methods(t_client &cli)
+{
+	t_req &req = cli.req;
+	if (req.method == "GET")
+		handle_get(cli);
+	// else if (req.method == "HEAD")
+	// 	handle_head(cli);
+	// ...
 }
 
 const char *HTTP::FailToSetServerSocket::what() const throw()

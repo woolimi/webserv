@@ -16,6 +16,7 @@ private:
 	void manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set, std::set<int> &fds);
 	void init_client(t_client &client);
 	void disconnect(fd_set& init_set, std::set<int> &fds, std::vector<t_client>::iterator &it);
+	void handle_methods(t_client &cli);
 
 public:
 	HTTP(std::vector<t_server> &srvs);

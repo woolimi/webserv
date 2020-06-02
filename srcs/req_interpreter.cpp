@@ -88,13 +88,16 @@ static std::string trim(const std::string& s)
 	return rtrim(ltrim(s));
 }
 
-// if error is occured
-// 1. set status code in t_req
+// If error is occured
+// 1. set status code
 // 2. throw t_client
-// don't need to setup message and body
+// Don't need to setup status code message and body. 
+// because it will be done in res_generator()
 
-// if error is not occured
-// 1. set method ex) req.method = "GET"
+// If error is not occured
+// 1. set method from request ex) req.method = "GET"
+// 2. set path from request ex) req.path = "/index.html"
+// 3. if body exist in req.raw, put body data into req.body
 
 void req_interpreter(t_client &client)
 {

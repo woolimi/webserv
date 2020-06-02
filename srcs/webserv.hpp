@@ -54,25 +54,21 @@ typedef struct s_req
 {
 	/* raw data */
 	std::string raw; // 100 + 100
-	/* req line */
-	std::string req_line;
+	/* request line */
+	std::string req_line; // ex) GET /index.html HTTP/1.1
 	std::string method;
+	std::string path;
 	/* header */
 	std::map<std::string, std::string> headers;
 	/* body */
 	std::string body;
-	/* request line */
-	// std::string method;	 // essential
-	// std::string path;	 // essential
-	// std::string version; // essential
-
 } t_req;
 
 typedef struct s_res
 {
 	std::string raw;
 	int status_code;
-	std::string res_line;
+	std::string res_line; // ex) HTTP/1.1 400 Bad Request
 	std::map<std::string, std::string> headers;
 	std::string body;
 } t_res;
@@ -92,5 +88,13 @@ typedef struct s_client
 void free_tab(char **args, int length);
 void req_interpreter(t_client &cli);
 void res_generator(t_client &cli);
-void handle_methods(t_client &cli);
+void handle_get(t_client &cli);
+// void handle_head(t_client &cli);
+// void handle_post(t_client &cli);
+// void handle_put(t_client &cli);
+// void handle_delete(t_client &cli);
+// void handle_connect(t_client &cli);
+// void handle_options(t_client &cli);
+// void handle_trace(t_client &cli);
+
 #endif

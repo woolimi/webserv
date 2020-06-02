@@ -6,7 +6,7 @@
 /*   By: wpark <wpark@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/05/19 14:02:48 by wpark             #+#    #+#             */
-/*   Updated: 2020/06/01 22:51:32 by wpark            ###   ########.fr       */
+/*   Updated: 2020/06/02 14:06:06 by wpark            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,10 +37,8 @@ int main(int ac, char **av, char **env)
 	{
 		// get config file param. If not exist, use default config
 		ConfigParser conf(ac, av);
-
 		// set server
 		HTTP http(conf.servers());
-
 		// run server
 		http.run();
 	}

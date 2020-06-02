@@ -23,6 +23,6 @@ void res_generator(t_client &cli)
 		res.raw += "Content-Length: ";
 		res.raw += "\r\n";
 		res.raw += "\r\n";
-		res.raw += res.body;
+		res.raw += res.body; // body data is already set in handle_[method_name] function.
 	}
 }
