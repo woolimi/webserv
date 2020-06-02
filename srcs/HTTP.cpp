@@ -84,27 +84,22 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 				continue;
 			}
 			buffer[nb_read] = '\0';
-			it->req.raw += std::string(buffer);
+			it->req.raw = std::string(buffer);
 			if (nb_read < MAX_BUFFER_SIZE)
 			{
-				if (nb_read == 2 && is_newline_char(buffer[0]) && is_newline_char(buffer[1]))
-					it->req.new_line++;
-				else
-					it->req.new_line = 0;
-				if (it->req.new_line == 1)
-					it->req_arrived = true;
 				printf("client sent request\n");
 				try
 				{
 					req_interpreter(*it);
-					if (it->res.status_code == 123456)
+					if (it->res.status_code == 123456 && (it->res.status_code = 0))
 						it->req_arrived = false;
 					if (it->req_arrived == true)
+					{
 						handle_methods(*it);
+					}
 				}
 				catch(t_client& client)
 				{
-					// make res.raw depends on status code
 					res_generator(client);
 				}
 			}
@@ -166,9 +161,12 @@ void HTTP::disconnect(fd_set &init_set, std::set<int> &fds, std::vector<t_client
 void HTTP::init_client(t_client &client)
 {
 	client.socket = 0;
+	client.req.req_line_parsed = 0;
+	client.req.req_header_parsed = 0;
 	client.addr_len = sizeof(client.addr);
 	client.req_arrived = false;
 	client.res_sent = false;
+	client.res.status_code = 0;
 }
 
 void HTTP::init_timeout(struct timeval &timeout, int sec, int usec)

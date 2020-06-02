@@ -53,6 +53,8 @@ typedef struct s_server
 typedef struct s_req
 {
 	int new_line;
+	int req_line_parsed;
+	int req_header_parsed;
 	std::string version;
 	/* raw data */
 	std::string raw; // 100 + 100

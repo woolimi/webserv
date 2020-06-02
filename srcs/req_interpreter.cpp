@@ -94,7 +94,7 @@ static void parse_request_line(char *request_line, t_client &client)
 			return;
 		}
 	}
-	client.res.status_code = 200;
+	client.req.req_line_parsed = 1;
 }
 
 static std::string ltrim(const std::string& s)
@@ -125,74 +125,77 @@ static std::string trim(const std::string& s)
 // 2. set path from request ex) req.path = "/index.html"
 // 3. if body exist in req.raw, put body data into req.body
 
-void req_interpreter(t_client &client)
+void parse_request_header(t_client &client)
 {
 	t_req &req = client.req;
-	char **header;
-	int i = 0;
-	while (req.raw[i] && is_newline_char(req.raw[i]))
-		i++;
-	req.raw = req.raw.substr(i);
-	std::string::size_type body_start = req.raw.find("\r\n\r\n");
-	if (body_start == std::string::npos)
-		body_start = req.raw.find("\n\n");
-	if (body_start != std::string::npos)
-		header = ft_split(req.raw.substr(0, body_start).c_str(), "\r\n");
-	else
-		header = ft_split(req.raw.c_str(),"\r\n");
 
-	if(header == NULL || header[0] == NULL)
+	if (req.raw.find(":") == std::string::npos || req.raw.find(":") == 0)
+		return;
+	std::string key = req.raw.substr(0, req.raw.find(":"));
+	transform(key.begin(), key.end(), key.begin(), ::tolower);
+	std::string value = req.raw.substr(req.raw.find(":") + 1);
+	if (key.find_first_of(" \n\r\t\f\v") == 0 || key.find_first_of("\n\r\t\f\v") == (key.length() - 1))
 	{
-		free_tab(header);
-		client.res.status_code = 123456;
+		client.res.status_code = 400;
 		return;
 	}
-	parse_request_line(header[0], client);
-	if (client.res.status_code != 200)
+
+	value = trim(value);
+	if(req.headers.find(key) != req.headers.end())
 	{
-		free_tab(header);
-		throw client;
+		req.headers[key] += ",";
+		req.headers[key] += value;
 	}
+	else
+		req.headers[key] = value;
 
-	for(int i = 1; header[i] != 0; i++)
-	{
-		std::string str(header[i]);
-		if (str.find(":") == std::string::npos)
-		{
-			free_tab(header);
-			client.res.status_code = 400;
-			throw client;
-		}
 
-		if(str.find(":") == 0)
-			continue;
-
-		std::string key = str.substr(0, str.find(":"));
-		transform(key.begin(), key.end(), key.begin(), ::tolower);
-		std::string value = str.substr(str.find(":") + 1);
-		if (key.find_first_of(" \n\r\t\f\v") == 0 || key.find_first_of("\n\r\t\f\v") == (key.length() - 1))
-		{
-			free_tab(header);
-			client.res.status_code = 400;
-			throw client;
-		}
-
-		value = trim(value);
-		if(req.headers.find(key) != req.headers.end())
-		{
-			req.headers[key] += ",";
-			req.headers[key] += value;
-		}
-		else
-			req.headers[key] = value;
-	}
 	// for(std::map<std::string, std::string>::iterator it = req.headers.begin();
     // it != req.headers.end(); ++it)
 	// {
     // 	std::cout << it->first << "-" << it->second << "\n";
 	// }
-	if (body_start > 0)
-		req.body = req.raw.substr(body_start + 4);
-	free_tab(header);
+}
+
+void req_interpreter(t_client &client)
+{
+	t_req &req = client.req;
+	if (req.raw.length() == 2 && req.raw[0] == '\r' && req.raw[1] == '\n' && !req.req_line_parsed)
+	{
+		client.res.status_code = 123456;
+		return;
+	}
+	
+	if (!req.req_line_parsed)
+	{
+		parse_request_line((char*)req.raw.c_str(), client);
+		if (client.res.status_code != 200 && client.res.status_code != 0)
+			throw client;
+		return;
+	}
+
+	if (!req.req_header_parsed)
+	{
+		std::cout << "length: "<< client.req.raw.length() << std::endl;
+		if (client.req.raw.length() == 2 && client.req.raw[0] == '\r' && client.req.raw[1] == '\n')
+		{
+			req.req_header_parsed = 1;
+			client.req_arrived = true;
+			return;
+		}
+		parse_request_header(client);
+		if (client.res.status_code == 400)
+			throw client;
+		return;
+	}
+
+	// // for(std::map<std::string, std::string>::iterator it = req.headers.begin();
+    // // it != req.headers.end(); ++it)
+	// // {
+    // // 	std::cout << it->first << "-" << it->second << "\n";
+	// // }
+	// if (body_start > 0)
+	// 	req.body = req.raw.substr(body_start + 4);
+	// free_tab(header);
 	client.res.status_code = 200;
 }
