@@ -1,25 +1,28 @@
 #include "webserv.hpp"
+#include "HttpStatus.hpp"
 
-void res_generator(t_req &req, t_res &res, t_server &server)
+void res_generator(t_client &cli)
 {
-	// generate res depends on req and server
-	(void)req;
-	// res.version = "HTTP/1.1";
-	// res.status_code = "200";
-	// res.status_msg = "OK";	
-	// res.content_type = "text/html";
-	// res.server = "webserv";
-	// int fd = open("/home/user42/Desktop/mashar/projects/webserv/www/default.html", O_RDONLY);
-	// char buff[1001];
-	// int ret = read(fd, buff, 1001);
-	// close(fd);
-	// buff[ret] = '\0';
-	// res.body += std::string(buff);
+	t_req &req = cli.req;
+	t_res &res = cli.res;
+	t_server &serv = cli.server;
 
-	// res.raw = "";
-	// res.raw += res.version + " " + res.status_code + " " + res.status_msg + "\n";
-	// res.raw += "Content-Type : " + res.content_type + "\n";
-	// res.raw += "Server: " + res.server + "\n";
-	// res.raw += "\n";
-	// res.raw += res.body;
+	if (!HttpStatus::isSuccessful(res.status_code))
+	{
+		// make dynamic error page
+		// if default error page is set, use default one.
+	} else
+	{
+		res.raw += "HTTP/1.1 " + std::to_string(res.status_code) + " " + HttpStatus::reasonPhrase(res.status_code);
+		res.raw += "\r\n";
+		res.raw += "Server: webserv/1.0";
+		res.raw += "\r\n";
+		res.raw += "Date: ";
+		res.raw += "\r\n";
+		res.raw += "Content-Type: text/html";
+		res.raw += "Content-Length: ";
+		res.raw += "\r\n";
+		res.raw += "\r\n";
+		res.raw += res.body; // body data is already set in handle_[method_name] function.
+	}
 }

@@ -25,6 +25,7 @@
 # define MAX_BUFFER_SIZE 100
 
 typedef std::string route;
+
 typedef struct s_location
 {
 	std::string root;
@@ -51,18 +52,14 @@ typedef struct s_server
 
 typedef struct s_req
 {
-	/* server info */
-	t_server server;
 	/* raw data */
 	std::string raw; // 100 + 100
 	/* request line */
-	std::string method;	 // essential
-	std::string path;	 // essential
-	std::string version; // essential
-
+	std::string req_line; // ex) GET /index.html HTTP/1.1
+	std::string method;
+	std::string path;
 	/* header */
 	std::map<std::string, std::string> headers;
-	
 	/* body */
 	std::string body;
 } t_req;
@@ -70,14 +67,9 @@ typedef struct s_req
 typedef struct s_res
 {
 	std::string raw;
-	/* respond line */
-	std::string version;
-	std::string status_code;
-	std::string status_msg;
-	/* header */
+	int status_code;
+	std::string res_line; // ex) HTTP/1.1 400 Bad Request
 	std::map<std::string, std::string> headers;
-	
-	/* body */
 	std::string body;
 } t_res;
 
@@ -94,7 +86,15 @@ typedef struct s_client
 } t_client;
 
 void free_tab(char **args, int length);
-std::string req_interpreter(t_req &req);
-void res_generator(t_req &req, t_res &res, t_server &server);
+void req_interpreter(t_client &cli);
+void res_generator(t_client &cli);
+void handle_get(t_client &cli);
+// void handle_head(t_client &cli);
+// void handle_post(t_client &cli);
+// void handle_put(t_client &cli);
+// void handle_delete(t_client &cli);
+// void handle_connect(t_client &cli);
+// void handle_options(t_client &cli);
+// void handle_trace(t_client &cli);
 
 #endif

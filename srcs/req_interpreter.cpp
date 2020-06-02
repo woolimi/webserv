@@ -88,8 +88,20 @@ static std::string trim(const std::string& s)
 	return rtrim(ltrim(s));
 }
 
-std::string req_interpreter(t_req &req)
+// If error is occured
+// 1. set status code
+// 2. throw t_client
+// Don't need to setup status code message and body. 
+// because it will be done in res_generator()
+
+// If error is not occured
+// 1. set method from request ex) req.method = "GET"
+// 2. set path from request ex) req.path = "/index.html"
+// 3. if body exist in req.raw, put body data into req.body
+
+void req_interpreter(t_client &client)
 {
+	t_req &req = client.req;
 	char **header;
 	std::string::size_type body_start = req.raw.find("\r\n\r\n");
 	if (body_start == std::string::npos)
@@ -142,7 +154,7 @@ std::string req_interpreter(t_req &req)
 		else
 			req.headers[key] = value;
 	}
-	for(std::map<std::string, std::string >::iterator it = req.headers.begin();
+	// for(std::map<std::string, std::string>::iterator it = req.headers.begin();
     // it != req.headers.end(); ++it)
 	// {
     // 	std::cout << it->first << "-" << it->second << "\n";
