@@ -87,13 +87,20 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 			it->req.raw += std::string(buffer);
 			if (nb_read < MAX_BUFFER_SIZE)
 			{
+				if (nb_read == 2 && is_newline_char(buffer[0]) && is_newline_char(buffer[1]))
+					it->req.new_line++;
+				else
+					it->req.new_line = 0;
+				if (it->req.new_line == 1)
+					it->req_arrived = true;
 				printf("client sent request\n");
-				it->req_arrived = true;
 				try
 				{
-					// check request line, header, body
 					req_interpreter(*it);
-					handle_methods(*it);
+					if (it->res.status_code == 123456)
+						it->req_arrived = false;
+					if (it->req_arrived == true)
+						handle_methods(*it);
 				}
 				catch(t_client& client)
 				{

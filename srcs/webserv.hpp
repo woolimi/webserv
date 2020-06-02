@@ -52,6 +52,8 @@ typedef struct s_server
 
 typedef struct s_req
 {
+	int new_line;
+	std::string version;
 	/* raw data */
 	std::string raw; // 100 + 100
 	/* request line */
@@ -89,6 +91,8 @@ void free_tab(char **args, int length);
 void req_interpreter(t_client &cli);
 void res_generator(t_client &cli);
 void handle_get(t_client &cli);
+int is_newline_char(char c);
+
 // void handle_head(t_client &cli);
 // void handle_post(t_client &cli);
 // void handle_put(t_client &cli);

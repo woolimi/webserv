@@ -1,5 +1,12 @@
 #include "webserv.hpp"
 
+int is_newline_char(char c)
+{
+	if (c == '\r' || c == '\n')
+		return (1);
+	return (0);
+}
+
 static void	free_tab(char **args)
 {
 	int i;
@@ -18,7 +25,7 @@ static void	free_tab(char **args)
 	}
 }
 
-static std::string parse_request_line(char *request_line, t_req &req)
+static void parse_request_line(char *request_line, t_client &client)
 {
 	int size = 0;
 	std::set<std::string> methods = {"GET", "POST", "PUT", "OPTIONS", "HEAD", "DELETE", "TRACE", "CONNECT"};
@@ -28,47 +35,66 @@ static std::string parse_request_line(char *request_line, t_req &req)
 	if (size != 3)
 	{
 		free_tab(request_line_split);
-		return ("400:Bad Request");
+		client.res.status_code = 400;
+		return;
 	}
-	req.method = request_line_split[0];
-	if (methods.find(req.method) == methods.end())
+	client.req.method = request_line_split[0];
+	if (methods.find(client.req.method) == methods.end())
 	{
 		free_tab(request_line_split);
-		return ("400:Bad Request");
+		client.res.status_code = 400;
+		return;
 	}
-	req.path = request_line_split[1];
-	if ( req.path.find("/") != 0)
+	client.req.path = request_line_split[1];
+	if ( client.req.path.find("/") != 0)
 	{
 		free_tab(request_line_split);
-		return ("400:Bad Request");
+		client.res.status_code = 400;
+		return;
 	}
-	req.version = request_line_split[2];
+	client.req.version = request_line_split[2];
 	free_tab(request_line_split);
 
 	int x;
-	if(((x = req.version.find("/")) != req.version.rfind("/")) || (req.version.find("/") == std::string::npos))
-		return ("400:Bad Request");
+	if(((x = client.req.version.find("/")) != client.req.version.rfind("/")) || (client.req.version.find("/") == std::string::npos))
+	{
+		client.res.status_code = 400;
+		return;
+	}
+	if((client.req.version.find(".") != client.req.version.rfind(".")) || (client.req.version.find(".") == std::string::npos))
+	{
+		client.res.status_code = 400;
+		return;
+	}
 
-	if((req.version.find(".") != req.version.rfind(".")) || (req.version.find(".") == std::string::npos))
-		return ("400:Bad Request");
+	if(client.req.version.substr(0, x) != "HTTP")
+	{
+		client.res.status_code = 400;
+		return;
+	}
 
-	if(req.version.substr(0, x) != "HTTP")
-		return ("400:Bad Request");
-
-	std::string vno = req.version.substr(req.version.find("/") + 1);
+	std::string vno = client.req.version.substr(client.req.version.find("/") + 1);
 	if(vno.length() > 6)
-		return ("400:Bad Request");
+	{
+		client.res.status_code = 400;
+		return;
+	}
 
-	std::cout << vno << std::endl;
 	if(vno[0] != '1')
-		return ("400:Bad Request");
+	{
+		client.res.status_code = 505;
+		return;
+	}
 		
 	for (int i = 1; i < vno.length(); i++)
 	{
 		if(!ft_isdigit((char)vno[i]) && vno[i] != '.')
-			return ("400:Bad Request");
+		{
+			client.res.status_code = 400;
+			return;
+		}
 	}
-	return("200:OK");
+	client.res.status_code = 200;
 }
 
 static std::string ltrim(const std::string& s)
@@ -103,6 +129,10 @@ void req_interpreter(t_client &client)
 {
 	t_req &req = client.req;
 	char **header;
+	int i = 0;
+	while (req.raw[i] && is_newline_char(req.raw[i]))
+		i++;
+	req.raw = req.raw.substr(i);
 	std::string::size_type body_start = req.raw.find("\r\n\r\n");
 	if (body_start == std::string::npos)
 		body_start = req.raw.find("\n\n");
@@ -110,18 +140,18 @@ void req_interpreter(t_client &client)
 		header = ft_split(req.raw.substr(0, body_start).c_str(), "\r\n");
 	else
 		header = ft_split(req.raw.c_str(),"\r\n");
-	if(header == NULL)
-	{
-		free_tab(header);
-		return ("400:Bad Request");
-	}
 
-	std::string req_line = parse_request_line(header[0], req);
-	std::cout << req_line;
-	if (req_line[0] != '2')
+	if(header == NULL || header[0] == NULL)
 	{
 		free_tab(header);
-		return ("400:Bad Request");
+		client.res.status_code = 123456;
+		return;
+	}
+	parse_request_line(header[0], client);
+	if (client.res.status_code != 200)
+	{
+		free_tab(header);
+		throw client;
 	}
 
 	for(int i = 1; header[i] != 0; i++)
@@ -130,7 +160,8 @@ void req_interpreter(t_client &client)
 		if (str.find(":") == std::string::npos)
 		{
 			free_tab(header);
-			return ("400:Bad Request");
+			client.res.status_code = 400;
+			throw client;
 		}
 
 		if(str.find(":") == 0)
@@ -142,7 +173,8 @@ void req_interpreter(t_client &client)
 		if (key.find_first_of(" \n\r\t\f\v") == 0 || key.find_first_of("\n\r\t\f\v") == (key.length() - 1))
 		{
 			free_tab(header);
-			return ("400:Bad Request");
+			client.res.status_code = 400;
+			throw client;
 		}
 
 		value = trim(value);
@@ -162,5 +194,5 @@ void req_interpreter(t_client &client)
 	if (body_start > 0)
 		req.body = req.raw.substr(body_start + 4);
 	free_tab(header);
-	return ("200:OK");
+	client.res.status_code = 200;
 }
