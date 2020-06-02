@@ -80,12 +80,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 			nb_read = read(it->socket, buffer, MAX_BUFFER_SIZE);
 			if (nb_read < 0) // When client close connection
 			{ // remove clinet
-				fds.erase(it->socket);
-				FD_CLR(it->socket, &init_set);
-				close(it->socket);
-				it = clients.erase(it);
-				--it;
-				printf("client disconnected\n");
+				disconnect(init_set, fds, it);
 				continue;
 			}
 			buffer[nb_read] = '\0';
@@ -94,9 +89,17 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 			{
 				printf("client sent request\n");
 				it->req_arrived = true;
-				std::string resp = req_interpreter(it->req);
-				// std::cout << resp << std::endl;
-				res_generator(it->req, it->res, it->server);
+				try
+				{
+					// check request line, header, body
+					req_interpreter(*it);
+					handle_methods(*it);
+				}
+				catch(t_client& client)
+				{
+					// make res raw depends on status code
+					res_generator(client);
+				}
 			}
 			continue;
 		}
@@ -112,12 +115,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 		// close client after sent all request
 		if (it->req_arrived && it->res_sent && FD_ISSET(it->socket, &write_set))
 		{
-			fds.erase(it->socket);
-			FD_CLR(it->socket, &init_set);
-			close(it->socket); // close TCP/IP connection
-			it = clients.erase(it);
-			--it;
-			printf("client disconnected\n");
+			disconnect(init_set, fds, it);
 			continue;
 		}
 		// if no request from client after connection ?
@@ -146,6 +144,16 @@ void HTTP::manage_servers(fd_set &read_set, fd_set &init_set, std::set<int> &fds
 			printf("client connected\n");
 		}
 	}
+}
+
+void HTTP::disconnect(fd_set &init_set, std::set<int> &fds, std::vector<t_client>::iterator &it)
+{
+	fds.erase(it->socket);
+	FD_CLR(it->socket, &init_set);
+	close(it->socket);
+	it = clients.erase(it);
+	--it;
+	printf("client disconnected\n");
 }
 
 void HTTP::init_client(t_client &client)

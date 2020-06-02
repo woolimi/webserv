@@ -25,6 +25,7 @@
 # define MAX_BUFFER_SIZE 100
 
 typedef std::string route;
+
 typedef struct s_location
 {
 	std::string root;
@@ -51,33 +52,28 @@ typedef struct s_server
 
 typedef struct s_req
 {
-	/* server info */
-	t_server server;
 	/* raw data */
 	std::string raw; // 100 + 100
-	/* request line */
-	std::string method;	 // essential
-	std::string path;	 // essential
-	std::string version; // essential
-
+	/* req line */
+	std::string req_line;
+	std::string method;
 	/* header */
 	std::map<std::string, std::string> headers;
-	
 	/* body */
 	std::string body;
+	/* request line */
+	// std::string method;	 // essential
+	// std::string path;	 // essential
+	// std::string version; // essential
+
 } t_req;
 
 typedef struct s_res
 {
 	std::string raw;
-	/* respond line */
-	std::string version;
-	std::string status_code;
-	std::string status_msg;
-	/* header */
+	int status_code;
+	std::string res_line;
 	std::map<std::string, std::string> headers;
-	
-	/* body */
 	std::string body;
 } t_res;
 
@@ -94,7 +90,7 @@ typedef struct s_client
 } t_client;
 
 void free_tab(char **args, int length);
-std::string req_interpreter(t_req &req);
-void res_generator(t_req &req, t_res &res, t_server &server);
-
+void req_interpreter(t_client &cli);
+void res_generator(t_client &cli);
+void handle_methods(t_client &cli);
 #endif
