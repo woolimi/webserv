@@ -25,6 +25,8 @@
 # define MAX_BUFFER_SIZE 100
 
 typedef std::string route;
+typedef std::string extension;
+typedef std::string path;
 
 typedef struct s_location
 {
@@ -32,6 +34,7 @@ typedef struct s_location
 	std::string autoindex;
 	std::vector<std::string> index;
 	std::vector<std::string> allow;
+	std::map<extension, path> cgi;
 } t_location;
 
 typedef struct s_server
@@ -88,6 +91,7 @@ typedef struct s_client
 void free_tab(char **args, int length);
 void req_interpreter(t_client &cli);
 void res_generator(t_client &cli);
+std::string mimetype(const std::string &extension);
 void handle_get(t_client &cli);
 // void handle_head(t_client &cli);
 // void handle_post(t_client &cli);
