@@ -34,11 +34,12 @@ private:
 		"error_page",
 		"client_max_body_size"
 	};
-	std::string location_attr[4] = {
+	std::string location_attr[5] = {
 		"root",
 		"autoindex",
 		"index",
-		"allow"
+		"allow",
+		"cgi"
 	};
 	std::string http_methods[8] = {
 		"GET",

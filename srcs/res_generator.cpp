@@ -21,7 +21,6 @@ void res_generator(t_client &cli)
 		res.raw += "\r\n";
 		res.raw += "Date: ";
 		res.raw += "\r\n";
-		res.raw += "Content-Type: text/html";
 		res.raw += "Content-Length: ";
 		res.raw += "\r\n";
 		res.raw += "\r\n";
