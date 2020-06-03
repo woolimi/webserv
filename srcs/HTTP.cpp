@@ -109,8 +109,11 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 		if (it->req_arrived && !it->res_sent && FD_ISSET(it->socket, &write_set))
 		{
 			// chunk
+			std::cout <<"hek";
 			write(it->socket, it->res.raw.c_str(), it->res.raw.size());
 			it->res_sent = true;
+			if (it->req.req_body_parsed)
+				std::cout << "Body: " << it->req.body << std::endl;
 			printf("server responded\n");
 			continue;
 		}
@@ -164,6 +167,7 @@ void HTTP::init_client(t_client &client)
 	client.req.req_line_parsed = 0;
 	client.req.req_header_parsed = 0;
 	client.req.req_body_parsed = 0;
+	client.req.content_length = -1;
 	client.addr_len = sizeof(client.addr);
 	client.req_arrived = false;
 	client.res_sent = false;

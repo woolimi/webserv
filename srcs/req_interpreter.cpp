@@ -74,6 +74,8 @@ static void parse_request_line(char *request_line, t_client &client)
 	}
 
 	std::string vno = client.req.version.substr(client.req.version.find("/") + 1);
+	if (vno[vno.length() - 2] == '\r' && vno[vno.length() - 1] == '\n')
+		vno = vno.substr(0, vno.length() - 2);
 	if(vno.length() > 6)
 	{
 		client.res.status_code = 400;
@@ -85,10 +87,10 @@ static void parse_request_line(char *request_line, t_client &client)
 		client.res.status_code = 505;
 		return;
 	}
-		
+	
 	for (int i = 1; i < vno.length(); i++)
 	{
-		if(!ft_isdigit((char)vno[i]) && vno[i] != '.')
+		if(vno[i] && !ft_isdigit((char)vno[i]) && vno[i] != '.')
 		{
 			client.res.status_code = 400;
 			return;
@@ -191,13 +193,32 @@ void req_interpreter(t_client &client)
 
 	if (!req.req_body_parsed)
 	{
-		if (req.headers.find("transfer-encoding") != 0)
+		if (req.headers.find("transfer-encoding") != req.headers.end())
 		{
 			// do transfer encoding
 		}
-		else if (req.headers.find("content-length") != 0)
+		else if (req.headers.find("content-length") != req.headers.end())
 		{
-			content-length = ft_atoi((char *)req.headers["content-length"].c_str());
+			if (req.content_length == -1)
+			{
+				req.content_length = ft_atoi((char *)req.headers["content-length"].c_str());
+				if (req.content_length < 0)
+				{
+					client.res.status_code = 400;
+					throw client;
+				}
+			}
+			req.content_length -= (req.raw.size() - 2);
+			if (req.content_length < 0)
+			{
+				client.res.status_code = 400;
+				throw client;
+			}
+			req.body += req.raw;
+			if (req.content_length == 0 && (req.req_body_parsed = 1))
+			{
+				client.req_arrived = true;
+			}
 		}
 		else
 		{

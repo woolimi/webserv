@@ -56,7 +56,7 @@ typedef struct s_req
 	int req_line_parsed;
 	int req_header_parsed;
 	int req_body_parsed;
-	int content-length;
+	int content_length;
 	std::string version;
 	/* raw data */
 	std::string raw; // 100 + 100

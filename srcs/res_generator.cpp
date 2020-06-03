@@ -8,7 +8,6 @@ void res_generator(t_client &cli)
 	t_server &serv = cli.server;
 
 	std::cout << "STATUS: " << res.status_code << std::endl;
-
 	if (!HttpStatus::isSuccessful(res.status_code))
 	{
 		// make dynamic error page
