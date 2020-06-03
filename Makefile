@@ -9,6 +9,7 @@ SRC_NAME = ConfigParser.cpp \
 	HTTP.cpp \
 	main.cpp \
 	req_interpreter.cpp \
+	handle_get.cpp \
 	res_generator.cpp
 SRC_PATH = ./srcs
 SRC = $(addprefix $(SRC_PATH)/, $(SRC_NAME))
