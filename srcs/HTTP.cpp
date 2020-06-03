@@ -163,6 +163,7 @@ void HTTP::init_client(t_client &client)
 	client.socket = 0;
 	client.req.req_line_parsed = 0;
 	client.req.req_header_parsed = 0;
+	client.req.req_body_parsed = 0;
 	client.addr_len = sizeof(client.addr);
 	client.req_arrived = false;
 	client.res_sent = false;

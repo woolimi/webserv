@@ -29,7 +29,7 @@ static void parse_request_line(char *request_line, t_client &client)
 {
 	int size = 0;
 	std::set<std::string> methods = {"GET", "POST", "PUT", "OPTIONS", "HEAD", "DELETE", "TRACE", "CONNECT"};
-	char **request_line_split = ft_split(request_line, " \t\n\r\v");
+	char **request_line_split = ft_split(request_line, " \t");
 	while (request_line_split[size] != 0)
 		size++;
 	if (size != 3)
@@ -42,11 +42,11 @@ static void parse_request_line(char *request_line, t_client &client)
 	if (methods.find(client.req.method) == methods.end())
 	{
 		free_tab(request_line_split);
-		client.res.status_code = 400;
+		client.res.status_code = 405;
 		return;
 	}
 	client.req.path = request_line_split[1];
-	if ( client.req.path.find("/") != 0)
+	if (client.req.path.find("/") != 0)
 	{
 		free_tab(request_line_split);
 		client.res.status_code = 400;
@@ -69,7 +69,7 @@ static void parse_request_line(char *request_line, t_client &client)
 
 	if(client.req.version.substr(0, x) != "HTTP")
 	{
-		client.res.status_code = 400;
+		client.res.status_code = 404;
 		return;
 	}
 
@@ -161,7 +161,7 @@ void req_interpreter(t_client &client)
 {
 	t_req &req = client.req;
 	if (req.raw.length() == 2 && req.raw[0] == '\r' && req.raw[1] == '\n' && !req.req_line_parsed)
-	{
+	{//empty line before the request line
 		client.res.status_code = 123456;
 		return;
 	}
@@ -176,17 +176,34 @@ void req_interpreter(t_client &client)
 
 	if (!req.req_header_parsed)
 	{
-		std::cout << "length: "<< client.req.raw.length() << std::endl;
 		if (client.req.raw.length() == 2 && client.req.raw[0] == '\r' && client.req.raw[1] == '\n')
 		{
 			req.req_header_parsed = 1;
-			client.req_arrived = true;
+			if (req.headers.find("content-length") == req.headers.end() && req.headers.find("transfer-encoding") == req.headers.end()) 
+				client.req_arrived = true;
 			return;
 		}
 		parse_request_header(client);
 		if (client.res.status_code == 400)
 			throw client;
 		return;
+	}
+
+	if (!req.req_body_parsed)
+	{
+		if (req.headers.find("transfer-encoding") != 0)
+		{
+			// do transfer encoding
+		}
+		else if (req.headers.find("content-length") != 0)
+		{
+			content-length = ft_atoi((char *)req.headers["content-length"].c_str());
+		}
+		else
+		{
+			client.res.status_code = 411;
+			throw client;
+		}
 	}
 
 	// // for(std::map<std::string, std::string>::iterator it = req.headers.begin();
