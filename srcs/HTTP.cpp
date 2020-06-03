@@ -172,6 +172,7 @@ void HTTP::init_client(t_client &client)
 	client.req_arrived = false;
 	client.res_sent = false;
 	client.res.status_code = 0;
+	client.req.chunk_size_read = -1;
 }
 
 void HTTP::init_timeout(struct timeval &timeout, int sec, int usec)

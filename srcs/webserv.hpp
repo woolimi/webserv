@@ -57,6 +57,7 @@ typedef struct s_req
 	int req_header_parsed;
 	int req_body_parsed;
 	int content_length;
+	int chunk_size_read;
 	std::string version;
 	/* raw data */
 	std::string raw; // 100 + 100

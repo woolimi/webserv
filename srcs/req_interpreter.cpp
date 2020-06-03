@@ -86,8 +86,7 @@ static void parse_request_line(char *request_line, t_client &client)
 	{
 		client.res.status_code = 505;
 		return;
-	}
-	
+	}		
 	for (int i = 1; i < vno.length(); i++)
 	{
 		if(vno[i] && !ft_isdigit((char)vno[i]) && vno[i] != '.')
@@ -153,10 +152,46 @@ void parse_request_header(t_client &client)
 
 
 	// for(std::map<std::string, std::string>::iterator it = req.headers.begin();
-    // it != req.headers.end(); ++it)
+	// it != req.headers.end(); ++it)
 	// {
-    // 	std::cout << it->first << "-" << it->second << "\n";
+	// 	std::cout << it->first << "-" << it->second << "\n";
 	// }
+}
+
+int convert(char* num)
+{
+	int len = ft_strlen(num - 2);
+	int base = 1;
+	int temp = 0;
+	for (int i = len - 1; i >= 0; i--)
+	{
+		if (num[i] >= '0' && num[i] <= '9')
+		{
+			temp += (num[i] - 48)*base;
+			base = base * 16;
+		}
+		else if (num[i] >= 'A' && num[i] <= 'F')
+		{
+			temp += (num[i] - 55) * base;
+			base = base*16;
+		}
+	}
+	return temp;
+}
+
+int read_chunk_size(char *chunk_size, t_client &client)
+{
+	int len = ft_strlen(chunk_size);
+	int num = 0;
+	if (ft_strlen(chunk_size) == 3 && chunk_size[0] == '0' && chunk_size[0] == '\r' && chunk_size[0] == '\n')
+		return 0;
+	for(int i = 0; i < len - 2; i++)
+	{
+		if(!(chunk_size[i] >= '0' && chunk_size[i] <= '9') && !(chunk_size[i] >= 'a' && chunk_size[i] <= 'f'))
+			return -1;
+	}
+	num = convert(chunk_size);
+	return num;
 }
 
 void req_interpreter(t_client &client)
@@ -195,7 +230,29 @@ void req_interpreter(t_client &client)
 	{
 		if (req.headers.find("transfer-encoding") != req.headers.end())
 		{
-			// do transfer encoding
+			if(req.chunk_size_read < 0)
+			{
+				client.req.chunk_size_read = read_chunk_size((char*)req.raw.c_str(), client);
+				if (req.chunk_size_read < 0)
+				{
+					client.res.status_code = 400;
+					throw client;
+				}
+				return;
+			}
+			if (req.chunk_size_read != (req.raw.length() - 2))
+			{
+				client.res.status_code = 400;
+				throw client;
+			}
+			if (req.chunk_size_read == 0 && client.req.raw.length() == 2 && client.req.raw[0] == '\r' && client.req.raw[1] == '\n')
+			{
+				req.req_body_parsed = 1;
+				client.req_arrived = true;
+				return;
+			}
+			req.body += req.raw;
+			req.chunk_size_read = -1;
 		}
 		else if (req.headers.find("content-length") != req.headers.end())
 		{
@@ -228,9 +285,9 @@ void req_interpreter(t_client &client)
 	}
 
 	// // for(std::map<std::string, std::string>::iterator it = req.headers.begin();
-    // // it != req.headers.end(); ++it)
+	// // it != req.headers.end(); ++it)
 	// // {
-    // // 	std::cout << it->first << "-" << it->second << "\n";
+	// // 	std::cout << it->first << "-" << it->second << "\n";
 	// // }
 	// if (body_start > 0)
 	// 	req.body = req.raw.substr(body_start + 4);
