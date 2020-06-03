@@ -9,6 +9,7 @@ SRC_NAME = ConfigParser.cpp \
 	HTTP.cpp \
 	main.cpp \
 	req_interpreter.cpp \
+	handle_get.cpp \
 	res_generator.cpp \
 	mimetype.cpp
 SRC_PATH = ./srcs

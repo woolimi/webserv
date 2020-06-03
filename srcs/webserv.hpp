@@ -55,6 +55,13 @@ typedef struct s_server
 
 typedef struct s_req
 {
+	int new_line;
+	int req_line_parsed;
+	int req_header_parsed;
+	int req_body_parsed;
+	int content_length;
+	int chunk_size_read;
+	std::string version;
 	/* raw data */
 	std::string raw; // 100 + 100
 	/* request line */
@@ -93,6 +100,8 @@ void req_interpreter(t_client &cli);
 void res_generator(t_client &cli);
 std::string mimetype(const std::string &extension);
 void handle_get(t_client &cli);
+int is_newline_char(char c);
+
 // void handle_head(t_client &cli);
 // void handle_post(t_client &cli);
 // void handle_put(t_client &cli);

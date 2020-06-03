@@ -84,20 +84,22 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 				continue;
 			}
 			buffer[nb_read] = '\0';
-			it->req.raw += std::string(buffer);
+			it->req.raw = std::string(buffer);
 			if (nb_read < MAX_BUFFER_SIZE)
 			{
 				printf("client sent request\n");
-				it->req_arrived = true;
 				try
 				{
-					// check request line, header, body
 					req_interpreter(*it);
-					handle_methods(*it);
+					if (it->res.status_code == 123456 && (it->res.status_code = 0))
+						it->req_arrived = false;
+					if (it->req_arrived == true)
+					{
+						handle_methods(*it);
+					}
 				}
 				catch(t_client& client)
 				{
-					// make res.raw depends on status code
 					res_generator(client);
 				}
 			}
@@ -107,8 +109,11 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 		if (it->req_arrived && !it->res_sent && FD_ISSET(it->socket, &write_set))
 		{
 			// chunk
+			std::cout <<"hek";
 			write(it->socket, it->res.raw.c_str(), it->res.raw.size());
 			it->res_sent = true;
+			if (it->req.req_body_parsed)
+				std::cout << "Body: " << it->req.body << std::endl;
 			printf("server responded\n");
 			continue;
 		}
@@ -159,9 +164,15 @@ void HTTP::disconnect(fd_set &init_set, std::set<int> &fds, std::vector<t_client
 void HTTP::init_client(t_client &client)
 {
 	client.socket = 0;
+	client.req.req_line_parsed = 0;
+	client.req.req_header_parsed = 0;
+	client.req.req_body_parsed = 0;
+	client.req.content_length = -1;
 	client.addr_len = sizeof(client.addr);
 	client.req_arrived = false;
 	client.res_sent = false;
+	client.res.status_code = 0;
+	client.req.chunk_size_read = -1;
 }
 
 void HTTP::init_timeout(struct timeval &timeout, int sec, int usec)
