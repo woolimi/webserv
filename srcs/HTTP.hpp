@@ -18,6 +18,7 @@ private:
 	void disconnect(fd_set& init_set, std::set<int> &fds, std::vector<t_client>::iterator &it);
 	void handle_methods(t_client &cli);
 	void respond_service_unavailable(std::vector<t_client>::iterator &it);
+	int send_response(std::vector<t_client>::iterator &it);
 
 public:
 	HTTP(std::vector<t_server> &srvs);
