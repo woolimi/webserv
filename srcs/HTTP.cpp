@@ -76,9 +76,11 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 	for (it = clients.begin(); it != clients.end(); ++it)
 	{
 		// receive request
-		if (FD_ISSET(it->socket, &read_set))
+		if (FD_ISSET(it->socket, &read_set) && it->res.status_code == 0)
 		{
 			nb_read = read(it->socket, buffer, MAX_BUFFER_SIZE);
+			if (nb_read == 0)
+				continue;
 			// Client close connection unexpectly
 			if (nb_read < 0)
 			{
@@ -139,9 +141,8 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 		// send response (Content-Length)
 		if (!it->res.raw.empty() && FD_ISSET(it->socket, &write_set))
 		{
-			// renew client time_stamp
-			write(it->socket, it->res.raw.c_str(), MAX_BUFFER_SIZE);
-			// subtract sended data from res.raw
+			if (send_response(it) < 0)
+				disconnect(init_set, fds, it);
 			continue;
 		} else if (it->res.raw.empty() && it->req.req_line_parsed == true)
 		{	// for keeping alive...
@@ -149,7 +150,6 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 			it->req_header_arrived = false;
 			it->req_body_arrived = false;
 			it->res.status_code = 0;
-			continue;
 		}
 
 		// close client when timeout
@@ -251,6 +251,27 @@ void HTTP::respond_service_unavailable(std::vector<t_client>::iterator &it)
 	it->res.status_code = 503; // ServiceUnavailable
 	res_generator(*it);
 	write(it->socket, it->res.raw.c_str(), it->res.raw.size());
+}
+
+int HTTP::send_response(std::vector<t_client>::iterator &it)
+{
+	struct timeval tv;
+	ssize_t nb_write;
+
+	if (it->res.raw.size() > MAX_BUFFER_SIZE)
+		nb_write = write(it->socket, it->res.raw.c_str(), MAX_BUFFER_SIZE);
+	else
+		nb_write = write(it->socket, it->res.raw.c_str(), it->res.raw.size());
+	if (nb_write == -1)
+		return (-1);
+	if (nb_write == 0)
+		return (0);
+	// if sent response without problem, renew client time
+	gettimeofday(&tv, NULL);
+	it->time_stamp = tv.tv_sec;
+	// remove sent data from res.raw
+	it->res.raw.erase(0, nb_write);
+	return (1);
 }
 
 const char *HTTP::FailToSetServerSocket::what() const throw()
