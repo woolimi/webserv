@@ -1,8 +1,7 @@
-POST / HTTP/1.1
+GET / HTTP/1.1
 host: localhost
-Content-Length: 1500  // 1000
 
-1000 1500
-abcdadsfsasdfasdfasdfadsf
 
-1000 
+GET / HTTP/1.1
+host: localhost
+
