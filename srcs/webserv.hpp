@@ -22,7 +22,9 @@
 # include "libft.h"
 
 # define DEFAULT_CONF_NAME "webserv.conf"
-# define MAX_BUFFER_SIZE 100
+# define MAX_BUFFER_SIZE 4096
+# define MAX_CLIENT 100
+# define CLIENT_TIMEOUT_SEC 1
 
 typedef std::string route;
 typedef std::string extension;
@@ -86,13 +88,15 @@ typedef struct s_res
 typedef struct s_client
 {
 	int socket;
-	bool req_arrived;
-	bool res_sent;
+	bool req_line_arrived; // request line
+	bool req_header_arrived; // request headers
+	bool req_body_arrived;
 	struct sockaddr_in addr;
 	socklen_t addr_len;
 	t_req req;
 	t_res res;
 	t_server server;
+	int time_stamp;
 } t_client;
 
 void free_tab(char **args, int length);

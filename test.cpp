@@ -4,12 +4,12 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/time.h>
+
 int main(int argc, char const *argv[])
 {
-	int fd = open("./.gitignore", O_RDONLY);
-	char buff[10001];
-	int res = read(fd, buff, 10000);
-	buff[res] = 0;
-	std::cout << buff << std::endl;
+	struct timeval tv;
+	int timestamp = gettimeofday(&tv, NULL);
+	std::cout << tv.tv_sec << std::endl;
 	return 0;
 }
