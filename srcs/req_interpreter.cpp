@@ -88,7 +88,7 @@ void parse_request_line(char *request_line, t_client &client)
 		return;
 	}
 
-	if(vno[0] != '1')
+	if(vno[0] != '1' || vno[1] != '.')
 	{
 		set_http_status(client, 505);
 		return;

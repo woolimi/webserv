@@ -76,7 +76,6 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 	for (it = clients.begin(); it != clients.end(); ++it)
 	{
 		// receive request
-			std::cout << nb_read << " nb reassd" << std::endl;
 		if (FD_ISSET(it->socket, &read_set) && it->res.status_code == 0)
 		{
 			nb_read = read(it->socket, buffer, MAX_BUFFER_SIZE);
@@ -112,6 +111,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 				std::cout << it->req.method << " ";
 				std::cout << it->req.path << " ";
 				std::cout << it->req.version << std::endl;
+				std::cout << "raw:" << it->req.raw.empty() << std::endl;
 				// check request line
 				// if invalid, throw client with error status code
 				// if valid, in the function
@@ -121,10 +121,12 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 			}
 			if (it->req.req_line_parsed == 2 && it->req.req_header_parsed != 2)
 			{
+				std::cout <<"thqqqss" << std::endl;
 				if (it->req.raw.empty())
 					continue;
+				std::cout <<"thss" << std::endl;
 				it->req.req_header_parsed = 1;
-				while (it->req.req_header_parsed != 2 || !it->req.raw.empty())
+				while (it->req.req_header_parsed != 2 && !it->req.raw.empty())
 				{
 					parse_request_header(*it, it->req.raw.substr(0, it->req.raw.find("\r\n") + 2));
 					it->req.raw = it->req.raw.substr(it->req.raw.find("\r\n") + 2);
@@ -142,9 +144,9 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 				if (it->req_arrived)
 				{
 					it->req.req_body_parsed = 2;
-					continue;
 				}
-				parse_request_body(*it);
+				else
+					parse_request_body(*it);
 				// case1. content-length : make req.body, remove part from it.raw, check req.body size.
 					// if body size < content-length it->req_body_arrived = false;
 					// if body size == content-length it->req_body_arrived = true
@@ -155,8 +157,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 			}
 			if (it->req_arrived && !it->res_sent)
 			{
-				std::cout << it->req.body;
-				std::cout << it->res.status_code << std::endl;
+				std::cout << "Status: " << it->res.status_code << std::endl;
 				// handle_methods(*it);
 				// res_generator(*it); // with conent-length
 				//reset all request parsing flags
@@ -187,12 +188,11 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 
 		// close client when timeout
 		gettimeofday(&tv, NULL);
-		if (tv.tv_sec - it->time_stamp > CLIENT_TIMEOUT_SEC)
-		{
-			std::cout << "HEKSKHSD\n";
-			disconnect(init_set, fds, it);
-			continue;
-		}
+		// if (tv.tv_sec - it->time_stamp > CLIENT_TIMEOUT_SEC)
+		// {
+		// 	disconnect(init_set, fds, it);
+		// 	continue;
+		// }
 
 		// Server reject client connection with 503 respond
 		if (it - clients.begin() > MAX_CLIENT)
@@ -223,6 +223,7 @@ void HTTP::manage_servers(fd_set &read_set, fd_set &init_set, std::set<int> &fds
 			clients.push_back(new_client);
 			fds.insert(new_client.socket); //fdmax
 			FD_SET(new_client.socket, &init_set);
+			// std::cout << "FD1: "<< FD_ISSET(new_client.socket, &init_set) << std::endl;
 			printf("client connected\n");
 		}
 	}
@@ -246,6 +247,8 @@ void HTTP::init_client(t_client &client)
 	client.req.req_body_parsed = 0;
 	client.req.content_length = -1;
 	client.addr_len = sizeof(client.addr);
+	client.req_arrived = false;
+	client.res_sent = false;
 	// client.req_line_arrived = false;
 	// client.req_header_arrived = false;
 	// client.req_body_arrived = false;
