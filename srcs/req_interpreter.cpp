@@ -25,7 +25,13 @@ static void	free_tab(char **args)
 	}
 }
 
-static void parse_request_line(char *request_line, t_client &client)
+void set_http_status(t_client &client, int status)
+{
+	if (client.res.status_code == 0)
+		client.res.status_code = status;
+}
+
+void parse_request_line(char *request_line, t_client &client)
 {
 	int size = 0;
 	std::set<std::string> methods = {"GET", "POST", "PUT", "OPTIONS", "HEAD", "DELETE", "TRACE", "CONNECT"};
@@ -35,21 +41,21 @@ static void parse_request_line(char *request_line, t_client &client)
 	if (size != 3)
 	{
 		free_tab(request_line_split);
-		client.res.status_code = 400;
+		set_http_status(client, 400);
 		return;
 	}
 	client.req.method = request_line_split[0];
 	if (methods.find(client.req.method) == methods.end())
 	{
 		free_tab(request_line_split);
-		client.res.status_code = 405;
+		set_http_status(client, 405);
 		return;
 	}
 	client.req.path = request_line_split[1];
 	if (client.req.path.find("/") != 0)
 	{
 		free_tab(request_line_split);
-		client.res.status_code = 400;
+		set_http_status(client, 400);
 		return;
 	}
 	client.req.version = request_line_split[2];
@@ -58,18 +64,18 @@ static void parse_request_line(char *request_line, t_client &client)
 	int x;
 	if(((x = client.req.version.find("/")) != client.req.version.rfind("/")) || (client.req.version.find("/") == std::string::npos))
 	{
-		client.res.status_code = 400;
+		set_http_status(client, 400);
 		return;
 	}
 	if((client.req.version.find(".") != client.req.version.rfind(".")) || (client.req.version.find(".") == std::string::npos))
 	{
-		client.res.status_code = 400;
+		set_http_status(client, 400);
 		return;
 	}
 
 	if(client.req.version.substr(0, x) != "HTTP")
 	{
-		client.res.status_code = 404;
+		set_http_status(client, 404);
 		return;
 	}
 
@@ -78,24 +84,23 @@ static void parse_request_line(char *request_line, t_client &client)
 		vno = vno.substr(0, vno.length() - 2);
 	if(vno.length() > 6)
 	{
-		client.res.status_code = 400;
+		set_http_status(client, 400);
 		return;
 	}
 
 	if(vno[0] != '1')
 	{
-		client.res.status_code = 505;
+		set_http_status(client, 505);
 		return;
 	}		
 	for (int i = 1; i < vno.length(); i++)
 	{
 		if(vno[i] && !ft_isdigit((char)vno[i]) && vno[i] != '.')
 		{
-			client.res.status_code = 400;
+			set_http_status(client, 400);
 			return;
 		}
 	}
-	client.req.req_line_parsed = 1;
 }
 
 static std::string ltrim(const std::string& s)
@@ -126,18 +131,30 @@ static std::string trim(const std::string& s)
 // 2. set path from request ex) req.path = "/index.html"
 // 3. if body exist in req.raw, put body data into req.body
 
-void parse_request_header(t_client &client)
+void parse_request_header(t_client &client, std::string header_sub)
 {
 	t_req &req = client.req;
 
-	if (req.raw.find(":") == std::string::npos || req.raw.find(":") == 0)
+	if (!header_sub.empty() && header_sub[0] == '\r' && header_sub[1] == '\n')
+	{
+		for(std::map<std::string, std::string>::iterator it = req.headers.begin(); it != req.headers.end(); ++it)
+		{
+			std::cout << it->first << "-" << it->second << "\n";
+		}
+		client.req.req_header_parsed = 2;
+		if (req.headers.find("content-length") == req.headers.end() && req.headers.find("transfer-encoding") == req.headers.end()) 
+				client.req_arrived = true;
 		return;
-	std::string key = req.raw.substr(0, req.raw.find(":"));
+	}
+
+	if (header_sub.find(":") == std::string::npos || header_sub.find(":") == 0)
+		return;
+	std::string key = header_sub.substr(0, header_sub.find(":"));
 	transform(key.begin(), key.end(), key.begin(), ::tolower);
-	std::string value = req.raw.substr(req.raw.find(":") + 1);
+	std::string value = header_sub.substr(header_sub.find(":") + 1);
 	if (key.find_first_of(" \n\r\t\f\v") == 0 || key.find_first_of("\n\r\t\f\v") == (key.length() - 1))
 	{
-		client.res.status_code = 400;
+		set_http_status(client, 400);
 		return;
 	}
 
@@ -194,103 +211,200 @@ int read_chunk_size(char *chunk_size, t_client &client)
 	return num;
 }
 
-void req_interpreter(t_client &client)
+int string_is_digit(std::string str)
 {
-	t_req &req = client.req;
-	if (req.raw.length() == 2 && req.raw[0] == '\r' && req.raw[1] == '\n' && !req.req_line_parsed)
-	{//empty line before the request line
-		client.res.status_code = 123456;
-		return;
-	}
-	
-	if (!req.req_line_parsed)
+	int i = 0;
+	while (str[i])
 	{
-		parse_request_line((char*)req.raw.c_str(), client);
-		if (client.res.status_code != 200 && client.res.status_code != 0)
-			throw client;
-		return;
+		if (!ft_isdigit(str[i]))
+			return (0);
+		i++;
 	}
+	return (1);
+}
 
-	if (!req.req_header_parsed)
+void parse_request_body(t_client &client)
+{
+	t_req& req = client.req;
+
+	if (req.headers.find("transfer-encoding") != req.headers.end() && req.headers.find("content-length") != req.headers.end())
 	{
-		if (client.req.raw.length() == 2 && client.req.raw[0] == '\r' && client.req.raw[1] == '\n')
-		{
-			req.req_header_parsed = 1;
-			if (req.headers.find("content-length") == req.headers.end() && req.headers.find("transfer-encoding") == req.headers.end()) 
-				client.req_arrived = true;
-			return;
-		}
-		parse_request_header(client);
-		if (client.res.status_code == 400)
-			throw client;
+		set_http_status(client, 400);
+		client.req_arrived = true;
+		client.req.req_body_parsed = 2;
 		return;
 	}
-
-	if (!req.req_body_parsed)
+	if (req.headers.find("transfer-encoding") != req.headers.end())
 	{
-		if (req.headers.find("transfer-encoding") != req.headers.end())
+		while(req.chunk_size_read != 0)
 		{
 			if(req.chunk_size_read < 0)
 			{
-				client.req.chunk_size_read = read_chunk_size((char*)req.raw.c_str(), client);
+				client.req.chunk_size_read = read_chunk_size((char*)req.raw.substr(0, req.raw.find("\r\n")).c_str(), client);
 				if (req.chunk_size_read < 0)
 				{
-					client.res.status_code = 400;
-					throw client;
+					set_http_status(client, 400);
+					return;
 				}
-				return;
+				req.raw = req.raw.substr(req.raw.find("\r\n") + 2);
 			}
-			if (req.chunk_size_read != (req.raw.length() - 2))
+			if (req.chunk_size_read > (req.raw.substr(0, req.raw.find("\r\n")).length()))
 			{
-				client.res.status_code = 400;
-				throw client;
+				set_http_status(client, 400);
+				return;
 			}
 			if (req.chunk_size_read == 0 && client.req.raw.length() == 2 && client.req.raw[0] == '\r' && client.req.raw[1] == '\n')
 			{
-				req.req_body_parsed = 1;
+				req.req_body_parsed = 2;
 				client.req_arrived = true;
 				return;
 			}
-			req.body += req.raw;
+			req.body += req.raw.substr(0, req.chunk_size_read);
+			req.raw = req.raw.substr(req.raw.find("\r\n") + 2);
 			req.chunk_size_read = -1;
 		}
-		else if (req.headers.find("content-length") != req.headers.end())
+		if (req.raw.find("\r\n\r\n") != std::string::npos)
+			req.raw = req.raw.substr(req.raw.find("\r\n\r\n") + 4);
+		else
+			req.raw = "";
+	}
+	else if (req.headers.find("content-length") != req.headers.end())
 		{
 			if (req.content_length == -1)
 			{
-				req.content_length = ft_atoi((char *)req.headers["content-length"].c_str());
-				if (req.content_length < 0)
+				if (!string_is_digit(req.headers["content-length"]))
 				{
-					client.res.status_code = 400;
-					throw client;
+					set_http_status(client, 400);
+					req.req_body_parsed = 2;
+					if (req.raw.find("\r\n\r\n") != std::string::npos)
+						req.raw = req.raw.substr(req.raw.find("\r\n\r\n") + 4);
+					else
+						req.raw = ""; 
+					return;
 				}
+				req.content_length = ft_atoi((char *)req.headers["content-length"].c_str());
 			}
-			req.content_length -= (req.raw.size() - 2);
-			if (req.content_length < 0)
+			if (req.content_length <= req.raw.size())
 			{
-				client.res.status_code = 400;
-				throw client;
-			}
-			req.body += req.raw;
-			if (req.content_length == 0 && (req.req_body_parsed = 1))
-			{
+				req.body += req.raw.substr(0, req.content_length);
+				req.raw = req.raw.substr(req.content_length);
+				req.content_length = 0;
+				req.req_body_parsed = 2;
 				client.req_arrived = true;
+				return;
+			}
+			else if (req.content_length > req.raw.size())
+			{
+				req.body += req.raw;
+				req.content_length -= req.raw.size();
+				req.raw = "";
+				return;
 			}
 		}
 		else
 		{
-			client.res.status_code = 411;
-			throw client;
+			set_http_status(client, 411);
+			return;
 		}
-	}
-
-	// // for(std::map<std::string, std::string>::iterator it = req.headers.begin();
-	// // it != req.headers.end(); ++it)
-	// // {
-	// // 	std::cout << it->first << "-" << it->second << "\n";
-	// // }
-	// if (body_start > 0)
-	// 	req.body = req.raw.substr(body_start + 4);
-	// free_tab(header);
-	client.res.status_code = 200;
 }
+
+// void req_interpreter(t_client &client)
+// {
+// 	t_req &req = client.req;
+// 	if (req.raw.length() == 2 && req.raw[0] == '\r' && req.raw[1] == '\n' && !req.req_line_parsed)
+// 	{//empty line before the request line
+// 		client.res.status_code = 123456;
+// 		return;
+// 	}
+	
+// 	if (!req.req_line_parsed)
+// 	{
+// 		parse_request_line((char*)req.raw.c_str(), client);
+// 		if (client.res.status_code != 200 && client.res.status_code != 0)
+// 			throw client;
+// 		return;
+// 	}
+
+// 	if (!req.req_header_parsed)
+// 	{
+// 		if (client.req.raw.length() == 2 && client.req.raw[0] == '\r' && client.req.raw[1] == '\n')
+// 		{
+// 			req.req_header_parsed = 1;
+// 			if (req.headers.find("content-length") == req.headers.end() && req.headers.find("transfer-encoding") == req.headers.end()) 
+// 				client.req_arrived = true;
+// 			return;
+// 		}
+// 		parse_request_header(client);
+// 		if (client.res.status_code == 400)
+// 			throw client;
+// 		return;
+// 	}
+
+// 	if (!req.req_body_parsed)
+// 	{
+// 		if (req.headers.find("transfer-encoding") != req.headers.end())
+// 		{
+// 			if(req.chunk_size_read < 0)
+// 			{
+// 				client.req.chunk_size_read = read_chunk_size((char*)req.raw.c_str(), client);
+// 				if (req.chunk_size_read < 0)
+// 				{
+// 					client.res.status_code = 400;
+// 					throw client;
+// 				}
+// 				return;
+// 			}
+// 			if (req.chunk_size_read != (req.raw.length() - 2))
+// 			{
+// 				client.res.status_code = 400;
+// 				throw client;
+// 			}
+// 			if (req.chunk_size_read == 0 && client.req.raw.length() == 2 && client.req.raw[0] == '\r' && client.req.raw[1] == '\n')
+// 			{
+// 				req.req_body_parsed = 1;
+// 				client.req_arrived = true;
+// 				return;
+// 			}
+// 			req.body += req.raw;
+// 			req.chunk_size_read = -1;
+// 		}
+// 		else if (req.headers.find("content-length") != req.headers.end())
+// 		{
+// 			if (req.content_length == -1)
+// 			{
+// 				req.content_length = ft_atoi((char *)req.headers["content-length"].c_str());
+// 				if (req.content_length < 0)
+// 				{
+// 					client.res.status_code = 400;
+// 					throw client;
+// 				}
+// 			}
+// 			req.content_length -= (req.raw.size() - 2);
+// 			if (req.content_length < 0)
+// 			{
+// 				client.res.status_code = 400;
+// 				throw client;
+// 			}
+// 			req.body += req.raw;
+// 			if (req.content_length == 0 && (req.req_body_parsed = 1))
+// 			{
+// 				client.req_arrived = true;
+// 			}
+// 		}
+// 		else
+// 		{
+// 			client.res.status_code = 411;
+// 			throw client;
+// 		}
+// 	}
+
+// 	// // for(std::map<std::string, std::string>::iterator it = req.headers.begin();
+// 	// // it != req.headers.end(); ++it)
+// 	// // {
+// 	// // 	std::cout << it->first << "-" << it->second << "\n";
+// 	// // }
+// 	// if (body_start > 0)
+// 	// 	req.body = req.raw.substr(body_start + 4);
+// 	// free_tab(header);
+// 	// client.res.status_code = 200;
+// }
