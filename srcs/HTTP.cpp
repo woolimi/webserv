@@ -71,59 +71,102 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 	std::vector<t_client>::iterator it;
 	char buffer[MAX_BUFFER_SIZE + 1];
 	ssize_t nb_read;
+	struct timeval tv;
 
 	for (it = clients.begin(); it != clients.end(); ++it)
 	{
 		// receive request
-		if (!it->req_arrived && FD_ISSET(it->socket, &read_set))
-		{			
+		if (FD_ISSET(it->socket, &read_set) && it->res.status_code == 0)
+		{
 			nb_read = read(it->socket, buffer, MAX_BUFFER_SIZE);
-			if (nb_read < 0) // When client close connection
-			{ // remove clinet
+			if (nb_read == 0)
+				continue;
+			// Client close connection unexpectly
+			if (nb_read < 0)
+			{
 				disconnect(init_set, fds, it);
 				continue;
 			}
 			buffer[nb_read] = '\0';
-			it->req.raw = std::string(buffer);
-			if (nb_read < MAX_BUFFER_SIZE)
+			it->req.raw += std::string(buffer);
+			gettimeofday(&tv, NULL);
+			it->time_stamp = tv.tv_sec; // renew timestamp
+			try
 			{
-				printf("client sent request\n");
-				try
+				if (!it->req_line_arrived)
 				{
-					req_interpreter(*it);
-					if (it->res.status_code == 123456 && (it->res.status_code = 0))
-						it->req_arrived = false;
-					if (it->req_arrived == true)
-					{
-						handle_methods(*it);
-					}
+					// check request line
+					// if invalid, throw client with error status code
+					// if valid, in the function
+					// set it.req_line_arrived = true
+					// subtract request line from it.raw  
+
+					// req_interpreter(,REQ_LINE, it);
 				}
-				catch(t_client& client)
+				if (it->req_line_arrived && !it->req_header_arrived)
 				{
-					res_generator(client);
+					// check request header
+					// if invalid, throw client with error status code
+					// if valid, in the function
+					// set it.req_header_arrived = true;
+					// subtract all header lines from it.raw
+
+					// req_interpreter(,REQ_HEADER, it);
 				}
+				if (it->req_line_arrived && it->req_header_arrived && !it->req_body_arrived)
+				{
+					// case1. content-length : make req.body, remove part from it.raw, check req.body size.
+						// if body size < content-length it->req_body_arrived = false;
+						// if body size == content-length it->req_body_arrived = true
+						// if body size > content-length it->req_body_arrived = true, throw client with error code
+					// case2. transfer-encoding : chunk : 
+					// case3. unsupportable transfer-encoding
+					// case4. empty body. it->req_body_arrive = true;
+				}
+			}
+			catch (t_client &client)
+			{
+				res_generator(client); // with conent-length
 			}
 			continue;
 		}
-		// send response
-		if (it->req_arrived && !it->res_sent && FD_ISSET(it->socket, &write_set))
+
+		// make response
+		// if response is not set
+		if (it->res.status_code == 0)
 		{
-			// chunk
-			std::cout <<"hek";
-			write(it->socket, it->res.raw.c_str(), it->res.raw.size());
-			it->res_sent = true;
-			if (it->req.req_body_parsed)
-				std::cout << "Body: " << it->req.body << std::endl;
-			printf("server responded\n");
-			continue;
+			handle_methods(*it);
 		}
-		// close client after sent all request
-		if (it->req_arrived && it->res_sent && FD_ISSET(it->socket, &write_set))
+
+		// send response (Content-Length)
+		if (!it->res.raw.empty() && FD_ISSET(it->socket, &write_set))
+		{
+			if (send_response(it) < 0)
+				disconnect(init_set, fds, it);
+			continue;
+		} else if (it->res.raw.empty() && it->req.req_line_parsed == true)
+		{	// for keeping alive...
+			it->req.req_line_parsed = false;
+			it->req_header_arrived = false;
+			it->req_body_arrived = false;
+			it->res.status_code = 0;
+		}
+
+		// close client when timeout
+		gettimeofday(&tv, NULL);
+		if (tv.tv_sec - it->time_stamp > CLIENT_TIMEOUT_SEC)
 		{
 			disconnect(init_set, fds, it);
 			continue;
 		}
-		// if no request from client after connection ?
+
+		// Server reject client connection with 503 respond
+		if (it - clients.begin() > MAX_CLIENT)
+		{
+			respond_service_unavailable(it);
+			disconnect(init_set, fds, it);
+			continue;
+		}
 	}
 }
 
@@ -169,8 +212,9 @@ void HTTP::init_client(t_client &client)
 	client.req.req_body_parsed = 0;
 	client.req.content_length = -1;
 	client.addr_len = sizeof(client.addr);
-	client.req_arrived = false;
-	client.res_sent = false;
+	client.req_line_arrived = false;
+	client.req_header_arrived = false;
+	client.req_body_arrived = false;
 	client.res.status_code = 0;
 	client.req.chunk_size_read = -1;
 }
@@ -200,6 +244,34 @@ void HTTP::handle_methods(t_client &cli)
 	// else if (req.method == "HEAD")
 	// 	handle_head(cli);
 	// ...
+}
+
+void HTTP::respond_service_unavailable(std::vector<t_client>::iterator &it)
+{
+	it->res.status_code = 503; // ServiceUnavailable
+	res_generator(*it);
+	write(it->socket, it->res.raw.c_str(), it->res.raw.size());
+}
+
+int HTTP::send_response(std::vector<t_client>::iterator &it)
+{
+	struct timeval tv;
+	ssize_t nb_write;
+
+	if (it->res.raw.size() > MAX_BUFFER_SIZE)
+		nb_write = write(it->socket, it->res.raw.c_str(), MAX_BUFFER_SIZE);
+	else
+		nb_write = write(it->socket, it->res.raw.c_str(), it->res.raw.size());
+	if (nb_write == -1)
+		return (-1);
+	if (nb_write == 0)
+		return (0);
+	// if sent response without problem, renew client time
+	gettimeofday(&tv, NULL);
+	it->time_stamp = tv.tv_sec;
+	// remove sent data from res.raw
+	it->res.raw.erase(0, nb_write);
+	return (1);
 }
 
 const char *HTTP::FailToSetServerSocket::what() const throw()

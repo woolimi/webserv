@@ -241,6 +241,20 @@ void ConfigParser::block_level_2(t_server &sv, t_location &lc, std::vector<std::
 		else if (it == end)
 			throw FormatError("Config Error : Invalid 'index' in location\n");
 
+		if (*it == "cgi" && ++it != end && *it != ";")
+		{
+			if (it->find_first_of('.') != 0)
+				throw FormatError("Config Error : Invalid cgi extention name '" + *it + "' in location\n");
+			else
+				sv.location[tmp_route].cgi["extension"] = *it;
+			if (++it != end && *it != ";")
+				sv.location[tmp_route].cgi["path"] = *it;
+			else
+				throw FormatError("Config Error : cgi path not exist.\n");
+		}
+		else if (it == end)
+			throw FormatError("Config Error : Invalid 'index' in location\n");
+
 		/* check ";" termination */
 		++it;
 		if (it != end && *it == ";")
