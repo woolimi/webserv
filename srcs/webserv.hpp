@@ -25,6 +25,7 @@
 # define MAX_BUFFER_SIZE 4096
 # define MAX_CLIENT 100
 # define CLIENT_TIMEOUT_SEC 1
+# define SERVER_NAME "webserv/1.0"
 
 typedef std::string route;
 typedef std::string extension;

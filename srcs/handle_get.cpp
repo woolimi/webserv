@@ -1,19 +1,4 @@
 #include "webserv.hpp"
-// 1. check req.route
-// req.route is folder ?
-// req.route is file ?
-// 
-// case1 folder
-// check index attribute, if it exist, need to show file /index.html
-// check autoindex on
-// make page 
-//
-// case2 file
-// check server set cgi or not
-// if no cgi
-// make res.body
-// if cgi
-// communicate with cgi
 
 static t_location *find_matched_location(t_server &serv, std::string &folder_path, std::string &file)
 {
@@ -70,6 +55,30 @@ void set_status_code_and_throw(int code, t_client &cli)
 	throw cli;
 }
 
+std::string make_real_path(std::string &root, std::string &path)
+{
+	std::string real_path = root + path;
+	size_t pos = real_path.find("//");
+	if (pos != std::string::npos)
+		real_path.replace(pos, 2, "/");
+	return (real_path);
+}
+
+bool file_check(int fd, struct stat &info, t_client & cli)
+{
+	if (fd < 0)
+	{
+		cli.res.status_code = 404;
+		return false;
+	}
+	if (errno == EACCES || !S_ISREG(info.st_mode))
+	{
+		cli.res.status_code = 403;
+		return false;
+	}
+	return true;
+}
+
 void handle_get(t_client &cli)
 {
 	t_server &serv = cli.server;
@@ -77,55 +86,57 @@ void handle_get(t_client &cli)
 	t_res &res = cli.res;
 	t_location *loc;
 	struct stat info;
-
-	// location 은 항상 /test/ 폴더로 가정....
+	bool is_file = true;
+	char buff[MAX_BUFFER_SIZE + 1];
 	// ex) req.path = "/test/a/index.html"
 	// folder_path = "/test/a"
 	// file = "/index.html"
-
-	std::string folder_path = req.path.substr(0, req.path.find_last_of('/'));
-	std::string file = req.path.substr(req.path.find_last_of('/'));
-	// find maximun mached location route
-	loc = find_matched_location(serv, folder_path, file);
-
-	std::string real_path = (loc->root + req.path);
-	size_t pos = real_path.find("//");
-	if (pos != std::string::npos)
-		real_path.replace(pos, 2, "/");
-
-	if (file == "/") // folder request
+	try
 	{
-		if (loc->index.empty())
-		{
-			// autoindex on ? off ?
+		std::string folder_path = req.path.substr(0, req.path.find_last_of('/'));
+		std::string file = req.path.substr(req.path.find_last_of('/'));
+		if (file == "/")
+			is_file = false;
+		loc = find_matched_location(serv, folder_path, file);
+		std::string real_path = make_real_path(loc->root, req.path);
 
-		} else // 파일 요청과 동등...
+		if (is_file)
 		{
-			// check index file is exist
-			// if it is not,  check autoindex
-			// if it is not, 404
+			int fd = open(real_path.c_str(), O_RDONLY);
+			errno = 0;
+			fstat(fd, &info);
+			if (!file_check(fd, info, cli))
+				throw cli;
+			size_t file_size = info.st_size;
+			std::string ext = file.substr(file.find_last_of('.'));
+			if (!loc->cgi.empty() && loc->cgi.find(ext) != loc->cgi.end())
+			{
+				// transfer-encoding
+			}
+			else
+			{
+				if (file_size < MAX_BUFFER_SIZE)
+				{
+					int ret = read(fd, buff, MAX_BUFFER_SIZE);
+					if (ret < 0)
+					{
+						close(fd);
+						set_status_code_and_throw(404, cli);
+					}
+					buff[ret] = 0;
+					res.status_code = 200;
+					res.body += std::string(buff);
+					res.headers["Content-Length"] = res.body.size();
+					res.headers["Content-Type"] = mimetype(ext);
+				}
+			}
+		} else
+		{
+			// folder request
 		}
-	} else // file request
+	}
+	catch (t_client &client)
 	{
-		int fd = open(real_path.c_str(), O_RDONLY);
-		if (fd < 0)
-			set_status_code_and_throw(404, cli);
-		errno = 0;
-		fstat(fd, &info);
-		if (errno == EACCES || !S_ISREG(info.st_mode))
-			set_status_code_and_throw(403, cli);
-		char buff[MAX_BUFFER_SIZE + 1];
-		int nb_read;
-		while ((nb_read = read(fd, buff, MAX_BUFFER_SIZE)) > 0)
-		{
-			buff[nb_read];
-			res.body += std::string(buff);
-		}
-		if (nb_read < 0)
-			set_status_code_and_throw(403, cli);
-		close(fd);
-		res.headers["Content-Type"] = mimetype(file.substr(file.find_last_of('.')));
-			
-		set_status_code_and_throw(200, cli);
+		res_generator(client); // with conent-length
 	}
 }
