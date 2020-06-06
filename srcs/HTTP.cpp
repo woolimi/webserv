@@ -76,7 +76,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 	for (it = clients.begin(); it != clients.end(); ++it)
 	{
 		// receive request
-		if (FD_ISSET(it->socket, &read_set) && it->res.status_code == 0)
+		if (FD_ISSET(it->socket, &read_set))
 		{
 			nb_read = read(it->socket, buffer, MAX_BUFFER_SIZE);
 			if (nb_read == 0)
@@ -111,7 +111,6 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 				std::cout << it->req.method << " ";
 				std::cout << it->req.path << " ";
 				std::cout << it->req.version << std::endl;
-				std::cout << "raw:" << it->req.raw.empty() << std::endl;
 				// check request line
 				// if invalid, throw client with error status code
 				// if valid, in the function
@@ -121,10 +120,8 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 			}
 			if (it->req.req_line_parsed == 2 && it->req.req_header_parsed != 2)
 			{
-				std::cout <<"thqqqss" << std::endl;
 				if (it->req.raw.empty())
 					continue;
-				std::cout <<"thss" << std::endl;
 				it->req.req_header_parsed = 1;
 				while (it->req.req_header_parsed != 2 && !it->req.raw.empty())
 				{
@@ -157,6 +154,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 			}
 			if (it->req_arrived && !it->res_sent)
 			{
+				std::cout << "Body: " << it->req.body << std::endl;
 				std::cout << "Status: " << it->res.status_code << std::endl;
 				// handle_methods(*it);
 				// res_generator(*it); // with conent-length
