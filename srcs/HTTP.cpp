@@ -130,7 +130,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 			continue;
 		}
 
-		// response
+		// response // check res body exist or not
 		if (it->res.head.empty() && !it->res.sent_head)
 		{	// make head and keep fd
 			handle_methods(*it, env);

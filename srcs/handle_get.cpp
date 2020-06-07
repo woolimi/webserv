@@ -266,7 +266,7 @@ void handle_get(t_client &cli, char **env)
 			std::vector<std::string>::iterator it;
 			struct stat info;
 			std::string file_path;
-			// folder with index
+			// folder with index index.php index.html
 			for (it = loc->index.begin(); it != loc->index.end(); ++it)
 			{
 				file_path.clear();
@@ -275,7 +275,10 @@ void handle_get(t_client &cli, char **env)
 					make_file_res(cli, loc, env, real_path, file);
 			}
 			// folder listing
-			make_folder_list_res(cli, loc, real_path);
+			if (loc->autoindex == "on") // autoi on
+				make_folder_list_res(cli, loc, real_path);
+			else
+				set_status_code_and_throw(404, cli);
 		}
 	}
 	catch (t_client &client)
