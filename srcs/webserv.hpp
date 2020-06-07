@@ -62,9 +62,9 @@ typedef struct s_server
 typedef struct s_req
 {
 	int new_line;
-	bool req_line_parsed;
-	bool req_header_parsed;
-	bool req_body_parsed;
+	int req_line_parsed; // 0 - Not Started, 1 - Started, 2 - Complete
+	int req_header_parsed;// 0 - Not Started, 1 - Started, 2 - Complete
+	int req_body_parsed;// 0 - Not Started, 1 - Started, 2 - Complete
 	int content_length;
 	int chunk_size_read;
 	std::string version;
@@ -96,9 +96,8 @@ typedef struct s_res
 typedef struct s_client
 {
 	int socket;
-	bool req_line_arrived; // request line
-	bool req_header_arrived; // request headers
-	bool req_body_arrived;
+	bool req_arrived;
+	bool res_sent;
 	struct sockaddr_in addr;
 	socklen_t addr_len;
 	t_req req;
@@ -108,6 +107,10 @@ typedef struct s_client
 } t_client;
 
 void free_tab(char **args, int length);
+void parse_request_line(char *request_line, t_client &client);
+void parse_request_header(t_client &client, std::string header_sub);
+void parse_request_body(t_client &client);
+
 void req_interpreter(t_client &cli);
 void res_generator(t_client &cli);
 std::string mimetype(const std::string &extension);
