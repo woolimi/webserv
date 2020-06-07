@@ -31,8 +31,6 @@
 # define SERVER_NAME "webserv/1.0"
 
 typedef std::string route;
-typedef std::string extension;
-typedef std::string path;
 
 typedef struct s_location
 {
@@ -40,7 +38,9 @@ typedef struct s_location
 	std::string autoindex;
 	std::vector<std::string> index;
 	std::vector<std::string> allow;
-	std::map<extension, path> cgi;
+	std::map<std::string, std::string> cgi;
+	// cgi["extension"] = ".php";
+	// cgi["paths"] = "/usr/bin/php-cgi";
 } t_location;
 
 typedef struct s_server
