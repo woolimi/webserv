@@ -195,7 +195,7 @@ void make_file_res(t_client &cli, t_location *loc, char **env, std::string &real
 	throw cli;
 }
 
-void make_folder_list_res(t_client &cli, t_location *loc, std::string &real_path)
+void make_folder_list_res(t_client &cli, t_location *loc, std::string &uri_path, std::string &real_path)
 {
 	char buff[256];
 	t_res &res = cli.res;
@@ -209,12 +209,19 @@ void make_folder_list_res(t_client &cli, t_location *loc, std::string &real_path
 		set_status_code_and_throw(404, cli);
 	if (!(dp = opendir("./")))
 		set_status_code_and_throw(404, cli);
-	res.body += "<html><head><title>Index of " + real_path + 
-		"</title></head><body bgcolor=\"white\"><h1>Index of" + real_path + "</h1><hr><pre>";
+	res.body += "<html>\n";
+	res.body += "\t<head>\n";
+	res.body += "\t\t<title>Index of " + uri_path + "</title>\n";
+	res.body += "\t</head>\n";
+	res.body += "\t<body bgcolor=\"white\">\n";
+	res.body += "\t\t<h1>Index of " + uri_path + "</h1>\n";
+	res.body += "\t<hr>\n\t<pre>\n";
 	
 	while ((entry = readdir(dp)) != NULL)
 	{
 		stat(entry->d_name, &info);
+		if (ft_strlen(entry->d_name) == 1 && entry->d_name[0] == '.')
+			continue;
 		if (S_ISDIR(info.st_mode))
 			fnames.insert(std::string(entry->d_name) + "/");
 		else
@@ -229,12 +236,17 @@ void make_folder_list_res(t_client &cli, t_location *loc, std::string &real_path
 		struct tm *lctime = localtime(&t);
 		strftime(buff, sizeof(buff), "%d-%h-%Y %H:%M", lctime);
 		res.body += "<a href=\"" + *it + "\">" + *it + "</a>";
+		int nb_tab = (8 - it->size() / 7);
+		while (nb_tab-- > 0)
+			res.body += "\t";
 		res.body += buff;
-		res.body += " ";
+		res.body += "\t\t";
 		res.body += std::to_string(info.st_size);
+		res.body += "\n";
 	}
 	closedir(dp);
-	res.body += "</pre><hr></body></html>";
+	res.status_code = 200;
+	res.body += "\t</pre>\n\t<hr>\n\t</body>\n</html>";
 	res.headers["Content-Type"] = "text/html";
 	res.headers["Content-Length"] = std::to_string(res.body.size());
 	throw cli;
@@ -271,12 +283,18 @@ void handle_get(t_client &cli, char **env)
 			{
 				file_path.clear();
 				file_path = real_path + *it;
-				if (stat(file_path.c_str(), &info))
+				int ret = stat(file_path.c_str(), &info);
+				std::cout << ret << std::endl;
+				if (ret)
 					make_file_res(cli, loc, env, real_path, file);
 			}
 			// folder listing
-			if (loc->autoindex == "on") // autoi on
-				make_folder_list_res(cli, loc, real_path);
+			if (loc->autoindex == "on")
+			{
+				if (folder_path == "")
+					folder_path = "/";
+				make_folder_list_res(cli, loc, folder_path, real_path);
+			}
 			else
 				set_status_code_and_throw(404, cli);
 		}
