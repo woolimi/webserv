@@ -2,16 +2,17 @@ NAME = webserv
 CC = clang++
 
 # FLAG = -Wall -Wextra -Werror
-FLAG = -g3 -fsanitize=address
-# FLAG =
+# FLAG = -g3 -fsanitize=address
+FLAG =
 
 SRC_NAME = ConfigParser.cpp \
+	handle_get.cpp \
 	HTTP.cpp \
 	main.cpp \
+	mimetype.cpp \
 	req_interpreter.cpp \
-	handle_get.cpp \
 	res_generator.cpp \
-	mimetype.cpp
+	utils.cpp
 SRC_PATH = ./srcs
 SRC = $(addprefix $(SRC_PATH)/, $(SRC_NAME))
 
