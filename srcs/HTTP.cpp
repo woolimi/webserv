@@ -144,6 +144,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 				}
 				else
 					parse_request_body(*it);
+				continue;
 				// case1. content-length : make req.body, remove part from it.raw, check req.body size.
 					// if body size < content-length it->req_body_arrived = false;
 					// if body size == content-length it->req_body_arrived = true
