@@ -44,18 +44,13 @@ static t_location *find_matched_location(t_server &serv, std::string &folder_pat
 	}
 }
 
-void read_file(std::string &real_file_path)
-{
-	// int fd = open();
-}
-
-void set_status_code_and_throw(int code, t_client &cli)
+static void set_status_code_and_throw(int code, t_client &cli)
 {
 	cli.res.status_code = code;
 	throw cli;
 }
 
-std::string make_real_path(std::string &root, std::string &path)
+static std::string make_real_path(std::string &root, std::string &path)
 {
 	std::string real_path = root + path;
 	size_t pos = real_path.find("//");
@@ -64,7 +59,7 @@ std::string make_real_path(std::string &root, std::string &path)
 	return (real_path);
 }
 
-bool file_check(int fd, struct stat &info, t_client & cli)
+static bool file_check(int fd, struct stat &info, t_client & cli)
 {
 	if (fd < 0)
 	{
@@ -79,18 +74,181 @@ bool file_check(int fd, struct stat &info, t_client & cli)
 	return true;
 }
 
-void handle_get(t_client &cli)
+static char **cgi_env(t_client &cli, char **env, std::string &real_path)
+{
+	t_req &req = cli.req;
+	t_server &serv = cli.server;
+	std::map<std::string, std::string> new_env;
+	char **ret;
+
+	new_env["AUTH_TYPE"] = "";
+	new_env["GATEWAY_INTERFACE"] = "CGI/1.1";
+	new_env["PATH_INFO"] = real_path;
+	new_env["PATH_TRANSLATED"] = "";
+	new_env["QUERY_STRING"] = "";
+	new_env["REMOTE_ADDR"] = inet_ntoa(cli.addr.sin_addr); // ??
+	new_env["REMOTE_IDENT"] = "";
+	new_env["REMOTE_USER"] = "";
+	new_env["REQUEST_METHOD"] = req.method;
+	new_env["REQUEST_URI"] = req.path;
+	new_env["SCRIPT_NAME"] = "";
+	new_env["SCRIPT_FILENAME"] = real_path;
+	new_env["SERVER_NAME"] = serv.server_name;
+	new_env["SERVER_PORT"] = std::to_string(serv.listen);
+	new_env["SERVER_PROTOCOL"] = req.version;
+	new_env["SERVER_SOFTWARE"] = SERVER_NAME;
+	if (req.method == "POST")
+		new_env["CONTENT_LENGTH"] = req.body.size();
+	int nb = 0;
+	while (env[nb] != 0)
+		nb++;
+	nb += new_env.size();
+	ret = new char*[nb + 1];
+	int i = 0;
+	while (env[i] != 0)
+	{
+		ret[i] = ft_strdup(env[i]);
+		i++;
+	}
+	std::map<std::string, std::string>::iterator it;
+	for (it = new_env.begin(); it != new_env.end(); ++it)
+	{
+		ret[i++] = ft_strdup((it->first + "=" + it->second).c_str());
+	}
+	ret[i] = 0;
+	return (ret);
+}
+
+static void execute_cgi(t_client &cli, t_location &loc, char **env, std::string &real_path, std::string &ext)
+{
+	// 1 write, 0 read
+	int p2c_fd[2]; 
+	int c2p_fd[2];
+	int pid;
+	int status;
+
+	if (pipe(p2c_fd) < 0 || pipe(c2p_fd) < 0)
+		set_status_code_and_throw(404, cli);
+	pid = fork();
+	if (pid < 0)
+		set_status_code_and_throw(404, cli);
+
+	if (pid == 0) // child
+	{
+		dup2(p2c_fd[0], 0);
+		close(p2c_fd[1]);
+		dup2(c2p_fd[1], 1);
+		close(c2p_fd[0]);
+
+		char *av[3];
+		av[0] = ft_strdup(loc.cgi[ext].c_str()); // program name
+		av[1] = 0;
+
+		execve(loc.cgi[ext].c_str(), av, cgi_env(cli, env, real_path));
+		exit(1);
+	}
+	else // parent
+	{
+		close(c2p_fd[1]);
+		close(p2c_fd[0]);
+		if (!cli.req.body.empty())
+		{	// send POST data
+			if (write(p2c_fd[1], cli.req.body.c_str(), cli.req.body.size()) <= 0)
+			{
+				close(p2c_fd[1]);
+				kill(pid, SIGKILL);
+				set_status_code_and_throw(404, cli);
+			}
+			cli.req.body.clear();
+		}
+		cli.res.fd = c2p_fd[0];
+		waitpid(pid, &status, 0);
+		if (!WIFEXITED(status))
+			set_status_code_and_throw(404, cli);
+		close(p2c_fd[1]);
+	}
+}
+
+void make_file_res(t_client &cli, t_location *loc, char **env, std::string &real_path, std::string &file)
+{
+	t_res &res = cli.res;
+	struct stat info;
+	int fd = open(real_path.c_str(), O_RDONLY);
+	errno = 0;
+	fstat(fd, &info);
+	if (!file_check(fd, info, cli))
+		throw cli;
+	size_t file_size = info.st_size;
+	std::string ext = file.substr(file.find_last_of('.'));
+
+	// make res.head
+	res.headers["Transfer-Encoding"] = "chunked";
+	res.headers["Content-Type"] = mimetype(ext);
+	res.status_code = 200;
+	// get file fd
+	if (!loc->cgi.empty() && loc->cgi.find(ext) != loc->cgi.end())
+	{
+		execute_cgi(cli, *loc, env, real_path, ext);
+	}
+	else
+		res.fd = fd;
+	throw cli;
+}
+
+void make_folder_list_res(t_client &cli, t_location *loc, std::string &real_path)
+{
+	char buff[256];
+	t_res &res = cli.res;
+	DIR *dp = NULL;
+	struct dirent *entry = NULL;
+	std::set<std::string> fnames;
+	struct stat info;
+	std::string orig_path = getcwd(buff, 256);
+
+	if (chdir(real_path.c_str()))
+		set_status_code_and_throw(404, cli);
+	if (!(dp = opendir("./")))
+		set_status_code_and_throw(404, cli);
+	res.body += "<html><head><title>Index of " + real_path + 
+		"</title></head><body bgcolor=\"white\"><h1>Index of" + real_path + "</h1><hr><pre>";
+	
+	while ((entry = readdir(dp)) != NULL)
+	{
+		stat(entry->d_name, &info);
+		if (S_ISDIR(info.st_mode))
+			fnames.insert(std::string(entry->d_name) + "/");
+		else
+			fnames.insert(std::string(entry->d_name));
+	}
+
+	std::set<std::string>::iterator it;
+	for (it = fnames.begin(); it != fnames.end(); ++it)
+	{
+		stat(it->c_str(), &info);
+		time_t t = info.st_mtime;
+		struct tm *lctime = localtime(&t);
+		strftime(buff, sizeof(buff), "%d-%h-%Y %H:%M", lctime);
+		res.body += "<a href=\"" + *it + "\">" + *it + "</a>";
+		res.body += buff;
+		res.body += " ";
+		res.body += std::to_string(info.st_size);
+	}
+	closedir(dp);
+	res.body += "</pre><hr></body></html>";
+	res.headers["Content-Type"] = "text/html";
+	res.headers["Content-Length"] = std::to_string(res.body.size());
+	throw cli;
+}
+
+// ex) req.path = "/test/a/index.html"
+// folder_path = "/test/a"
+// file = "/index.html"
+void handle_get(t_client &cli, char **env)
 {
 	t_server &serv = cli.server;
 	t_req &req = cli.req;
-	t_res &res = cli.res;
 	t_location *loc;
-	struct stat info;
 	bool is_file = true;
-	char buff[MAX_BUFFER_SIZE + 1];
-	// ex) req.path = "/test/a/index.html"
-	// folder_path = "/test/a"
-	// file = "/index.html"
 	try
 	{
 		std::string folder_path = req.path.substr(0, req.path.find_last_of('/'));
@@ -102,41 +260,26 @@ void handle_get(t_client &cli)
 
 		if (is_file)
 		{
-			int fd = open(real_path.c_str(), O_RDONLY);
-			errno = 0;
-			fstat(fd, &info);
-			if (!file_check(fd, info, cli))
-				throw cli;
-			size_t file_size = info.st_size;
-			std::string ext = file.substr(file.find_last_of('.'));
-			if (!loc->cgi.empty() && loc->cgi.find(ext) != loc->cgi.end())
-			{
-				// transfer-encoding
-			}
-			else
-			{
-				if (file_size < MAX_BUFFER_SIZE)
-				{
-					int ret = read(fd, buff, MAX_BUFFER_SIZE);
-					if (ret < 0)
-					{
-						close(fd);
-						set_status_code_and_throw(404, cli);
-					}
-					buff[ret] = 0;
-					res.status_code = 200;
-					res.body += std::string(buff);
-					res.headers["Content-Length"] = res.body.size();
-					res.headers["Content-Type"] = mimetype(ext);
-				}
-			}
+			make_file_res(cli, loc, env, real_path, file);
 		} else
 		{
-			// folder request
+			std::vector<std::string>::iterator it;
+			struct stat info;
+			std::string file_path;
+			// folder with index
+			for (it = loc->index.begin(); it != loc->index.end(); ++it)
+			{
+				file_path.clear();
+				file_path = real_path + *it;
+				if (stat(file_path.c_str(), &info))
+					make_file_res(cli, loc, env, real_path, file);
+			}
+			// folder listing
+			make_folder_list_res(cli, loc, real_path);
 		}
 	}
 	catch (t_client &client)
 	{
-		res_generator(client); // with conent-length
+		res_generator(client);
 	}
 }
