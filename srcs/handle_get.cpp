@@ -140,11 +140,13 @@ static void execute_cgi(t_client &cli, t_location &loc, char **env, std::string 
 		dup2(c2p_fd[1], 1);
 		close(c2p_fd[0]);
 
-		char *av[3];
-		av[0] = ft_strdup(loc.cgi[ext].c_str()); // program name
+		const char *av[2];
+		av[0] = loc.cgi["path"].c_str();
 		av[1] = 0;
-
-		execve(loc.cgi[ext].c_str(), av, cgi_env(cli, env, real_path));
+		errno = 0;
+		char **new_env = cgi_env(cli, env, real_path);
+		if (execve(av[0], (char**)av, new_env) < 0)
+			std::cout << strerror(errno) << std::endl;
 		exit(1);
 	}
 	else // parent
@@ -182,16 +184,36 @@ void make_file_res(t_client &cli, t_location *loc, char **env, std::string &real
 	std::string ext = file.substr(file.find_last_of('.'));
 
 	// make res.head
-	res.headers["Transfer-Encoding"] = "chunked";
-	res.headers["Content-Type"] = mimetype(ext);
-	res.status_code = 200;
-	// get file fd
-	if (!loc->cgi.empty() && loc->cgi.find(ext) != loc->cgi.end())
+	if (!loc->cgi.empty() && loc->cgi["extension"] == ext)
 	{
+		char buff[MAX_BUFFER_SIZE + 1];
 		execute_cgi(cli, *loc, env, real_path, ext);
+		int ret = read(res.fd, buff, MAX_BUFFER_SIZE);
+		buff[MAX_BUFFER_SIZE] = 0;
+		std::string raw = buff;
+		std::string tmp;
+		size_t pos;
+		while ((pos = raw.find("\r\n")) != std::string::npos)
+		{
+			tmp = raw.substr(0, pos);
+			raw.erase(0, pos + 2);
+			if (tmp == "")
+				break;
+			pos = tmp.find(": ");
+			res.headers[tmp.substr(0, pos)] = tmp.substr(pos + 2);
+		}
+		res.headers["Transfer-Encoding"] = "chunked";
+		res.body += int_to_hexstr(raw.size()) + "\r\n";
+		res.body += raw + "\r\n";
 	}
 	else
+	{
+		res.headers["Transfer-Encoding"] = "chunked";
+		res.headers["Content-Type"] = mimetype(ext);
 		res.fd = fd;
+	}
+	res.status_code = 200;
+
 	throw cli;
 }
 
@@ -284,9 +306,8 @@ void handle_get(t_client &cli, char **env)
 				file_path.clear();
 				file_path = real_path + *it;
 				int ret = stat(file_path.c_str(), &info);
-				std::cout << ret << std::endl;
-				if (ret)
-					make_file_res(cli, loc, env, real_path, file);
+				if (ret == 0)
+					make_file_res(cli, loc, env, file_path, *it);
 			}
 			// folder listing
 			if (loc->autoindex == "on")
