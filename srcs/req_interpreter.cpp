@@ -248,6 +248,8 @@ void parse_request_body(t_client &client)
 			req.raw = req.raw.substr(req.raw.find("\r\n") + 2);
 			return;
 		}
+		if (req.chunk_size_read >= req.raw.length() && req.raw.find("\r\n") == std::string::npos)
+			continue;
 		if (req.chunk_size_read != (req.raw.substr(0, req.raw.find("\r\n")).length()))
 		{
 			set_http_status(client, 400);
