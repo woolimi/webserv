@@ -66,6 +66,19 @@ void HTTP::run(char **env)
 	}
 }
 
+void HTTP::skip_leading_empty_line(t_client &cli, char *buffer)
+{
+	int i = 0;
+	if (!cli.req.req_line_parsed && !cli.req.req_header_parsed && !cli.req.req_body_parsed)
+	{
+		while (buffer[i] && is_newline_char(buffer[i])) //skip leading empty lines before the request
+			i++;
+		cli.req.raw += std::string(&buffer[i]);
+	}
+	else
+		cli.req.raw += std::string(buffer);
+}
+
 void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set, std::set<int> &fds, char **env)
 {
 	std::vector<t_client>::iterator it;
@@ -75,8 +88,24 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 
 	for (it = clients.begin(); it != clients.end(); ++it)
 	{
+		// close client when timeout
+		gettimeofday(&tv, NULL);
+		if (tv.tv_sec - it->time_stamp > CLIENT_TIMEOUT_SEC)
+		{
+			printf("client timeout disconnect\n");
+			disconnect(init_set, fds, it);
+			continue;
+		}
+
+		// Server reject client connection with 503 respond
+		if (it - clients.begin() > MAX_CLIENT)
+		{
+			respond_service_unavailable(*it);
+			disconnect(init_set, fds, it);
+		}
+
 		// receive request
-		if (FD_ISSET(it->socket, &read_set))
+		if (!it->req_arrived && FD_ISSET(it->socket, &read_set))
 		{
 			nb_read = read(it->socket, buffer, MAX_BUFFER_SIZE);
 			if (nb_read == 0)
@@ -89,36 +118,19 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 			}
 			buffer[nb_read] = '\0';
 			renew_client_timestamp(*it);
-			
-			int i = 0;
-			if (!it->req.req_line_parsed && !it->req.req_header_parsed && !it->req.req_body_parsed)
-			{
-				while (buffer[i] && is_newline_char(buffer[i]))//skip leading empty lines before the request
-					i++;
-				it->req.raw += std::string(&buffer[i]);
-			}
-			else
-				it->req.raw += std::string(buffer);
-			gettimeofday(&tv, NULL);
-			it->time_stamp = tv.tv_sec; // renew timestamp
+			skip_leading_empty_line(*it, buffer);
+
 			if (it->req.raw.find("\r\n") == std::string::npos)
 				continue;
+			// request line parsing
 			if (it->req.req_line_parsed != 2)
 			{
 				it->req.req_line_parsed = 1;
-				parse_request_line((char*)it->req.raw.substr(0, it->req.raw.find("\r\n")).c_str(), *it);
+				parse_request_line((char *)it->req.raw.substr(0, it->req.raw.find("\r\n")).c_str(), *it);
 				it->req.req_line_parsed = 2;
 				it->req.raw = it->req.raw.substr(it->req.raw.find("\r\n") + 2);
-				std::cout << it->req.method << " ";
-				std::cout << it->req.path << " ";
-				std::cout << it->req.version << std::endl;
-				// check request line
-				// if invalid, throw client with error status code
-				// if valid, in the function
-				// set it.req_line_parsed = 2
-				// subtract request line from it.raw  
-				// req_interpreter(,REQ_LINE, it);
 			}
+			// request header parsing
 			if (it->req.req_line_parsed == 2 && it->req.req_header_parsed != 2)
 			{
 				if (it->req.raw.empty())
@@ -129,75 +141,68 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 					parse_request_header(*it, it->req.raw.substr(0, it->req.raw.find("\r\n") + 2));
 					it->req.raw = it->req.raw.substr(it->req.raw.find("\r\n") + 2);
 				}
-				
-				// check request header
-				// if invalid, throw client with error status code
-				// if valid, in the function
-				// set it.req_header_arrived = true;
-				// subtract all header lines from it.raw
-				// req_interpreter(,REQ_HEADER, it);
 			}
+			// request body parsing
 			if (it->req.req_line_parsed == 2 && it->req.req_header_parsed == 2 && it->req.req_body_parsed != 2)
 			{
 				if (it->req_arrived)
-				{
 					it->req.req_body_parsed = 2;
-				}
 				else
+				{
 					parse_request_body(*it);
-				continue;
-				// case1. content-length : make req.body, remove part from it.raw, check req.body size.
-					// if body size < content-length it->req_body_arrived = false;
-					// if body size == content-length it->req_body_arrived = true
-					// if body size > content-length it->req_body_arrived = true, throw client with error code
-				// case2. transfer-encoding : chunk : 
-				// case3. unsupportable transfer-encoding
-				// case4. empty body. it->req_body_arrive = true;
-			}
-			if (it->req_arrived && !it->res_sent)
-			{
-				std::cout << "Body: " << it->req.body << std::endl;
-				std::cout << "Status: " << it->res.status_code << std::endl;
-				// handle_methods(*it);
-				// res_generator(*it); // with conent-length
-				//reset all request parsing flags
+				}
 			}
 		}
 
-		// make response
-		// if response is not set
-		// if (it->res.status_code == 0)
-		// {
-		// }
+
+		/******************/
+		/*     respond    */
+		/******************/
+		// make response head and body
+		if (it->req_arrived && it->res.head.empty() && !it->res.sent_head)
+		{
+			// make head and keep fd
+			if (it->res.status_code == 0)
+			{
+				// std::cout << "handle methods" << std::endl;
+				handle_methods(*it, env);
+			}
+			else
+			{
+				// std::cout << "res gen" << std::endl;
+				res_generator(*it);
+			}
+			// std::cout << it->res.head << std::endl;
+			// std::cout << it->res.body << std::endl;
+		}
 
 		// send res head
-		if (!it->res.sent_head && FD_ISSET(it->socket, &write_set))
+
+		if (it->req_arrived && !it->res.sent_head && FD_ISSET(it->socket, &write_set))
 		{
 			if (!send_res_head(*it))
 				disconnect(init_set, fds, it);
+			printf("sent response head\n");
 			continue;
 		}
 		
-		// make res body
-		if (!it->res.sent_body && it->res.body.empty())
+		// make res body if res.body not exist
+		if (it->req_arrived && !it->res.sent_body && it->res.body.empty())
 		{	// read()
 			make_res_body_from_fd(*it);
 			continue;
 		}
-		else if (!it->res.sent_body && FD_ISSET(it->socket, &write_set))
+		
+		if (it->req_arrived && !it->res.sent_body && !it->res.head.empty() && FD_ISSET(it->socket, &write_set))
 		{	// write()
 			if (!send_res_body(*it))
 				disconnect(init_set, fds, it);
+			printf("sent response body\n");
 			continue;
 		}
 		
 		if (it->res.sent_body)
 		{
-			it->req.req_line_parsed = false;
-			it->req_header_arrived = false;
-			it->req_body_arrived = false;
-		} else if (it->res.raw.empty() && it->req.req_line_parsed == true)
-		{	// for keeping alive...
 			it->req.req_line_parsed = 0;
 			it->req.req_header_parsed = 0;
 			it->req.req_body_parsed = 0;
@@ -206,21 +211,16 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 			it->res.status_code = 0;
 			it->res.sent_head = false;
 			it->res.sent_body = false;
-		}
-
-		// close client when timeout
-		gettimeofday(&tv, NULL);
-		// if (tv.tv_sec - it->time_stamp > CLIENT_TIMEOUT_SEC)
-		// {
-		// 	disconnect(init_set, fds, it);
-		// 	continue;
-		// }
-
-		// Server reject client connection with 503 respond
-		if (it - clients.begin() > MAX_CLIENT)
-		{
-			respond_service_unavailable(*it);
-			disconnect(init_set, fds, it);
+			it->res.head.clear();
+			it->res.headers.clear();
+			it->res.body.clear();
+			it->req.headers.clear();
+			it->req.method.clear();
+			it->req.path.clear();
+			it->req.chunk_size_read = -1;
+			it->req.raw.clear();
+			it->req.headers.clear();
+			printf("reset\n");
 		}
 	}
 }
@@ -240,6 +240,7 @@ void HTTP::manage_servers(fd_set &read_set, fd_set &init_set, std::set<int> &fds
 				throw FailToAccept();
 			if (fcntl(new_client.socket, F_SETFL, O_NONBLOCK) < 0)
 				throw FailToSetClientSocket();
+			renew_client_timestamp(new_client);
 			new_client.server = *it;
 			clients.push_back(new_client);
 			fds.insert(new_client.socket); //fdmax
@@ -259,6 +260,7 @@ void HTTP::make_res_body_from_fd(t_client &cli)
 		res.body = "0\r\n\r\n";
 	else
 	{
+		buff[nb_read] = 0;
 		res.body += int_to_hexstr(nb_read) + "\r\n";
 		res.body += std::string(buff) + "\r\n";
 	}
@@ -273,7 +275,6 @@ bool HTTP::send_res_head(t_client &cli)
 	if (ret == 0)
 		return true;
 	res.sent_head = true;
-	res.head.clear();
 	return true;
 }
 
@@ -318,9 +319,6 @@ void HTTP::init_client(t_client &client)
 	client.req.req_header_parsed = 0;
 	client.req.req_body_parsed = 0;
 	client.req.content_length = -1;
-	client.req_line_arrived = false;
-	client.req_header_arrived = false;
-	client.req_body_arrived = false;
 	client.addr_len = sizeof(client.addr);
 	client.req_arrived = false;
 	client.res_sent = false;
@@ -352,6 +350,7 @@ void HTTP::http_select(int fdmax, fd_set &read_set, fd_set &write_set, struct ti
 void HTTP::handle_methods(t_client &cli, char **env)
 {
 	t_req &req = cli.req;
+
 	if (req.method == "GET")
 		handle_get(cli, env);
 	// else if (req.method == "HEAD")

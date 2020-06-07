@@ -33,6 +33,7 @@ void set_http_status(t_client &client, int status)
 
 void parse_request_line(char *request_line, t_client &client)
 {
+
 	int size = 0;
 	std::set<std::string> methods = {"GET", "POST", "PUT", "OPTIONS", "HEAD", "DELETE", "TRACE", "CONNECT"};
 	char **request_line_split = ft_split(request_line, " \t");
@@ -137,10 +138,10 @@ void parse_request_header(t_client &client, std::string header_sub)
 
 	if (!header_sub.empty() && header_sub[0] == '\r' && header_sub[1] == '\n')
 	{
-		for(std::map<std::string, std::string>::iterator it = req.headers.begin(); it != req.headers.end(); ++it)
-		{
-			std::cout << it->first << "-" << it->second << "\n";
-		}
+		// for(std::map<std::string, std::string>::iterator it = req.headers.begin(); it != req.headers.end(); ++it)
+		// {
+		// 	std::cout << it->first << "-" << it->second << "\n";
+		// }
 		client.req.req_header_parsed = 2;
 		if (req.version != "1.0" && req.headers.find("host") == req.headers.end())
 			set_http_status(client, 400);
@@ -249,7 +250,7 @@ void parse_request_body(t_client &client)
 			return;
 		}
 		if (req.chunk_size_read >= req.raw.length() && req.raw.find("\r\n") == std::string::npos)
-			continue;
+			return;
 		if (req.chunk_size_read != (req.raw.substr(0, req.raw.find("\r\n")).length()))
 		{
 			set_http_status(client, 400);
@@ -273,43 +274,43 @@ void parse_request_body(t_client &client)
 			req.raw = "";
 	}
 	else if (req.headers.find("content-length") != req.headers.end())
+	{
+		if (req.content_length == -1)
 		{
-			if (req.content_length == -1)
+			if (!string_is_digit(req.headers["content-length"]))
 			{
-				if (!string_is_digit(req.headers["content-length"]))
-				{
-					set_http_status(client, 400);
-					req.req_body_parsed = 2;
-					if (req.raw.find("\r\n\r\n") != std::string::npos)
-						req.raw = req.raw.substr(req.raw.find("\r\n\r\n") + 4);
-					else
-						req.raw = ""; 
-					return;
-				}
-				req.content_length = ft_atoi((char *)req.headers["content-length"].c_str());
-			}
-			if (req.content_length <= req.raw.size())
-			{
-				req.body += req.raw.substr(0, req.content_length);
-				req.raw = req.raw.substr(req.content_length);
-				req.content_length = 0;
+				set_http_status(client, 400);
 				req.req_body_parsed = 2;
-				client.req_arrived = true;
+				if (req.raw.find("\r\n\r\n") != std::string::npos)
+					req.raw = req.raw.substr(req.raw.find("\r\n\r\n") + 4);
+				else
+					req.raw = ""; 
 				return;
 			}
-			else if (req.content_length > req.raw.size())
-			{
-				req.body += req.raw;
-				req.content_length -= req.raw.size();
-				req.raw = "";
-				return;
-			}
+			req.content_length = ft_atoi((char *)req.headers["content-length"].c_str());
 		}
-		else
+		if (req.content_length <= req.raw.size())
 		{
-			set_http_status(client, 411);
+			req.body += req.raw.substr(0, req.content_length);
+			req.raw = req.raw.substr(req.content_length);
+			req.content_length = 0;
+			req.req_body_parsed = 2;
+			client.req_arrived = true;
 			return;
 		}
+		else if (req.content_length > req.raw.size())
+		{
+			req.body += req.raw;
+			req.content_length -= req.raw.size();
+			req.raw = "";
+			return;
+		}
+	}
+	else
+	{
+		set_http_status(client, 411);
+		return;
+	}
 }
 
 // void req_interpreter(t_client &client)

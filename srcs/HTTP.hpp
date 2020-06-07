@@ -22,7 +22,7 @@ private:
 	bool send_res_head(t_client &cli);
 	void renew_client_timestamp(t_client &cli);
 	void make_res_body_from_fd(t_client &cli);
-
+	void skip_leading_empty_line(t_client &cli, char *buffer);
 public:
 	HTTP(std::vector<t_server> &srvs);
 	// HTTP(HTTP const &other);

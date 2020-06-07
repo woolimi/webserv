@@ -4,6 +4,7 @@
 static void make_res_line(t_res &res)
 {
 	res.head += "HTTP/1.1 " + std::to_string(res.status_code) + " " + HttpStatus::reasonPhrase(res.status_code);
+	res.head += "\r\n";
 }
 
 static void add_common_res_header(t_res &res)
@@ -34,24 +35,31 @@ static void make_res_header(t_res &res)
 
 static void make_default_error_body(t_res &res)
 {
-	res.body += "<html><head><title>" 
-		+ std::to_string(res.status_code) + HttpStatus::reasonPhrase(res.status_code)
-		+ "</title></head><body bgcolor = \"white\"><center><h1>"
-		+ std::to_string(res.status_code) + HttpStatus::reasonPhrase(res.status_code)
-		+ "</h1></center><hr><center> webserv/1.1</center></body></html>";
+	res.body += "<html>\n";
+	res.body += "\t<head>\n";
+	res.body += "\t\t<title>" + std::to_string(res.status_code) + " " + HttpStatus::reasonPhrase(res.status_code) + "</title>\n";
+	res.body += "\t</head>\n";
+	res.body += "\t<body bgcolor = \"white\">\n";
+	res.body += "\t\t<center>\n";
+	res.body += "\t\t\t<h1>" + std::to_string(res.status_code) + " " + HttpStatus::reasonPhrase(res.status_code) + "</h1>\n";
+	res.body += "\t\t</center>\n";
+	res.body += "\t\t<hr>\n";
+	res.body += "\t\t<center> webserv/1.1</center>\n";
+	res.body += "\t</body>\n";
+	res.body += "</html>\n";
 }
 
 static void make_default_error_page(t_res &res)
 {
 	// prepare
 	add_common_res_header(res);
+	make_default_error_body(res);
 	res.headers["Content-Type"] = "text/html";
-	res.headers["Content-Length"] = res.body.size();
+	res.headers["Content-Length"] = std::to_string(res.body.size());
 	// make res.raw
 	make_res_line(res);
 	make_res_header(res);
 	res.head += "\r\n";
-	make_default_error_body(res);
 }
 
 static void make_custom_error_page(t_client &cli, t_res &res)
@@ -75,14 +83,14 @@ static void make_custom_error_page(t_client &cli, t_res &res)
 	buff[ret] = 0;
 	close(fd);
 	// prepare
+	res.body = buff;
 	add_common_res_header(res);
 	res.headers["Content-Type"] = "text/html";
-	res.headers["Content-Length"] = res.body.size();
+	res.headers["Content-Length"] = std::to_string(res.body.size());
 	// make res.head / body
 	make_res_line(res);
 	make_res_header(res);
 	res.head += "\r\n";
-	res.body = buff;
 }
 
 void res_generator(t_client &cli)
