@@ -10,6 +10,7 @@
 # include <sys/select.h>
 # include <sys/time.h>
 # include <sys/stat.h>
+# include <sys/wait.h>
 # include <fcntl.h>
 # include <string>
 # include <string.h>
@@ -18,13 +19,16 @@
 # include <map>
 # include <set>
 # include <netinet/in.h>
+# include <arpa/inet.h>
 # include <iostream>
+# include <dirent.h>
 # include "libft.h"
 
 # define DEFAULT_CONF_NAME "webserv.conf"
 # define MAX_BUFFER_SIZE 4096
 # define MAX_CLIENT 100
 # define CLIENT_TIMEOUT_SEC 1
+# define SERVER_NAME "webserv/1.0"
 
 typedef std::string route;
 typedef std::string extension;
@@ -78,11 +82,15 @@ typedef struct s_req
 
 typedef struct s_res
 {
-	std::string raw;
+	bool sent_head;
+	bool sent_body;
+	int fd;
 	int status_code;
-	std::string res_line; // ex) HTTP/1.1 400 Bad Request
+	std::string res_line;
 	std::map<std::string, std::string> headers;
-	std::string body;
+	std::string head; // res_line + headers
+	std::string body; // message body
+	std::string fname;
 } t_res;
 
 typedef struct s_client
@@ -106,8 +114,9 @@ void parse_request_body(t_client &client);
 void req_interpreter(t_client &cli);
 void res_generator(t_client &cli);
 std::string mimetype(const std::string &extension);
-void handle_get(t_client &cli);
 int is_newline_char(char c);
+void handle_get(t_client &cli, char **env);
+std::string int_to_hexstr(int n);
 
 // void handle_head(t_client &cli);
 // void handle_post(t_client &cli);

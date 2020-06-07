@@ -35,7 +35,7 @@ HTTP::~HTTP()
 {
 }
 
-void HTTP::run()
+void HTTP::run(char **env)
 {
 	int fdmax;
 	fd_set read_set, write_set, init_set;
@@ -61,12 +61,12 @@ void HTTP::run()
 
 		init_timeout(timeout, 3, 0); // sec, usec
 		http_select(fdmax, read_set, write_set, timeout);
-		manage_clients(read_set, write_set, init_set, fds);
+		manage_clients(read_set, write_set, init_set, fds, env);
 		manage_servers(read_set, init_set, fds);
 	}
 }
 
-void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set, std::set<int> &fds)
+void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set, std::set<int> &fds, char **env)
 {
 	std::vector<t_client>::iterator it;
 	char buffer[MAX_BUFFER_SIZE + 1];
@@ -88,6 +88,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 				continue;
 			}
 			buffer[nb_read] = '\0';
+			renew_client_timestamp(*it);
 			
 			int i = 0;
 			if (!it->req.req_line_parsed && !it->req.req_header_parsed && !it->req.req_body_parsed)
@@ -169,12 +170,32 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 		// {
 		// }
 
-		// send response (Content-Length)
-		if (!it->res.raw.empty() && FD_ISSET(it->socket, &write_set))
+		// send res head
+		if (!it->res.sent_head && FD_ISSET(it->socket, &write_set))
 		{
-			if (send_response(it) < 0)
+			if (!send_res_head(*it))
 				disconnect(init_set, fds, it);
 			continue;
+		}
+		
+		// make res body
+		if (!it->res.sent_body && it->res.body.empty())
+		{	// read()
+			make_res_body_from_fd(*it);
+			continue;
+		}
+		else if (!it->res.sent_body && FD_ISSET(it->socket, &write_set))
+		{	// write()
+			if (!send_res_body(*it))
+				disconnect(init_set, fds, it);
+			continue;
+		}
+		
+		if (it->res.sent_body)
+		{
+			it->req.req_line_parsed = false;
+			it->req_header_arrived = false;
+			it->req_body_arrived = false;
 		} else if (it->res.raw.empty() && it->req.req_line_parsed == true)
 		{	// for keeping alive...
 			it->req.req_line_parsed = 0;
@@ -183,6 +204,8 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 			it->req_arrived = false;
 			it->res_sent = false;
 			it->res.status_code = 0;
+			it->res.sent_head = false;
+			it->res.sent_body = false;
 		}
 
 		// close client when timeout
@@ -196,9 +219,8 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 		// Server reject client connection with 503 respond
 		if (it - clients.begin() > MAX_CLIENT)
 		{
-			respond_service_unavailable(it);
+			respond_service_unavailable(*it);
 			disconnect(init_set, fds, it);
-			continue;
 		}
 	}
 }
@@ -228,6 +250,55 @@ void HTTP::manage_servers(fd_set &read_set, fd_set &init_set, std::set<int> &fds
 	}
 }
 
+void HTTP::make_res_body_from_fd(t_client &cli)
+{
+	t_res &res = cli.res;
+	char buff[MAX_BUFFER_SIZE + 1];
+	int nb_read = read(res.fd, buff, MAX_BUFFER_SIZE);
+	if (nb_read <= 0)
+		res.body = "0\r\n\r\n";
+	else
+	{
+		res.body += int_to_hexstr(nb_read) + "\r\n";
+		res.body += std::string(buff) + "\r\n";
+	}
+}
+
+bool HTTP::send_res_head(t_client &cli)
+{
+	t_res &res = cli.res;
+	int ret = write(cli.socket, cli.res.head.c_str(), cli.res.head.size());
+	if (ret < 0)
+		return false; // disconnect
+	if (ret == 0)
+		return true;
+	res.sent_head = true;
+	res.head.clear();
+	return true;
+}
+
+bool HTTP::send_res_body(t_client &cli)
+{
+	t_res &res = cli.res;
+
+	int ret = write(cli.socket, cli.res.body.c_str(), cli.res.body.size());
+	if (ret < 0)
+		return false; // disconnect
+	if (ret == 0)
+		return true;
+	if (res.headers.find("Content-Length") != res.headers.end())
+		res.sent_body = true;
+	else if (res.headers.find("Transfer-Encoding") != res.headers.end() 
+		&& res.headers["Transfer-Encoding"] == "chunked" && cli.res.body == "0\r\n\r\n")
+	{
+		close(res.fd);
+		res.sent_body = true;
+	}
+	res.body.clear();
+	renew_client_timestamp(cli);
+	return true;
+}
+
 void HTTP::disconnect(fd_set &init_set, std::set<int> &fds, std::vector<t_client>::iterator &it)
 {
 	fds.erase(it->socket);
@@ -241,18 +312,24 @@ void HTTP::disconnect(fd_set &init_set, std::set<int> &fds, std::vector<t_client
 void HTTP::init_client(t_client &client)
 {
 	client.socket = 0;
+	client.addr_len = sizeof(client.addr);
+	/* req */
 	client.req.req_line_parsed = 0;
 	client.req.req_header_parsed = 0;
 	client.req.req_body_parsed = 0;
 	client.req.content_length = -1;
+	client.req_line_arrived = false;
+	client.req_header_arrived = false;
+	client.req_body_arrived = false;
 	client.addr_len = sizeof(client.addr);
 	client.req_arrived = false;
 	client.res_sent = false;
-	// client.req_line_arrived = false;
-	// client.req_header_arrived = false;
-	// client.req_body_arrived = false;
 	client.res.status_code = 0;
 	client.req.chunk_size_read = -1;
+	/* res */
+	client.res.status_code = 0;
+	client.res.sent_head = false;
+	client.res.sent_body = false;
 }
 
 void HTTP::init_timeout(struct timeval &timeout, int sec, int usec)
@@ -272,42 +349,32 @@ void HTTP::http_select(int fdmax, fd_set &read_set, fd_set &write_set, struct ti
 		printf("waiting client\n");
 }
 
-void HTTP::handle_methods(t_client &cli)
+void HTTP::handle_methods(t_client &cli, char **env)
 {
 	t_req &req = cli.req;
 	if (req.method == "GET")
-		handle_get(cli);
+		handle_get(cli, env);
 	// else if (req.method == "HEAD")
 	// 	handle_head(cli);
 	// ...
 }
 
-void HTTP::respond_service_unavailable(std::vector<t_client>::iterator &it)
-{
-	it->res.status_code = 503; // ServiceUnavailable
-	res_generator(*it);
-	write(it->socket, it->res.raw.c_str(), it->res.raw.size());
-}
-
-int HTTP::send_response(std::vector<t_client>::iterator &it)
+void HTTP::renew_client_timestamp(t_client &cli)
 {
 	struct timeval tv;
-	ssize_t nb_write;
 
-	if (it->res.raw.size() > MAX_BUFFER_SIZE)
-		nb_write = write(it->socket, it->res.raw.c_str(), MAX_BUFFER_SIZE);
-	else
-		nb_write = write(it->socket, it->res.raw.c_str(), it->res.raw.size());
-	if (nb_write == -1)
-		return (-1);
-	if (nb_write == 0)
-		return (0);
-	// if sent response without problem, renew client time
 	gettimeofday(&tv, NULL);
-	it->time_stamp = tv.tv_sec;
-	// remove sent data from res.raw
-	it->res.raw.erase(0, nb_write);
-	return (1);
+	cli.time_stamp = tv.tv_sec;
+}
+
+void HTTP::respond_service_unavailable(t_client &cli)
+{
+	t_res &res = cli.res;
+
+	res.status_code = 503; // ServiceUnavailable
+	res_generator(cli);
+	std::string send = res.head + res.body;
+	write(cli.socket, send.c_str(), send.size());
 }
 
 const char *HTTP::FailToSetServerSocket::what() const throw()

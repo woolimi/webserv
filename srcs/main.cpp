@@ -6,7 +6,7 @@
 /*   By: wpark <wpark@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/05/19 14:02:48 by wpark             #+#    #+#             */
-/*   Updated: 2020/06/02 14:06:06 by wpark            ###   ########.fr       */
+/*   Updated: 2020/06/06 19:01:48 by wpark            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,6 @@
 
 int main(int ac, char **av, char **env)
 {
-	(void)env;
 	try
 	{
 		// get config file param. If not exist, use default config
@@ -40,7 +39,7 @@ int main(int ac, char **av, char **env)
 		// set server
 		HTTP http(conf.servers());
 		// run server
-		http.run();
+		http.run(env);
 	}
 	catch(const std::exception& e)
 	{
