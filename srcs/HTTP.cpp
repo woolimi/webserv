@@ -112,6 +112,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 		{
 			respond_service_unavailable(*it);
 			disconnect(init_set, fds, it);
+			continue;
 		}
 
 		// receive request
@@ -121,6 +122,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 			if (nb_read == 0 && it->req.raw.empty())
 			{
 				disconnect(init_set, fds, it);
+				printf("disconnected after parsing all request\n");
 				continue;
 			}
 			// Client close connection unexpectly
@@ -178,8 +180,6 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 			{
 				handle_methods(*it, env);
 				res_generator(*it);
-				// std::cout << it->res.head;
-				// std::cout << it->res.body;
 			}
 			else
 			{
@@ -207,9 +207,11 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 		if (it->req_arrived && !it->res_sent && FD_ISSET(it->socket, &write_set))
 		{	// write()
 			if (!send_res_body(*it))
+			{
 				disconnect(init_set, fds, it);
+				continue;
+			}
 			printf("sent response body\n");
-			continue;
 		}
 		
 		if (it->res_sent)
@@ -228,7 +230,6 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 			it->req.method.clear();
 			it->req.path.clear();
 			it->req.chunk_size_read = -1;
-			it->req.headers.clear();
 			printf("reset\n");
 		}
 	}
@@ -288,6 +289,7 @@ void HTTP::init_client(t_client &client)
 	client.res.status_code = 0;
 	client.res.sent_head = false;
 	client.res.content_length = 0;
+	client.res.fd = -1;
 }
 
 void HTTP::init_timeout(struct timeval &timeout, int sec, int usec)
@@ -302,7 +304,7 @@ void HTTP::http_select(int fdmax, fd_set &read_set, fd_set &write_set, struct ti
 
 	if ((ret = select(fdmax + 1, &read_set, &write_set, NULL, &timeout)) < 0)
 	{
-		strerror(errno);
+		std::cout << strerror(errno) << std::endl;
 		throw FailToSelect();
 	}
 	/* debug */

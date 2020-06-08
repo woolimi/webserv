@@ -31,7 +31,8 @@ bool send_res_body(t_client &cli)
 	if (res.content_length == 0)
 	{
 		cli.res_sent = true;
-		close(res.fd);
+		if (res.fd != -1)
+			close(res.fd);
 	}
 	renew_client_timestamp(cli);
 	return true;
