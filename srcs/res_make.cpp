@@ -8,7 +8,6 @@ void make_res_body_from_fd(t_client &cli)
 	if (nb_read <= 0)
 	{
 		cli.res_sent = true;
-		printf("here\n");
 	}
 	else
 	{
@@ -36,8 +35,9 @@ void make_file_res(t_client &cli, t_location *loc, char **env, std::string &file
 		if (!execute_cgi(cli, *loc, env, file_path, ext))
 			return;
 		off_t full_content_length = lseek(res.fd, 0, SEEK_END);
-		lseek(res.fd, 0, SEEK_SET);
+		std::cout << strerror(errno) << std::endl;
 
+		lseek(res.fd, 0, SEEK_SET);
 		// calculate content length
 		std::string raw;
 		size_t pos;

@@ -1,19 +1,19 @@
-HTTP/1.1 404 Not Found
-Content-Length: 186
+HTTP/1.1 200 OK
+Content-Length: 216
 Content-Type: text/html
-Date: Mon, 08 Jun 2020 19:07:10 GMT
+Date: Mon, 08 Jun 2020 20:37:47 GMT
 Server: webserv/1.0
 
 <html>
 	<head>
-		<title>404 Not Found</title>
+		<title>Index of /YoupiBanane</title>
 	</head>
-	<body bgcolor = "white">
-		<center>
-			<h1>404 Not Found</h1>
-		</center>
-		<hr>
-		<center> webserv/1.1</center>
+	<body bgcolor="white">
+		<h1>Index of /YoupiBanane</h1>
+	<hr>
+	<pre>
+<a href="../">../</a>								08-Jun-2020 20:38		4096
+	</pre>
+	<hr>
 	</body>
 </html>
-equest.txt
