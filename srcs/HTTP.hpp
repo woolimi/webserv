@@ -18,10 +18,6 @@ private:
 	void disconnect(fd_set& init_set, std::set<int> &fds, std::vector<t_client>::iterator &it);
 	void handle_methods(t_client &cli, char **env);
 	void respond_service_unavailable(t_client &cli);
-	bool send_res_body(t_client &cli);
-	bool send_res_head(t_client &cli);
-	void renew_client_timestamp(t_client &cli);
-	void make_res_body_from_fd(t_client &cli);
 	void skip_leading_empty_line(t_client &cli, char *buffer);
 public:
 	HTTP(std::vector<t_server> &srvs);

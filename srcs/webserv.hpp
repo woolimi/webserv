@@ -23,12 +23,14 @@
 # include <iostream>
 # include <dirent.h>
 # include "libft.h"
+# include "HttpStatus.hpp"
 
 # define DEFAULT_CONF_NAME "webserv.conf"
 # define MAX_BUFFER_SIZE 4096
 # define MAX_CLIENT 100
 # define CLIENT_TIMEOUT_SEC 30
 # define SERVER_NAME "webserv/1.0"
+# define OK 0
 
 typedef std::string route;
 
@@ -83,14 +85,14 @@ typedef struct s_req
 typedef struct s_res
 {
 	bool sent_head;
-	bool sent_body;
+	// bool sent_body;
 	int fd;
 	int status_code;
 	std::string res_line;
 	std::map<std::string, std::string> headers;
 	std::string head; // res_line + headers
 	std::string body; // message body
-	std::string fname;
+	off_t content_length;
 } t_res;
 
 typedef struct s_client
@@ -118,6 +120,14 @@ int is_newline_char(char c);
 void handle_get(t_client &cli, char **env, t_location *loc, bool is_file, std::string folder_path, std::string file);
 std::string int_to_hexstr(int n);
 t_location *find_matched_location(t_server &serv, std::string &folder_path, std::string &file);
+bool execute_cgi(t_client &cli, t_location &loc, char **env, std::string &real_path, std::string &ext);
+void make_folder_list_res(t_client &cli, t_location *loc, std::string &uri_path, std::string &real_path);
+void make_file_res(t_client &cli, t_location *loc, char **env, std::string &real_path, std::string &file);
+int file_check(std::string file_path);
+void renew_client_timestamp(t_client &cli);
+bool send_res_body(t_client &cli);
+bool send_res_head(t_client &cli);
+void make_res_body_from_fd(t_client &cli);
 
 // void handle_head(t_client &cli);
 // void handle_post(t_client &cli);
