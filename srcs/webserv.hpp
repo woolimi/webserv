@@ -27,7 +27,7 @@
 # define DEFAULT_CONF_NAME "webserv.conf"
 # define MAX_BUFFER_SIZE 4096
 # define MAX_CLIENT 100
-# define CLIENT_TIMEOUT_SEC 1
+# define CLIENT_TIMEOUT_SEC 30
 # define SERVER_NAME "webserv/1.0"
 
 typedef std::string route;
@@ -115,8 +115,9 @@ void req_interpreter(t_client &cli);
 void res_generator(t_client &cli);
 std::string mimetype(const std::string &extension);
 int is_newline_char(char c);
-void handle_get(t_client &cli, char **env);
+void handle_get(t_client &cli, char **env, t_location *loc, bool is_file, std::string folder_path, std::string file);
 std::string int_to_hexstr(int n);
+t_location *find_matched_location(t_server &serv, std::string &folder_path, std::string &file);
 
 // void handle_head(t_client &cli);
 // void handle_post(t_client &cli);

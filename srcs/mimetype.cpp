@@ -5,6 +5,7 @@
 */
 
 typedef std::string mime;
+typedef std::string extension;
 static std::map<extension, mime> mimedb = {
 	{".acc", "audio/aac"},
 	{".abw", "application/x-abiword"},

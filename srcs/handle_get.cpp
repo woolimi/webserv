@@ -1,6 +1,6 @@
 #include "webserv.hpp"
 
-static t_location *find_matched_location(t_server &serv, std::string &folder_path, std::string &file)
+t_location *find_matched_location(t_server &serv, std::string &folder_path, std::string &file)
 {
 	t_location *ret;
 	size_t max_matched_size = 0;
@@ -277,19 +277,11 @@ void make_folder_list_res(t_client &cli, t_location *loc, std::string &uri_path,
 // ex) req.path = "/test/a/index.html"
 // folder_path = "/test/a"
 // file = "/index.html"
-void handle_get(t_client &cli, char **env)
+void handle_get(t_client &cli, char **env, t_location *loc, bool is_file, std::string folder_path, std::string file)
 {
-	t_server &serv = cli.server;
 	t_req &req = cli.req;
-	t_location *loc;
-	bool is_file = true;
 	try
 	{
-		std::string folder_path = req.path.substr(0, req.path.find_last_of('/'));
-		std::string file = req.path.substr(req.path.find_last_of('/'));
-		if (file == "/")
-			is_file = false;
-		loc = find_matched_location(serv, folder_path, file);
 		std::string real_path = make_real_path(loc->root, req.path);
 
 		if (is_file)

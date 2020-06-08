@@ -349,10 +349,46 @@ void HTTP::http_select(int fdmax, fd_set &read_set, fd_set &write_set, struct ti
 
 void HTTP::handle_methods(t_client &cli, char **env)
 {
+	t_server &serv = cli.server;
 	t_req &req = cli.req;
+	t_location *loc;
+	bool is_file = true;
+
+	std::string folder_path = req.path.substr(0, req.path.find_last_of('/'));
+	std::string file = req.path.substr(req.path.find_last_of('/'));
+	if (file == "/")
+		is_file = false;
+	loc = find_matched_location(serv,folder_path, file);
+	
+	std::vector<std::string>::iterator it1;
+	for (it1 = loc->allow.begin(); it1 !=loc->allow.end(); ++it1)
+	{
+		if (*it1 == req.method)
+			break;
+	}
+	if (it1 == loc->allow.end())
+	{
+		std::string allow = "";
+		if (loc->allow.empty())
+		{
+			cli.res.status_code = 405;
+			res_generator(cli);
+		}
+		else
+			allow += loc->allow[0];
+		it1 = loc->allow.begin();
+		it1++;
+		for (; it1 != loc->allow.end(); ++it1)
+			allow = allow + ", " + *it1;
+		cli.res.headers["Allow"] = allow;
+		{
+			cli.res.status_code = 405;
+			res_generator(cli);
+		}
+	}
 
 	if (req.method == "GET")
-		handle_get(cli, env);
+		handle_get(cli, env, loc, is_file, folder_path, file);
 	// else if (req.method == "HEAD")
 	// 	handle_head(cli);
 	// ...
