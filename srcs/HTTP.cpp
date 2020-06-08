@@ -161,19 +161,16 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 		// make response head and body
 		if (it->req_arrived && it->res.head.empty() && !it->res.sent_head)
 		{
-			// make head and keep fd
 			if (it->res.status_code == 0)
 			{
-				// std::cout << "handle methods" << std::endl;
 				handle_methods(*it, env);
+				res_generator(*it);
 			}
 			else
 			{
-				// std::cout << "res gen" << std::endl;
+				// error while parsing request
 				res_generator(*it);
 			}
-			// std::cout << it->res.head << std::endl;
-			// std::cout << it->res.body << std::endl;
 		}
 
 		// send res head
@@ -187,13 +184,13 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 		}
 		
 		// make res body if res.body not exist
-		if (it->req_arrived && !it->res.sent_body && it->res.body.empty())
+		if (it->req_arrived && !it->res.content_length && it->res.body.empty())
 		{	// read()
 			make_res_body_from_fd(*it);
 			continue;
 		}
 		
-		if (it->req_arrived && !it->res.sent_body && !it->res.head.empty() && FD_ISSET(it->socket, &write_set))
+		if (it->req_arrived && !it->res.body.empty() && FD_ISSET(it->socket, &write_set))
 		{	// write()
 			if (!send_res_body(*it))
 				disconnect(init_set, fds, it);
@@ -201,7 +198,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 			continue;
 		}
 		
-		if (it->res.sent_body)
+		if (it->res.sent_head && it->res.content_length == 0)
 		{
 			it->req.req_line_parsed = 0;
 			it->req.req_header_parsed = 0;
@@ -210,7 +207,6 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 			it->res_sent = false;
 			it->res.status_code = 0;
 			it->res.sent_head = false;
-			it->res.sent_body = false;
 			it->res.head.clear();
 			it->res.headers.clear();
 			it->res.body.clear();
@@ -251,55 +247,6 @@ void HTTP::manage_servers(fd_set &read_set, fd_set &init_set, std::set<int> &fds
 	}
 }
 
-void HTTP::make_res_body_from_fd(t_client &cli)
-{
-	t_res &res = cli.res;
-	char buff[MAX_BUFFER_SIZE + 1];
-	int nb_read = read(res.fd, buff, MAX_BUFFER_SIZE);
-	if (nb_read <= 0)
-		res.body = "0\r\n\r\n";
-	else
-	{
-		buff[nb_read] = 0;
-		res.body += int_to_hexstr(nb_read) + "\r\n";
-		res.body += std::string(buff) + "\r\n";
-	}
-}
-
-bool HTTP::send_res_head(t_client &cli)
-{
-	t_res &res = cli.res;
-	int ret = write(cli.socket, cli.res.head.c_str(), cli.res.head.size());
-	if (ret < 0)
-		return false; // disconnect
-	if (ret == 0)
-		return true;
-	res.sent_head = true;
-	return true;
-}
-
-bool HTTP::send_res_body(t_client &cli)
-{
-	t_res &res = cli.res;
-
-	int ret = write(cli.socket, cli.res.body.c_str(), cli.res.body.size());
-	if (ret < 0)
-		return false; // disconnect
-	if (ret == 0)
-		return true;
-	if (res.headers.find("Content-Length") != res.headers.end())
-		res.sent_body = true;
-	else if (res.headers.find("Transfer-Encoding") != res.headers.end() 
-		&& res.headers["Transfer-Encoding"] == "chunked" && cli.res.body == "0\r\n\r\n")
-	{
-		close(res.fd);
-		res.sent_body = true;
-	}
-	res.body.clear();
-	renew_client_timestamp(cli);
-	return true;
-}
-
 void HTTP::disconnect(fd_set &init_set, std::set<int> &fds, std::vector<t_client>::iterator &it)
 {
 	fds.erase(it->socket);
@@ -328,6 +275,7 @@ void HTTP::init_client(t_client &client)
 	client.res.status_code = 0;
 	client.res.sent_head = false;
 	client.res.sent_body = false;
+	client.res.content_length = 0;
 }
 
 void HTTP::init_timeout(struct timeval &timeout, int sec, int usec)
@@ -368,23 +316,18 @@ void HTTP::handle_methods(t_client &cli, char **env)
 	}
 	if (it1 == loc->allow.end())
 	{
-		std::string allow = "";
 		if (loc->allow.empty())
 		{
 			cli.res.status_code = 405;
-			res_generator(cli);
+			return;
 		}
-		else
-			allow += loc->allow[0];
-		it1 = loc->allow.begin();
-		it1++;
+		std::string allow = loc->allow[0];
+		it1 = loc->allow.begin() + 1;
 		for (; it1 != loc->allow.end(); ++it1)
 			allow = allow + ", " + *it1;
 		cli.res.headers["Allow"] = allow;
-		{
-			cli.res.status_code = 405;
-			res_generator(cli);
-		}
+		cli.res.status_code = 405;
+		return ;
 	}
 
 	if (req.method == "GET")
@@ -394,13 +337,6 @@ void HTTP::handle_methods(t_client &cli, char **env)
 	// ...
 }
 
-void HTTP::renew_client_timestamp(t_client &cli)
-{
-	struct timeval tv;
-
-	gettimeofday(&tv, NULL);
-	cli.time_stamp = tv.tv_sec;
-}
 
 void HTTP::respond_service_unavailable(t_client &cli)
 {

@@ -20,7 +20,7 @@ OBJ_NAME = $(SRC_NAME:.cpp=.o)
 OBJ_PATH = ./obj
 OBJ = $(addprefix $(OBJ_PATH)/, $(OBJ_NAME))
 
-INC_LINK = -I./lib
+INC_LINK = -I./lib -I./include
 LIBFT = -L./lib -lft
 
 all: $(NAME)
