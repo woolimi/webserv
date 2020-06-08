@@ -230,11 +230,12 @@ void ConfigParser::block_level_2(t_server &sv, t_location &lc, std::vector<std::
 
 		if (*it == "allow" && ++it != end && *it != ";")
 		{
+			sv.location[tmp_route].allow.clear();
 			for (; it != end && *it != ";"; ++it)
 			{
 				if (!is_http_method(*it))
 					throw FormatError("Config Error : Invalid 'allow' methods " + *it + " in location\n");
-				sv.location[tmp_route].index.push_back(*it);
+				sv.location[tmp_route].allow.push_back(*it);
 			}
 			--it;
 		}
