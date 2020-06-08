@@ -1,5 +1,4 @@
 #include "webserv.hpp"
-#include "HttpStatus.hpp"
 
 static void make_res_line(t_res &res)
 {
@@ -56,6 +55,7 @@ static void make_default_error_page(t_res &res)
 	make_default_error_body(res);
 	res.headers["Content-Type"] = "text/html";
 	res.headers["Content-Length"] = std::to_string(res.body.size());
+	res.content_length = res.body.size();
 	// make res.raw
 	make_res_line(res);
 	make_res_header(res);
@@ -87,6 +87,7 @@ static void make_custom_error_page(t_client &cli, t_res &res)
 	add_common_res_header(res);
 	res.headers["Content-Type"] = "text/html";
 	res.headers["Content-Length"] = std::to_string(res.body.size());
+	res.content_length = res.body.size();
 	// make res.head / body
 	make_res_line(res);
 	make_res_header(res);

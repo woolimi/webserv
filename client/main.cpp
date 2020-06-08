@@ -130,21 +130,22 @@ void send_request_and_receive_respond(const std::string &server_name, const std:
 	res = write(cl->client_socket, cl->request.c_str(), cl->request.size());
 	if (res < 0)
 		print_error(("fail to send request to " + server_name).c_str());
-
 	// receive respond
 	char buff[BUFF_SIZE + 1];
+	res = read(cl->client_socket, buff, BUFF_SIZE);
+	cl->respond += std::string(buff);
+	sleep(1);
 	res = read(cl->client_socket, buff, BUFF_SIZE);
 	if (res < 0)
 		print_error(("fail to receive respond from " + server_name).c_str());
 	buff[res] = 0;
-	cl->respond.clear();
 	cl->respond += std::string(buff);
 
 	// close connection with server
 	close(cl->client_socket);
 
 	// make server_name.res file
-	int fd = open((server_name + ".res").c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0777);
+	int fd = open((server_name + ".res").c_str(), O_CREAT | O_WRONLY | O_APPEND, 0777);
 	if (fd < 0)
 		print_error(("fail to create " + server_name + ".res").c_str());
 	res = write(fd, cl->respond.c_str(), cl->respond.size());
