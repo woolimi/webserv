@@ -302,7 +302,6 @@ void ConfigParser::default_location_config(t_location &lc)
 	size_t len = sizeof(http_methods) / sizeof(std::string);
 	for (size_t i = 0; i < len; i++)
 		lc.allow.push_back(http_methods[i]);
-	lc.index.push_back(std::string(cur_path) + "/www/default.html");
 }
 
 void ConfigParser::trim_data(std::string &raw)
