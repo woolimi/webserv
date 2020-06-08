@@ -11,7 +11,10 @@ SRC_NAME = ConfigParser.cpp \
 	main.cpp \
 	mimetype.cpp \
 	req_interpreter.cpp \
+	res_cgi.cpp \
 	res_generator.cpp \
+	res_make.cpp \
+	res_send.cpp \
 	utils.cpp
 SRC_PATH = ./srcs
 SRC = $(addprefix $(SRC_PATH)/, $(SRC_NAME))
@@ -20,7 +23,7 @@ OBJ_NAME = $(SRC_NAME:.cpp=.o)
 OBJ_PATH = ./obj
 OBJ = $(addprefix $(OBJ_PATH)/, $(OBJ_NAME))
 
-INC_LINK = -I./lib -I./include
+INC_LINK = -I./lib
 LIBFT = -L./lib -lft
 
 all: $(NAME)

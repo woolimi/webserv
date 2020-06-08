@@ -55,7 +55,7 @@ bool execute_cgi(t_client &cli, t_location &loc, char **env, std::string &real_p
 	if (pipe(p2c_fd) < 0 || pipe(c2p_fd) < 0 || (pid = fork()) < 0)
 	{
 		cli.res.status_code = 404;	
-		return;
+		return false;
 	}
 
 	if (pid == 0) // child
@@ -85,7 +85,7 @@ bool execute_cgi(t_client &cli, t_location &loc, char **env, std::string &real_p
 				close(p2c_fd[1]);
 				kill(pid, SIGKILL);
 				cli.res.status_code = 404;
-				return;
+				return false;
 			}
 			cli.req.body.clear();
 		}
@@ -94,8 +94,9 @@ bool execute_cgi(t_client &cli, t_location &loc, char **env, std::string &real_p
 		if (!WIFEXITED(status))
 		{
 			cli.res.status_code = 404;
-			return;
+			return false;
 		}
 		close(p2c_fd[1]);
 	}
+	return true;
 }

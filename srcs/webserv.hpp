@@ -23,6 +23,7 @@
 # include <iostream>
 # include <dirent.h>
 # include "libft.h"
+# include "HttpStatus.hpp"
 
 # define DEFAULT_CONF_NAME "webserv.conf"
 # define MAX_BUFFER_SIZE 4096
@@ -84,14 +85,14 @@ typedef struct s_req
 typedef struct s_res
 {
 	bool sent_head;
-	bool sent_body;
+	// bool sent_body;
 	int fd;
 	int status_code;
 	std::string res_line;
 	std::map<std::string, std::string> headers;
 	std::string head; // res_line + headers
 	std::string body; // message body
-	size_t content_length;
+	off_t content_length;
 } t_res;
 
 typedef struct s_client

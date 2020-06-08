@@ -1,3 +1,7 @@
-GET / HTTP/1.1
+GET /abc HTTP/1.1
+host: localhost
+
+
+GET /abc HTTP/1.1
 host: localhost
 

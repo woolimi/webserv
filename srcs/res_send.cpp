@@ -21,14 +21,18 @@ bool send_res_body(t_client &cli)
 		return false; // disconnect
 	if (ret == 0)
 		return true;
-	if (res.headers.find("Content-Length") != res.headers.end())
-		res.sent_body = true;
-	else if (res.headers.find("Transfer-Encoding") != res.headers.end() && res.headers["Transfer-Encoding"] == "chunked" && cli.res.body == "0\r\n\r\n")
+
+	if (ret < cli.res.body.size())
+		cli.res.body.erase(0, ret);
+	else
+		cli.res.body.clear();
+
+	res.content_length -= ret;
+	if (res.content_length == 0)
 	{
+		cli.res_sent = true;
 		close(res.fd);
-		res.sent_body = true;
 	}
-	res.body.clear();
 	renew_client_timestamp(cli);
 	return true;
 }

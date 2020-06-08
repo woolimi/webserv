@@ -6,7 +6,10 @@ void make_res_body_from_fd(t_client &cli)
 	char buff[MAX_BUFFER_SIZE + 1];
 	int nb_read = read(res.fd, buff, MAX_BUFFER_SIZE);
 	if (nb_read <= 0)
-		res.body = "0\r\n\r\n";
+	{
+		cli.res_sent = true;
+		printf("here\n");
+	}
 	else
 	{
 		buff[nb_read] = 0;
@@ -26,7 +29,6 @@ void make_file_res(t_client &cli, t_location *loc, char **env, std::string &file
 	fstat(res.fd, &info);
 	size_t file_size = info.st_size;
 	std::string ext = file.substr(file.find_last_of('.'));
-	off_t content_length = 0;
 
 	// make res.head
 	if (!loc->cgi.empty() && loc->cgi["extension"] == ext)
@@ -51,7 +53,7 @@ void make_file_res(t_client &cli, t_location *loc, char **env, std::string &file
 			buff[ret] = 0;
 			raw += buff;
 		}
-		content_length = full_content_length - (pos + 4);
+		res.content_length = full_content_length - (pos + 4);
 
 		// inherit header + more header
 		std::string tmp;
@@ -67,11 +69,11 @@ void make_file_res(t_client &cli, t_location *loc, char **env, std::string &file
 	}
 	else
 	{
-		content_length = lseek(res.fd, 0, SEEK_END);
+		res.content_length = lseek(res.fd, 0, SEEK_END);
 		lseek(res.fd, 0, SEEK_SET);
 		res.headers["Content-Type"] = mimetype(ext);
 	}
-	res.headers["Content-Length"] = std::to_string(content_length);
+	res.headers["Content-Length"] = std::to_string(res.content_length);
 	res.status_code = 200;
 }
 
@@ -130,4 +132,5 @@ void make_folder_list_res(t_client &cli, t_location *loc, std::string &uri_path,
 	res.body += "\t</pre>\n\t<hr>\n\t</body>\n</html>";
 	res.headers["Content-Type"] = "text/html";
 	res.headers["Content-Length"] = std::to_string(res.body.size());
+	res.content_length = res.body.size();
 }
