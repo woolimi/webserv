@@ -26,7 +26,7 @@
 # include "HttpStatus.hpp"
 
 # define DEFAULT_CONF_NAME "webserv.conf"
-# define MAX_BUFFER_SIZE 4096
+# define MAX_BUFFER_SIZE 100
 # define MAX_CLIENT 100
 # define CLIENT_TIMEOUT_SEC 30
 # define SERVER_NAME "webserv/1.0"

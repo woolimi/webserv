@@ -3,6 +3,8 @@
 bool send_res_head(t_client &cli)
 {
 	t_res &res = cli.res;
+	std::cout << cli.res.head <<std::endl;
+
 	int ret = write(cli.socket, cli.res.head.c_str(), cli.res.head.size());
 	if (ret < 0)
 		return false; // disconnect
@@ -15,6 +17,7 @@ bool send_res_head(t_client &cli)
 bool send_res_body(t_client &cli)
 {
 	t_res &res = cli.res;
+	std::cout << cli.res.body <<std::endl;
 
 	int ret = write(cli.socket, cli.res.body.c_str(), cli.res.body.size());
 	if (ret < 0)

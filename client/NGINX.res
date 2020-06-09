@@ -1,41 +1,30 @@
 HTTP/1.1 200 OK
 Server: nginx/1.14.0 (Ubuntu)
-Date: Wed, 03 Jun 2020 21:19:53 GMT
+Date: Tue, 09 Jun 2020 16:57:20 GMT
 Content-Type: text/html
-Content-Length: 209
-Last-Modified: Mon, 25 May 2020 16:24:22 GMT
+Content-Length: 612
+Last-Modified: Sat, 04 Apr 2020 14:47:23 GMT
 Connection: keep-alive
-ETag: "5ecbf136-d1"
+ETag: "5e889dfb-264"
 Accept-Ranges: bytes
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Document</title>
-</head>
-<body>
-	<h1>default</h1>
-</body>
-</html>HTTP/1.1 200 OK
+HTTP/1.1 200 OK
 Server: nginx/1.14.0 (Ubuntu)
-Date: Wed, 03 Jun 2020 21:19:53 GMT
+Date: Tue, 09 Jun 2020 16:58:19 GMT
 Content-Type: text/html
-Content-Length: 209
-Last-Modified: Mon, 25 May 2020 16:24:22 GMT
+Content-Length: 612
+Last-Modified: Sat, 04 Apr 2020 14:47:23 GMT
 Connection: keep-alive
-ETag: "5ecbf136-d1"
+ETag: "5e889dfb-264"
 Accept-Ranges: bytes
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Document</title>
-</head>
-<body>
-	<h1>default</h1>
-</body>
-</html>
+HTTP/1.1 200 OK
+Server: nginx/1.14.0 (Ubuntu)
+Date: Tue, 09 Jun 2020 16:58:29 GMT
+Content-Type: text/html
+Content-Length: 612
+Last-Modified: Sat, 04 Apr 2020 14:47:23 GMT
+Connection: keep-alive
+ETag: "5e889dfb-264"
+Accept-Ranges: bytes
+
