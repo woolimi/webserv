@@ -7,13 +7,19 @@ void make_res_body_from_fd(t_client &cli)
 	int nb_read = read(res.fd, buff, MAX_BUFFER_SIZE);
 	if (nb_read <= 0)
 	{
-		cli.res_sent = true;
-		printf("here\n");
+		if (res.headers.find("Transfer-Encoding") != res.headers.end())
+			res.body += "0\r\n\r\n";
 	}
 	else
 	{
 		buff[nb_read] = 0;
-		res.body += buff;
+		if (res.headers.find("Transfer-Encoding") != res.headers.end())
+		{
+			res.body += int_to_hexstr(nb_read) + "\r\n";
+			res.body += std::string(buff) + "\r\n";
+		}
+		else
+			res.body += buff;
 	}
 }
 
@@ -35,27 +41,15 @@ void make_file_res(t_client &cli, t_location *loc, char **env, std::string &file
 	{
 		if (!execute_cgi(cli, *loc, env, file_path, ext))
 			return;
-		off_t full_content_length = lseek(res.fd, 0, SEEK_END);
-		lseek(res.fd, 0, SEEK_SET);
 
 		// calculate content length
-		std::string raw;
-		size_t pos;
 		char buff[MAX_BUFFER_SIZE + 1];
-		while ((pos = raw.find("\r\n\r\n")) == std::string::npos)
-		{
-			int ret;
-			if ((ret = read(res.fd, buff, MAX_BUFFER_SIZE)) < 0)
-			{
-				cli.res.status_code = 404;
-				return;
-			}
-			buff[ret] = 0;
-			raw += buff;
-		}
-		res.content_length = full_content_length - (pos + 4);
+		int ret = read(res.fd, buff, MAX_BUFFER_SIZE);
+		buff[ret] = 0;
+		std::string raw = buff;
 
 		// inherit header + more header
+		size_t pos;
 		std::string tmp;
 		while ((pos = raw.find("\r\n")) != std::string::npos)
 		{
@@ -66,14 +60,17 @@ void make_file_res(t_client &cli, t_location *loc, char **env, std::string &file
 			pos = tmp.find(": ");
 			res.headers[tmp.substr(0, pos)] = tmp.substr(pos + 2);
 		}
+		res.headers["Transfer-Encoding"] = "chunked";
+		res.body += int_to_hexstr(raw.size()) + "\r\n";
+		res.body += raw + "\r\n";
 	}
 	else
 	{
 		res.content_length = lseek(res.fd, 0, SEEK_END);
 		lseek(res.fd, 0, SEEK_SET);
 		res.headers["Content-Type"] = mimetype(ext);
+		res.headers["Content-Length"] = std::to_string(res.content_length);
 	}
-	res.headers["Content-Length"] = std::to_string(res.content_length);
 	res.status_code = 200;
 }
 

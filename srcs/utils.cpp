@@ -17,9 +17,13 @@ int file_check(std::string file_path)
 	{
 		if (errno == ENOENT) // not exist
 			return 404;
-		if (errno == EACCES || !S_ISREG(info.st_mode))
+		if (errno == EACCES)
+		{
 			return 403;
+		}
 	}
+	if (!S_ISREG(info.st_mode))
+		return 404;
 	return OK;
 }
 

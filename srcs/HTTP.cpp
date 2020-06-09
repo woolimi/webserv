@@ -132,6 +132,8 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 				continue;
 			}
 			buffer[nb_read] = '\0';
+			std::cout << "########" << std::endl;
+			std::cout << buffer << std::endl;
 			renew_client_timestamp(*it);
 			skip_leading_empty_line(*it, buffer);
 
@@ -211,7 +213,8 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 				disconnect(init_set, fds, it);
 				continue;
 			}
-			printf("sent response body\n");
+			if (it->res_sent)
+				printf("sent all response body\n");
 		}
 		
 		if (it->res_sent)

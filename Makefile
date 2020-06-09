@@ -17,6 +17,7 @@ SRC_NAME = ConfigParser.cpp \
 	res_send.cpp \
 	utils.cpp
 SRC_PATH = ./srcs
+
 SRC = $(addprefix $(SRC_PATH)/, $(SRC_NAME))
 
 OBJ_NAME = $(SRC_NAME:.cpp=.o)
