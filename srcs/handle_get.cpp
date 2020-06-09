@@ -17,7 +17,6 @@ void handle_get(t_client &cli, char **env, t_location *loc, bool is_file, std::s
 {
 	t_req &req = cli.req;
 	std::string real_path = make_real_path(loc->root, req.path);
-
 	if (is_file)
 		make_file_res(cli, loc, env, real_path, file);
 	else
