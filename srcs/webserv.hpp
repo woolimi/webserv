@@ -118,6 +118,7 @@ void res_generator(t_client &cli);
 std::string mimetype(const std::string &extension);
 int is_newline_char(char c);
 void handle_get(t_client &cli, char **env, t_location *loc, bool is_file, std::string folder_path, std::string file);
+void handle_head(t_client &cli, char **env, t_location *loc, bool is_file, std::string folder_path, std::string file);
 std::string int_to_hexstr(int n);
 t_location *find_matched_location(t_server &serv, std::string &folder_path, std::string &file);
 bool execute_cgi(t_client &cli, t_location &loc, char **env, std::string &real_path, std::string &ext);
@@ -128,6 +129,8 @@ void renew_client_timestamp(t_client &cli);
 bool send_res_body(t_client &cli);
 bool send_res_head(t_client &cli);
 void make_res_body_from_fd(t_client &cli);
+std::string make_real_path(std::string &root, std::string &path);
+
 
 // void handle_head(t_client &cli);
 // void handle_post(t_client &cli);

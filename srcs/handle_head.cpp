@@ -1,19 +1,7 @@
 #include "webserv.hpp"
 
-std::string make_real_path(std::string &root, std::string &path)
-{
-	std::string real_path = root + path;
-	size_t pos = real_path.find("//");
-	if (pos != std::string::npos)
-		real_path.replace(pos, 2, "/");
-	return (real_path);
-}
 
-
-// ex) req.path = "/test/a/index.html"
-// folder_path = "/test/a"
-// file = "/index.html"
-void handle_get(t_client &cli, char **env, t_location *loc, bool is_file, std::string folder_path, std::string file)
+void handle_head(t_client &cli, char **env, t_location *loc, bool is_file, std::string folder_path, std::string file)
 {
 	t_req &req = cli.req;
 	std::string real_path = make_real_path(loc->root, req.path);
