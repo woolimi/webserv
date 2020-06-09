@@ -1,7 +1,11 @@
-GET /abc HTTP/1.1
-host: localhost
+GET / HTTP/1.1
+Host: localhost:8080
+User-Agent: Go-http-client/1.1
+Accept-Encoding: gzip
 
 
-GET /abc HTTP/1.1
-host: localhost
+GET / HTTP/1.1
+Host: localhost:8080
+User-Agent: Go-http-client/1.1
+Accept-Encoding: gzip
 

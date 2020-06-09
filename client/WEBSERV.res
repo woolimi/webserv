@@ -1,7 +1,7 @@
 HTTP/1.1 404 Not Found
 Content-Length: 186
 Content-Type: text/html
-Date: Mon, 08 Jun 2020 19:07:10 GMT
+Date: Tue, 09 Jun 2020 09:02:40 GMT
 Server: webserv/1.0
 
 <html>
@@ -16,4 +16,3 @@ Server: webserv/1.0
 		<center> webserv/1.1</center>
 	</body>
 </html>
-equest.txt

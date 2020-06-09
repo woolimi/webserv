@@ -111,7 +111,6 @@ void ready_to_request()
 
 void send_request_and_receive_respond(const std::string &server_name, const std::string &port_str)
 {
-	int res;
 	t_clients *cl = get_clients();
 	cl->client_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	int reuse = 1;
@@ -127,31 +126,25 @@ void send_request_and_receive_respond(const std::string &server_name, const std:
 	if (connect(cl->client_socket, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
 		print_error((server_name + " is not runing").c_str());
 	// send request
-	res = write(cl->client_socket, cl->request.c_str(), cl->request.size());
-	if (res < 0)
+	int send_request = write(cl->client_socket, cl->request.c_str(), cl->request.size());
+	if (send_request < 0)
 		print_error(("fail to send request to " + server_name).c_str());
+
 	// receive respond
 	char buff[BUFF_SIZE + 1];
-	res = read(cl->client_socket, buff, BUFF_SIZE);
-	cl->respond += std::string(buff);
-	sleep(1);
-	res = read(cl->client_socket, buff, BUFF_SIZE);
-	if (res < 0)
-		print_error(("fail to receive respond from " + server_name).c_str());
-	buff[res] = 0;
-	cl->respond += std::string(buff);
+	int receive_response;
+	while ((receive_response = read(cl->client_socket, buff, BUFF_SIZE)) > 0)
+	{
+		buff[receive_response] = 0;
+		int fd = open((server_name + ".res").c_str(), O_CREAT | O_WRONLY | O_APPEND, 0777);
+		write(fd, buff, receive_response);
+		if (fd < 0)
+			print_error(("fail to create " + server_name + ".res").c_str());
+		close(fd);
+	}
 
 	// close connection with server
 	close(cl->client_socket);
-
-	// make server_name.res file
-	int fd = open((server_name + ".res").c_str(), O_CREAT | O_WRONLY | O_APPEND, 0777);
-	if (fd < 0)
-		print_error(("fail to create " + server_name + ".res").c_str());
-	res = write(fd, cl->respond.c_str(), cl->respond.size());
-	if (res < 0)
-		print_error(("fail to write on " + server_name + ".res").c_str());
-	close(fd);
 }
 
 int main(int ac, char **av)
