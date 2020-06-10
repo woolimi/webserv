@@ -204,10 +204,10 @@ void parse_request_header(t_client &client, std::string header_sub)
 
 	if (!header_sub.empty() && header_sub[0] == '\r' && header_sub[1] == '\n')
 	{
-		// for(std::map<std::string, std::string>::iterator it = req.headers.begin(); it != req.headers.end(); ++it)
-		// {
-		// 	std::cout << it->first << "-" << it->second << "\n";
-		// }
+		for(std::map<std::string, std::string>::iterator it = req.headers.begin(); it != req.headers.end(); ++it)
+		{
+			std::cout << it->first << "==" << it->second << "\n";
+		}
 		client.req.req_header_parsed = 2;
 		if (req.version != "1.0" && req.headers.find("host") == req.headers.end())
 			set_http_status(client, 400);

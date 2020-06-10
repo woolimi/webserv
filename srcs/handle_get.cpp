@@ -16,7 +16,12 @@ std::string make_real_path(std::string &root, std::string &path)
 void handle_get(t_client &cli, char **env, t_location *loc, bool is_file, std::string folder_path, std::string file)
 {
 	t_req &req = cli.req;
-	std::string real_path = make_real_path(loc->root, req.path);
+	// std::string real_path = make_real_path(loc->root, req.path);
+	// std::cout << "Real: " << real_path << std::endl;
+	std::cout << "abs: " << loc->abs_path << std::endl;
+	std::cout << "is_file: " << is_file << std::endl;
+	std::string real_path = loc->abs_path;
+	
 	if (is_file)
 		make_file_res(cli, loc, env, real_path, file);
 	else

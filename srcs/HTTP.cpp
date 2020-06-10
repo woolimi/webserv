@@ -327,6 +327,16 @@ void HTTP::http_select(int fdmax, fd_set &read_set, fd_set &write_set, struct ti
 		printf("waiting client\n");
 }
 
+int isDirectory(const char *path)
+{
+   struct stat statbuf;
+
+   if (stat(path, &statbuf) != 0)
+       return 0;
+   return S_ISDIR(statbuf.st_mode);
+}
+
+
 void HTTP::handle_methods(t_client &cli, char **env)
 {
 	t_server &serv = cli.server;
@@ -336,10 +346,49 @@ void HTTP::handle_methods(t_client &cli, char **env)
 
 	std::string folder_path = req.path.substr(0, req.path.find_last_of('/'));
 	std::string file = req.path.substr(req.path.find_last_of('/'));
-	if (file == "/")
-		is_file = false;
-	loc = find_matched_location(serv,folder_path, file);
+	// if (file == "/")
+		// is_file = false;
+	loc = find_matched_location(serv, req.path);
+	is_file = isDirectory(loc->abs_path.c_str()) ? false : true;
+	if (is_file)
+	{
+		folder_path = loc->abs_path;
+		file = req.path.substr(req.path.find_last_of('/'));
+	}
+	else
+	{
+		folder_path = loc->abs_path;
+		file = "/";
+	}
 	
+	// loc = find_matched_location(serv,folder_path, file);
+	
+	/*
+	
+	get loc:
+			check exact match
+				else
+			check part match
+				else
+			`
+
+	case: folder /directory/test/abc
+			folder_path = /test/abc/
+			file = "/"
+			
+	case: file /directory/test/abc.txt
+			folder_path = /test/
+			file = "/abc.txt"
+
+	1. req-path, root path
+	2. abs=path = root path + req path
+	3. is_file = check_is_file() returns 0 for dir 1 for file
+
+	loc = find_matched_location(serv, req_path, &is_file)
+
+
+	*/
+
 	std::vector<std::string>::iterator it1;
 	for (it1 = loc->allow.begin(); it1 !=loc->allow.end(); ++it1)
 	{	

@@ -41,6 +41,7 @@ typedef struct s_location
 	std::vector<std::string> index;
 	std::vector<std::string> allow;
 	std::map<std::string, std::string> cgi;
+	std::string abs_path;
 	// cgi["extension"] = ".php";
 	// cgi["paths"] = "/usr/bin/php-cgi";
 } t_location;
@@ -121,7 +122,7 @@ int is_newline_char(char c);
 void handle_get(t_client &cli, char **env, t_location *loc, bool is_file, std::string folder_path, std::string file);
 void handle_head(t_client &cli, char **env, t_location *loc, bool is_file, std::string folder_path, std::string file);
 std::string int_to_hexstr(int n);
-t_location *find_matched_location(t_server &serv, std::string &folder_path, std::string &file);
+t_location *find_matched_location(t_server &serv, std::string &folder_path);
 bool execute_cgi(t_client &cli, t_location &loc, char **env, std::string &real_path, std::string &ext);
 void make_folder_list_res(t_client &cli, t_location *loc, std::string &uri_path, std::string &real_path);
 void make_file_res(t_client &cli, t_location *loc, char **env, std::string &real_path, std::string &file);
