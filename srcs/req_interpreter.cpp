@@ -94,10 +94,14 @@ void parse_request_line(char *request_line, t_client &client)
 	int size = 0;
 	std::set<std::string> methods = {"GET", "POST", "PUT", "OPTIONS", "HEAD", "DELETE", "TRACE", "CONNECT"};
 	char **request_line_split = ft_split(request_line, " \t");
+	std::cout <<"Request Line1: "<< request_line << std::endl;
 	while (request_line_split[size] != 0)
 		size++;
 	if (size != 3)
 	{
+		std::cout <<"Request Line2: " <<request_line << std::endl;
+		std::cout << size << std::endl;
+		std::cout << "HERE\n";
 		free_tab(request_line_split);
 		set_http_status(client, 400);
 		return;

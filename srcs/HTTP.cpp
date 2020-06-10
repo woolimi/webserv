@@ -81,12 +81,15 @@ void HTTP::skip_leading_empty_line(t_client &cli, char *buffer)
 		while (buffer[i] && is_newline_char(buffer[i])) //skip leading empty lines before the request
 			i++;
 		cli.req.raw += std::string(&buffer[i]);
+		i = 0;
+		while (is_newline_char(cli.req.raw[i]))
+				i++;
+		cli.req.raw = &cli.req.raw[i];
+		// std::cout << "RAW: [" << cli.req.raw << "]\nBUUUFFER: [" << buffer << "]\n";
+		
 	}
 	else
 		cli.req.raw += std::string(buffer);
-
-
-
 }
 
 void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set, std::set<int> &fds, char **env)
@@ -132,8 +135,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 				continue;
 			}
 			buffer[nb_read] = '\0';
-			std::cout << "########" << std::endl;
-			std::cout << buffer << std::endl;
+			// std::cout <<"BUFFER IS: ["<< buffer <<  "]"<<std::endl;
 			renew_client_timestamp(*it);
 			skip_leading_empty_line(*it, buffer);
 
@@ -150,14 +152,22 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 			// request header parsing
 			if (it->req.req_line_parsed == 2 && it->req.req_header_parsed != 2)
 			{
-				if (it->req.raw.empty())
+				int x = 0;
+				if (it->req.raw.empty() || it->req.raw.find("\r\n") == std::string::npos)
 					continue;
 				it->req.req_header_parsed = 1;
 				while (it->req.req_header_parsed != 2 && !it->req.raw.empty())
 				{
+					if (it->req.raw.find("\r\n") == std::string::npos)
+					{
+						x = 1;
+						break;
+					}
 					parse_request_header(*it, it->req.raw.substr(0, it->req.raw.find("\r\n") + 2));
 					it->req.raw = it->req.raw.substr(it->req.raw.find("\r\n") + 2);
 				}
+				if (x)
+					continue;
 			}
 			// request body parsing
 			if (it->req.req_line_parsed == 2 && it->req.req_header_parsed == 2 && it->req.req_body_parsed != 2)
@@ -332,7 +342,7 @@ void HTTP::handle_methods(t_client &cli, char **env)
 	
 	std::vector<std::string>::iterator it1;
 	for (it1 = loc->allow.begin(); it1 !=loc->allow.end(); ++it1)
-	{
+	{	
 		if (*it1 == req.method)
 			break;
 	}
