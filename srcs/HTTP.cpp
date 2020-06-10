@@ -81,12 +81,15 @@ void HTTP::skip_leading_empty_line(t_client &cli, char *buffer)
 		while (buffer[i] && is_newline_char(buffer[i])) //skip leading empty lines before the request
 			i++;
 		cli.req.raw += std::string(&buffer[i]);
+		i = 0;
+		while (is_newline_char(cli.req.raw[i]))
+				i++;
+		cli.req.raw = &cli.req.raw[i];
+		// std::cout << "RAW: [" << cli.req.raw << "]\nBUUUFFER: [" << buffer << "]\n";
+		
 	}
 	else
 		cli.req.raw += std::string(buffer);
-
-
-
 }
 
 void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set, std::set<int> &fds, char **env)
@@ -132,7 +135,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 				continue;
 			}
 			buffer[nb_read] = '\0';
-			std::cout <<"BUFFER IS: "<< buffer << std::endl;
+			// std::cout <<"BUFFER IS: ["<< buffer <<  "]"<<std::endl;
 			renew_client_timestamp(*it);
 			skip_leading_empty_line(*it, buffer);
 
@@ -211,7 +214,6 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 		// make res body if res.body not exist
 		if (it->req_arrived && !it->res_sent && it->res.body.empty())
 		{	// read()
-			std::cout << "resp_sent "<<it->res_sent << std::endl;
 			make_res_body_from_fd(*it);
 			continue;
 		}
