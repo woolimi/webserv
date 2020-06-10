@@ -76,6 +76,7 @@ typedef struct s_req
 	std::string req_line; // ex) GET /index.html HTTP/1.1
 	std::string method;
 	std::string path;
+	std::string query_string;
 	/* header */
 	std::map<std::string, std::string> headers;
 	/* body */
