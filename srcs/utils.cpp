@@ -51,7 +51,7 @@ t_location *find_matched_location(t_server &serv, std::string &path)
 
 	for (it = serv.location.begin(); it != serv.location.end(); ++it)
 	{
-		if (it->first == path)
+		if (it->first == path) //100% match
 		{
 			it->second.abs_path = it->second.root;
 			if (*it->second.abs_path.rbegin() != '/')
@@ -60,11 +60,11 @@ t_location *find_matched_location(t_server &serv, std::string &path)
 		}
 	}
 
-	for (it = serv.location.begin(); it != serv.location.end(); ++it)
+	for (it = serv.location.begin(); it != serv.location.end(); ++it) // part match
 	{
 		if ((pos = path.find(it->first) != std::string::npos && pos == 0 && it->first.size() > max_matched_size))
 		{
-			it->second.abs_path = it->second.root;
+			it->second.abs_path = it->second.root; //root/abc
 			if (*it->second.abs_path.rbegin() != '/')
 				it->second.abs_path += "/"; 
 			it->second.abs_path += path.substr(it->first.size());
