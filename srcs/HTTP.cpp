@@ -415,6 +415,8 @@ void HTTP::handle_methods(t_client &cli, char **env)
 		handle_get(cli, env, loc, is_file, folder_path, file);
 	else if (req.method == "HEAD")
 		handle_get(cli, env, loc, is_file, folder_path, file);
+	else if (req.method == "PUT")
+		handle_put(cli, env, loc, is_file, folder_path, file);
 
 	// 	handle_head(cli);
 	// ...
