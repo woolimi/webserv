@@ -5,8 +5,15 @@ void make_res_body_from_fd(t_client &cli)
 	t_res &res = cli.res;
 	char buff[MAX_BUFFER_SIZE + 1];
 	int nb_read = read(res.fd, buff, MAX_BUFFER_SIZE);
-	if (nb_read <= 0)
+	if (nb_read == 0)
 	{
+		cli.res_sent = true;
+		res.body = "";
+	}
+	else if (nb_read < 0)
+	{
+		// if (nb_read == 0)
+		// 	std::cout << "her2e\n";
 		if (res.headers.find("Transfer-Encoding") != res.headers.end())
 			res.body += "0\r\n\r\n";
 	}
