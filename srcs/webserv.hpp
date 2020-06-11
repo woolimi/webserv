@@ -26,7 +26,7 @@
 # include "HttpStatus.hpp"
 
 # define DEFAULT_CONF_NAME "webserv.conf"
-# define MAX_BUFFER_SIZE 4096
+# define MAX_BUFFER_SIZE 100
 # define MAX_CLIENT 100
 # define CLIENT_TIMEOUT_SEC 30
 # define SERVER_NAME "webserv/1.0"
@@ -41,6 +41,7 @@ typedef struct s_location
 	std::vector<std::string> index;
 	std::vector<std::string> allow;
 	std::map<std::string, std::string> cgi;
+	std::string abs_path;
 	// cgi["extension"] = ".php";
 	// cgi["paths"] = "/usr/bin/php-cgi";
 } t_location;
@@ -76,6 +77,7 @@ typedef struct s_req
 	std::string req_line; // ex) GET /index.html HTTP/1.1
 	std::string method;
 	std::string path;
+	std::string query_string;
 	/* header */
 	std::map<std::string, std::string> headers;
 	/* body */
@@ -118,8 +120,9 @@ void res_generator(t_client &cli);
 std::string mimetype(const std::string &extension);
 int is_newline_char(char c);
 void handle_get(t_client &cli, char **env, t_location *loc, bool is_file, std::string folder_path, std::string file);
+void handle_head(t_client &cli, char **env, t_location *loc, bool is_file, std::string folder_path, std::string file);
 std::string int_to_hexstr(int n);
-t_location *find_matched_location(t_server &serv, std::string &folder_path, std::string &file);
+t_location *find_matched_location(t_server &serv, std::string &folder_path);
 bool execute_cgi(t_client &cli, t_location &loc, char **env, std::string &real_path, std::string &ext);
 void make_folder_list_res(t_client &cli, t_location *loc, std::string &uri_path, std::string &real_path);
 void make_file_res(t_client &cli, t_location *loc, char **env, std::string &real_path, std::string &file);
@@ -128,6 +131,8 @@ void renew_client_timestamp(t_client &cli);
 bool send_res_body(t_client &cli);
 bool send_res_head(t_client &cli);
 void make_res_body_from_fd(t_client &cli);
+std::string make_real_path(std::string &root, std::string &path);
+
 
 // void handle_head(t_client &cli);
 // void handle_post(t_client &cli);

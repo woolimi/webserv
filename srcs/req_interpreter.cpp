@@ -31,16 +31,77 @@ void set_http_status(t_client &client, int status)
 		client.res.status_code = status;
 }
 
+int ft_pow(int x, unsigned int y) 
+{ 
+    if (y == 0) 
+        return 1; 
+    else if (y % 2 == 0) 
+        return ft_pow(x, y / 2) * ft_pow(x, y / 2); 
+    else
+        return x * ft_pow(x, y / 2) * ft_pow(x, y / 2); 
+} 
+
+unsigned int hex2dec(std::string hex)
+{
+    unsigned int result = 0;
+    for (int i=0; i<hex.length(); i++) {
+		if (ft_isalpha(hex[i]))
+			hex[i] = toupper(hex[i]);
+        if (hex[i]>=48 && hex[i]<=57)
+        {
+            result += (hex[i]-48)*ft_pow(16,hex.length()-i-1);
+        } else if (hex[i]>=65 && hex[i]<=70) {
+            result += (hex[i]-55)*ft_pow(16,hex.length( )-i-1);
+        } else if (hex[i]>=97 && hex[i]<=102) {
+            result += (hex[i]-87)*ft_pow(16,hex.length()-i-1);
+        }
+    }
+    return result;
+}
+
+void parse_query_string(t_client &client)
+{
+	std::string::size_type pos = 0;
+	std::string::size_type pos2;
+	
+	pos = client.req.path.find("?");
+	pos2 = client.req.path.find("/n");
+	
+	client.req.query_string = client.req.path.substr(pos + 1, pos2);
+	client.req.path.replace(pos, pos2 - pos, "\n");
+}
+
+void uri_decode(t_client &client)
+{
+	std::string::size_type pos;
+	std::string hex;
+	if (client.req.path.find("?") != std::string::npos)
+		parse_query_string(client);
+	while(1)
+	{
+		pos = client.req.path.find("%");
+		if (pos == std::string::npos)
+			break;
+		hex = client.req.path.substr(pos + 1, 2);
+		char ascii_value = hex2dec(hex);
+		client.req.path.replace(pos, pos + 3, std::string(1, ascii_value));
+	}
+}
+
 void parse_request_line(char *request_line, t_client &client)
 {
 
 	int size = 0;
 	std::set<std::string> methods = {"GET", "POST", "PUT", "OPTIONS", "HEAD", "DELETE", "TRACE", "CONNECT"};
 	char **request_line_split = ft_split(request_line, " \t");
+	std::cout <<"Request Line1: "<< request_line << std::endl;
 	while (request_line_split[size] != 0)
 		size++;
 	if (size != 3)
 	{
+		std::cout <<"Request Line2: " <<request_line << std::endl;
+		std::cout << size << std::endl;
+		std::cout << "HERE\n";
 		free_tab(request_line_split);
 		set_http_status(client, 400);
 		return;
@@ -59,6 +120,11 @@ void parse_request_line(char *request_line, t_client &client)
 		set_http_status(client, 400);
 		return;
 	}
+	uri_decode(client);
+	
+	// std::cout << "path: " << client.req.path << std::endl;
+	// std::cout << "qs: " << client.req.query_string << std::endl;
+	
 	client.req.version = request_line_split[2];
 	free_tab(request_line_split);
 
@@ -138,10 +204,10 @@ void parse_request_header(t_client &client, std::string header_sub)
 
 	if (!header_sub.empty() && header_sub[0] == '\r' && header_sub[1] == '\n')
 	{
-		// for(std::map<std::string, std::string>::iterator it = req.headers.begin(); it != req.headers.end(); ++it)
-		// {
-		// 	std::cout << it->first << "-" << it->second << "\n";
-		// }
+		for(std::map<std::string, std::string>::iterator it = req.headers.begin(); it != req.headers.end(); ++it)
+		{
+			std::cout << it->first << "==" << it->second << "\n";
+		}
 		client.req.req_header_parsed = 2;
 		if (req.version != "1.0" && req.headers.find("host") == req.headers.end())
 			set_http_status(client, 400);
@@ -178,27 +244,6 @@ void parse_request_header(t_client &client, std::string header_sub)
 	// }
 }
 
-int convert(char* num)
-{
-	int len = ft_strlen(num);
-	int base = 1;
-	int temp = 0;
-	for (int i = len - 1; i >= 0; i--)
-	{
-		if (num[i] >= '0' && num[i] <= '9')
-		{
-			temp += (num[i] - 48)*base;
-			base = base * 16;
-		}
-		else if (num[i] >= 'A' && num[i] <= 'F')
-		{
-			temp += (num[i] - 55) * base;
-			base = base*16;
-		}
-	}
-	return temp;
-}
-
 int read_chunk_size(char *chunk_size, t_client &client)
 {
 	int len = ft_strlen(chunk_size);
@@ -210,7 +255,7 @@ int read_chunk_size(char *chunk_size, t_client &client)
 		if(!(chunk_size[i] >= '0' && chunk_size[i] <= '9') && !(chunk_size[i] >= 'a' && chunk_size[i] <= 'f'))
 			return -1;
 	}
-	num = convert(chunk_size);
+	num = hex2dec(chunk_size);
 	return num;
 }
 
@@ -312,104 +357,3 @@ void parse_request_body(t_client &client)
 		return;
 	}
 }
-
-// void req_interpreter(t_client &client)
-// {
-// 	t_req &req = client.req;
-// 	if (req.raw.length() == 2 && req.raw[0] == '\r' && req.raw[1] == '\n' && !req.req_line_parsed)
-// 	{//empty line before the request line
-// 		client.res.status_code = 123456;
-// 		return;
-// 	}
-	
-// 	if (!req.req_line_parsed)
-// 	{
-// 		parse_request_line((char*)req.raw.c_str(), client);
-// 		if (client.res.status_code != 200 && client.res.status_code != 0)
-// 			throw client;
-// 		return;
-// 	}
-
-// 	if (!req.req_header_parsed)
-// 	{
-// 		if (client.req.raw.length() == 2 && client.req.raw[0] == '\r' && client.req.raw[1] == '\n')
-// 		{
-// 			req.req_header_parsed = 1;
-// 			if (req.headers.find("content-length") == req.headers.end() && req.headers.find("transfer-encoding") == req.headers.end()) 
-// 				client.req_arrived = true;
-// 			return;
-// 		}
-// 		parse_request_header(client);
-// 		if (client.res.status_code == 400)
-// 			throw client;
-// 		return;
-// 	}
-
-// 	if (!req.req_body_parsed)
-// 	{
-// 		if (req.headers.find("transfer-encoding") != req.headers.end())
-// 		{
-// 			if(req.chunk_size_read < 0)
-// 			{
-// 				client.req.chunk_size_read = read_chunk_size((char*)req.raw.c_str(), client);
-// 				if (req.chunk_size_read < 0)
-// 				{
-// 					client.res.status_code = 400;
-// 					throw client;
-// 				}
-// 				return;
-// 			}
-// 			if (req.chunk_size_read != (req.raw.length() - 2))
-// 			{
-// 				client.res.status_code = 400;
-// 				throw client;
-// 			}
-// 			if (req.chunk_size_read == 0 && client.req.raw.length() == 2 && client.req.raw[0] == '\r' && client.req.raw[1] == '\n')
-// 			{
-// 				req.req_body_parsed = 1;
-// 				client.req_arrived = true;
-// 				return;
-// 			}
-// 			req.body += req.raw;
-// 			req.chunk_size_read = -1;
-// 		}
-// 		else if (req.headers.find("content-length") != req.headers.end())
-// 		{
-// 			if (req.content_length == -1)
-// 			{
-// 				req.content_length = ft_atoi((char *)req.headers["content-length"].c_str());
-// 				if (req.content_length < 0)
-// 				{
-// 					client.res.status_code = 400;
-// 					throw client;
-// 				}
-// 			}
-// 			req.content_length -= (req.raw.size() - 2);
-// 			if (req.content_length < 0)
-// 			{
-// 				client.res.status_code = 400;
-// 				throw client;
-// 			}
-// 			req.body += req.raw;
-// 			if (req.content_length == 0 && (req.req_body_parsed = 1))
-// 			{
-// 				client.req_arrived = true;
-// 			}
-// 		}
-// 		else
-// 		{
-// 			client.res.status_code = 411;
-// 			throw client;
-// 		}
-// 	}
-
-// 	// // for(std::map<std::string, std::string>::iterator it = req.headers.begin();
-// 	// // it != req.headers.end(); ++it)
-// 	// // {
-// 	// // 	std::cout << it->first << "-" << it->second << "\n";
-// 	// // }
-// 	// if (body_start > 0)
-// 	// 	req.body = req.raw.substr(body_start + 4);
-// 	// free_tab(header);
-// 	// client.res.status_code = 200;
-// }

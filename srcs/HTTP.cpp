@@ -81,12 +81,15 @@ void HTTP::skip_leading_empty_line(t_client &cli, char *buffer)
 		while (buffer[i] && is_newline_char(buffer[i])) //skip leading empty lines before the request
 			i++;
 		cli.req.raw += std::string(&buffer[i]);
+		i = 0;
+		while (is_newline_char(cli.req.raw[i]))
+				i++;
+		cli.req.raw = &cli.req.raw[i];
+		// std::cout << "RAW: [" << cli.req.raw << "]\nBUUUFFER: [" << buffer << "]\n";
+		
 	}
 	else
 		cli.req.raw += std::string(buffer);
-
-
-
 }
 
 void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set, std::set<int> &fds, char **env)
@@ -132,8 +135,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 				continue;
 			}
 			buffer[nb_read] = '\0';
-			std::cout << "########" << std::endl;
-			std::cout << buffer << std::endl;
+			// std::cout <<"BUFFER IS: ["<< buffer <<  "]"<<std::endl;
 			renew_client_timestamp(*it);
 			skip_leading_empty_line(*it, buffer);
 
@@ -150,14 +152,22 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 			// request header parsing
 			if (it->req.req_line_parsed == 2 && it->req.req_header_parsed != 2)
 			{
-				if (it->req.raw.empty())
+				int x = 0;
+				if (it->req.raw.empty() || it->req.raw.find("\r\n") == std::string::npos)
 					continue;
 				it->req.req_header_parsed = 1;
 				while (it->req.req_header_parsed != 2 && !it->req.raw.empty())
 				{
+					if (it->req.raw.find("\r\n") == std::string::npos)
+					{
+						x = 1;
+						break;
+					}
 					parse_request_header(*it, it->req.raw.substr(0, it->req.raw.find("\r\n") + 2));
 					it->req.raw = it->req.raw.substr(it->req.raw.find("\r\n") + 2);
 				}
+				if (x)
+					continue;
 			}
 			// request body parsing
 			if (it->req.req_line_parsed == 2 && it->req.req_header_parsed == 2 && it->req.req_body_parsed != 2)
@@ -196,6 +206,8 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 			if (!send_res_head(*it))
 				disconnect(init_set, fds, it);
 			printf("sent response head\n");
+			if (it->req.method == "HEAD")
+				it->res_sent = true;
 			continue;
 		}
 		
@@ -315,6 +327,16 @@ void HTTP::http_select(int fdmax, fd_set &read_set, fd_set &write_set, struct ti
 		printf("waiting client\n");
 }
 
+int isDirectory(const char *path)
+{
+   struct stat statbuf;
+
+   if (stat(path, &statbuf) != 0)
+       return 0;
+   return S_ISDIR(statbuf.st_mode);
+}
+
+
 void HTTP::handle_methods(t_client &cli, char **env)
 {
 	t_server &serv = cli.server;
@@ -324,13 +346,52 @@ void HTTP::handle_methods(t_client &cli, char **env)
 
 	std::string folder_path = req.path.substr(0, req.path.find_last_of('/'));
 	std::string file = req.path.substr(req.path.find_last_of('/'));
-	if (file == "/")
-		is_file = false;
-	loc = find_matched_location(serv,folder_path, file);
+	// if (file == "/")
+		// is_file = false;
+	loc = find_matched_location(serv, req.path);
+	is_file = isDirectory(loc->abs_path.c_str()) ? false : true;
+	if (is_file)
+	{
+		folder_path = loc->abs_path;
+		file = req.path.substr(req.path.find_last_of('/'));
+	}
+	else
+	{
+		folder_path = loc->abs_path;
+		file = "/";
+	}
 	
+	// loc = find_matched_location(serv,folder_path, file);
+	
+	/*
+	
+	get loc:
+			check exact match
+				else
+			check part match
+				else
+			`
+
+	case: folder /directory/test/abc
+			folder_path = /test/abc/
+			file = "/"
+			
+	case: file /directory/test/abc.txt
+			folder_path = /test/
+			file = "/abc.txt"
+
+	1. req-path, root path
+	2. abs=path = root path + req path
+	3. is_file = check_is_file() returns 0 for dir 1 for file
+
+	loc = find_matched_location(serv, req_path, &is_file)
+
+
+	*/
+
 	std::vector<std::string>::iterator it1;
 	for (it1 = loc->allow.begin(); it1 !=loc->allow.end(); ++it1)
-	{
+	{	
 		if (*it1 == req.method)
 			break;
 	}
@@ -352,7 +413,9 @@ void HTTP::handle_methods(t_client &cli, char **env)
 
 	if (req.method == "GET")
 		handle_get(cli, env, loc, is_file, folder_path, file);
-	// else if (req.method == "HEAD")
+	else if (req.method == "HEAD")
+		handle_get(cli, env, loc, is_file, folder_path, file);
+
 	// 	handle_head(cli);
 	// ...
 }
