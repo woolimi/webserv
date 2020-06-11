@@ -91,6 +91,24 @@ void make_folder_list_res(t_client &cli, t_location *loc, std::string &uri_path,
 	struct stat info;
 	std::string orig_path = getcwd(buff, 256);
 
+	// int fd;
+	// int flag = 0;
+	// std::vector<std::string>::iterator it1;
+	// for (it1 = loc->index.begin(); it1 != loc->index.end(); ++it1)
+	// {
+	// 	std::cout << "filenm: " << uri_path + *it1 << std::endl;
+	// 	if ((fd = open((uri_path + *it1).c_str(), O_RDONLY)) >= 0)
+	// 	{
+	// 		flag = 1;
+	// 		close(fd);
+	// 		break;
+	// 	}
+	// }
+	// if (flag == 0)
+	// {
+	// 	res.status_code = 404;
+	// 	return;
+	// }
 	if (chdir(real_path.c_str()) < 0 || !(dp = opendir("./")))
 	{
 		res.status_code = 404;
@@ -113,6 +131,18 @@ void make_folder_list_res(t_client &cli, t_location *loc, std::string &uri_path,
 			fnames.insert(std::string(entry->d_name) + "/");
 		else
 			fnames.insert(std::string(entry->d_name));
+	}
+	
+	std::vector<std::string>::iterator it1;
+	for (it1 = loc->index.begin(); it1 != loc->index.end(); ++it1)
+	{
+		if(fnames.find(*it1) != fnames.end())
+			break;
+	}
+	if (it1 == loc->index.end())
+	{
+		res.status_code = 404;
+		return;
 	}
 
 	std::set<std::string>::iterator it;
