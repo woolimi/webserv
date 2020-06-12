@@ -343,9 +343,11 @@ void HTTP::handle_methods(t_client &cli, char **env)
 	t_req &req = cli.req;
 	t_location *loc;
 	bool is_file = true;
+	std::string folder_path;
+	std::string file;
 
-	std::string folder_path = req.path.substr(0, req.path.find_last_of('/'));
-	std::string file = req.path.substr(req.path.find_last_of('/'));
+	// std::string folder_path = req.path.substr(0, req.path.find_last_of('/'));
+	// std::string file = req.path.substr(req.path.find_last_of('/'));
 	// if (file == "/")
 		// is_file = false;
 	loc = find_matched_location(serv, req.path);

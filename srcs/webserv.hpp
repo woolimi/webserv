@@ -94,6 +94,7 @@ typedef struct s_res
 	std::map<std::string, std::string> headers;
 	std::string head; // res_line + headers
 	std::string body; // message body
+	std::string fname;
 	off_t content_length;
 } t_res;
 
