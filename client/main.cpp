@@ -10,6 +10,8 @@
 #include <netinet/in.h>
 #include <cstring>
 #include <map>
+#include <set>
+#include <vector>
 
 #define BUFF_SIZE 4096
 
@@ -109,42 +111,79 @@ void ready_to_request()
 	close(fd);
 }
 
+void create_res_file(const std::string &server_name, const std::string &res)
+{
+	int fd = open((server_name + ".res").c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0777);
+	if (fd < 0)
+		print_error(("fail to create " + server_name + ".res").c_str());
+	write(fd, res.c_str(), res.size());
+	close(fd);
+}
+
 void send_request_and_receive_respond(const std::string &server_name, const std::string &port_str)
 {
+	fd_set read_set, init_set;
+
 	t_clients *cl = get_clients();
 	cl->client_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	// socket reuse setting
 	int reuse = 1;
 	setsockopt(cl->client_socket, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
-
+	// set server address
 	struct sockaddr_in server_addr;
 	bzero((char *)&server_addr, sizeof(server_addr));
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 	int port = std::stoi(port_str);
 	server_addr.sin_port = htons(port);
-
+	// connect
 	if (connect(cl->client_socket, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
 		print_error((server_name + " is not runing").c_str());
+
 	// send request
 	int send_request = write(cl->client_socket, cl->request.c_str(), cl->request.size());
 	if (send_request < 0)
 		print_error(("fail to send request to " + server_name).c_str());
 
-	// receive respond
-	char buff[BUFF_SIZE + 1];
-	int receive_response;
-	while ((receive_response = read(cl->client_socket, buff, BUFF_SIZE)) > 0)
-	{
-		buff[receive_response] = 0;
-		int fd = open((server_name + ".res").c_str(), O_CREAT | O_WRONLY | O_APPEND, 0777);
-		write(fd, buff, receive_response);
-		if (fd < 0)
-			print_error(("fail to create " + server_name + ".res").c_str());
-		close(fd);
-	}
+	FD_ZERO(&read_set);
+	FD_ZERO(&init_set);
+	FD_SET(cl->client_socket, &init_set);
+	std::string res;
+	struct timeval timeout;
 
-	// close connection with server
-	close(cl->client_socket);
+	if (fcntl(cl->client_socket, F_SETFL, O_NONBLOCK) < 0)
+		perror("fail to make non block socket");
+	while (1)
+	{
+		read_set = init_set;
+		int ret;
+		timeout.tv_sec = 1;
+		timeout.tv_usec = 0;
+		if ((ret = select(cl->client_socket + 1, &read_set, NULL, NULL, &timeout)) < 0)
+		{
+			perror("select error");
+			exit(1);
+		}
+		if (!FD_ISSET(cl->client_socket, &read_set))
+		{	// nothing to read on socket, wait 1sec...
+			std::cout << "client read all response" << std::endl;
+			close(cl->client_socket);
+			create_res_file(server_name, res);
+			return;
+		}
+		if (FD_ISSET(cl->client_socket, &read_set))
+		{
+			char buff[BUFF_SIZE + 1];
+			ret = read(cl->client_socket, buff, BUFF_SIZE);
+			if (ret < 0)
+			{
+				perror("read response");
+				return;
+			}
+			buff[ret] = 0;
+			res += buff;
+		}
+	}
 }
 
 int main(int ac, char **av)

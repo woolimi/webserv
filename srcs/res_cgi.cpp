@@ -24,7 +24,7 @@ static char **cgi_env(t_client &cli, char **env, std::string &real_path)
 	new_env["GATEWAY_INTERFACE"] = "CGI/1.1";
 	new_env["PATH_INFO"] = real_path;
 	new_env["PATH_TRANSLATED"] = "";
-	new_env["QUERY_STRING"] = "";
+	new_env["QUERY_STRING"] = cli.req.query_string;
 	new_env["REMOTE_ADDR"] = inet_ntoa(cli.addr.sin_addr); // ??
 	new_env["REMOTE_IDENT"] = "";
 	new_env["REMOTE_USER"] = "";
@@ -71,7 +71,7 @@ bool execute_cgi(t_client &cli, t_location &loc, char **env, std::string &realpa
 		cli.res.status_code = 404;	
 		return false;
 	}
-
+	// c2p_fd[1]
 	if (!cli.req.body.empty() && write(c2p_fd[1], cli.req.body.c_str(), cli.req.body.size()) < 0)
 	{
 		cli.res.status_code = 404;
