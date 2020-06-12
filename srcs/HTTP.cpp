@@ -336,7 +336,6 @@ int isDirectory(const char *path)
    return S_ISDIR(statbuf.st_mode);
 }
 
-
 void HTTP::handle_methods(t_client &cli, char **env)
 {
 	t_server &serv = cli.server;
@@ -346,10 +345,6 @@ void HTTP::handle_methods(t_client &cli, char **env)
 	std::string folder_path;
 	std::string file;
 
-	// std::string folder_path = req.path.substr(0, req.path.find_last_of('/'));
-	// std::string file = req.path.substr(req.path.find_last_of('/'));
-	// if (file == "/")
-		// is_file = false;
 	loc = find_matched_location(serv, req.path);
 	is_file = isDirectory(loc->abs_path.c_str()) ? false : true;
 	if (is_file)
