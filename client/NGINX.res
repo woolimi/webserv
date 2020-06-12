@@ -1,46 +1,16 @@
 HTTP/1.1 200 OK
 Server: nginx/1.14.0 (Ubuntu)
-Date: Fri, 12 Jun 2020 15:06:29 GMT
-Content-Type: text/html
-Transfer-Encoding: chunked
+Date: Fri, 12 Jun 2020 21:49:57 GMT
+Content-Type: image/png
+Content-Length: 19710
+Last-Modified: Thu, 11 Jun 2020 20:43:53 GMT
 Connection: keep-alive
+ETag: "5ee29789-4cfe"
+Accept-Ranges: bytes
 
-352
-<html>
-<head><title>Index of /</title></head>
-<body bgcolor="white">
-<h1>Index of /</h1><hr><pre><a href="../">../</a>
-<a href="YoupiBanane/">YoupiBanane/</a>                                       11-Jun-2020 20:43                   -
-<a href="default.html">default.html</a>                                       11-Jun-2020 20:43                 209
-<a href="error.html">error.html</a>                                         11-Jun-2020 20:43                 220
-<a href="image.png">image.png</a>                                          11-Jun-2020 20:43               19710
-<a href="index.php">index.php</a>                                          11-Jun-2020 23:15                  22
-<a href="ubuntu_cgi_tester">ubuntu_cgi_tester</a>                                  11-Jun-2020 20:43             6954349
-</pre><hr></body>
-</html>
-
-0
-
-HTTP/1.1 200 OK
-Server: nginx/1.14.0 (Ubuntu)
-Date: Fri, 12 Jun 2020 15:06:29 GMT
-Content-Type: text/html
-Transfer-Encoding: chunked
-Connection: keep-alive
-
-352
-<html>
-<head><title>Index of /</title></head>
-<body bgcolor="white">
-<h1>Index of /</h1><hr><pre><a href="../">../</a>
-<a href="YoupiBanane/">YoupiBanane/</a>                                       11-Jun-2020 20:43                   -
-<a href="default.html">default.html</a>                                       11-Jun-2020 20:43                 209
-<a href="error.html">error.html</a>                                         11-Jun-2020 20:43                 220
-<a href="image.png">image.png</a>                                          11-Jun-2020 20:43               19710
-<a href="index.php">index.php</a>                                          11-Jun-2020 23:15                  22
-<a href="ubuntu_cgi_tester">ubuntu_cgi_tester</a>                                  11-Jun-2020 20:43             6954349
-</pre><hr></body>
-</html>
-
-0
-
+‰PNG
+
+Jè1Ä<;Æ‰'ğz½477s÷İwgLÿ›îÇM´NùŒÕ)Ÿ±:³ç³ÌŒš®ú”t{íµ×xñÅ	ƒé"QTTÄš5kX¹r%Ñh”Å‹§;–ˆd)ËÔDÒéÏş36lĞ -Ë¼úê«ÌŸ?ŸÃ‡O¸W ˆÈTèªO‘i°sçNÒCR ¡¡;w¦;†ˆd)ËÔ´×§¤Sgg'………é!)pë­·òÖ[o¥;†ˆd)ËÔDÒÉápèÂ,åõz¹şúëÓCD²”ejÚëSÒéÈ‘#é )¤çWDRÅ25]õ)"""™Æ2;(ßÔë@ùŒÔ	@˜—ÛqŞ[B~¼²cux¿Í[p<·‚ïÔròşé
+iˆ™ûŸÙ?”oêu |FêÀüù,3£¦‹	DÒh¨›–§ZéJü.ùöÓıLfÒDDRÅ2;|øá‡¦Îgöã§|Æë¦ÍP€u…õ8î·Óöc;u=-¬z¿™êõÀ>ÛEù¶fjït>Í§?ıiÂápÚò¥²Nù”Où”/•ù,sšˆ¤ÎæÍ›Ù¼yó¤o‘ø,sš®úI‡zˆÜÜ\6oŞ|ÙG§OŸfïŞ½›M‘ÄXfFMW}Š¤ÖÕfÎ4›&"bŒefÔD$µFgÕjkkÍ¦‰ˆ$ƒefÔ´×§HêmŞ¼™§Ÿ~úâÿ5›&"bŒefÔ´×§HêÎªšMIËÌ¨‰ÈôøÎw¾ Ù4‘$È]Ëãjâİv¥ááá	ëm/Ùuı]±ózöî£}ä>;Jğv¶Ğòn,k¸«ê‡[Ç¤Mp®4Ãü|ògÀ¾Ò‘Øcf[œwøñv¶°ÿ½Øıú_ÙOÏgJğ_ešçÌep |ùÇ§!‚<Æ
+d—iYßë¶ZºßŞBñHt}§ŞgŠc_äx¨íìfËÈÃç¯ŞÁ›o|ôÙ¹ŸÚ‘úq®¥¥oàÛ;ğÕÒİ·ãb{Ü6æë'%Ï »¯—Ş¾^Ú_¬ºx®YşêFÚûƒœ|»›ıßÙÄ¾7Ùtà,aËÏ»9Ù’“ïôÒı³MO8½lŒi×«ËÒ@m¬›ön‚gıP°¬^O	>ÇÈ_÷U¸ó((ôQ3PAı†‘¿îoñ‘¨Ÿ§Oj›zİÈ^“yİH”ÎQ›âãÎœ9sÂö$s%Ú_Ô²["ı`2u’™ôş!“‘ÌşšQ1-íL0+™)YıE2›g½Èä$óıC3j""""&•“Èç£	}†:cFb[!$Ø^&ÔIvS?P?½Èd$³¿hFMDDDÄ¤4P1)ÔDDDDLJ5“Ò@MR(LÇËmôùNäP¾/ÖóÖkëğ­j¦(máÄ>ŞGÄ*ôÜ‹$B5I¡nZj¥ot0é î‘vJŸİÄí_ÙAÍìzj^
+¥5¢¤Ù•}D¬CÏ½HB4PËıÏ­À}ÕÅøèB.Ã[X€ÛåfEe3}‘XmèõVàöø({z+ë\+¨w‚8ÓCÓZ/…n¼%54?]JŞım

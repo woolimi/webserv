@@ -1,25 +1,10 @@
 HTTP/1.1 200 OK
-Content-Length: 674
-Content-Type: text/html
-Date: Fri, 12 Jun 2020 20:46:32 GMT
+Content-Length: 19710
+Content-Type: image/png
+Date: Fri, 12 Jun 2020 23:24:00 GMT
 Server: webserv/1.0
 
-<html>
-	<head>
-		<title>Index of /home/wpark/Documents/webserv/www/</title>
-	</head>
-	<body bgcolor="white">
-		<h1>Index of /home/wpark/Documents/webserv/www/</h1>
-	<hr>
-	<pre>
-<a href="../">../</a>								12-Jun-2020 22:45		4096
-<a href="YoupiBanane/">YoupiBanane/</a>							11-Jun-2020 22:43		4096
-<a href="default.html">default.html</a>							11-Jun-2020 22:43		209
-<a href="error.html">error.html</a>							11-Jun-2020 22:43		220
-<a href="image.png">image.png</a>							11-Jun-2020 22:43		19710
-<a href="index.php">index.php</a>							12-Jun-2020 01:15		22
-<a href="ubuntu_cgi_tester">ubuntu_cgi_tester</a>						11-Jun-2020 22:43		6954349
-	</pre>
-	<hr>
-	</body>
-</html>
+‰PNG
+
+ùŒÔ	@˜—ÛqŞ[B~¼²cux¿Í[p<·‚ïÔròşé
+iˆ™ûŸÙ?”oêu |FêÀüù,3£¦‹	DÒh¨›–§ZéJü.ùöÓıLfÒDDRÅ2;|øá‡¦Îgöã§|Æë¦ÍP€u…õ8î·Óöc;u=-¬z¿™êõÀ>ÛEù¶fjït5-Ï!2=?Ëåâøñãé""’ñrY7¡•sgÌH¨.Ñö’]§|Æê”ÏXUòíŞ½›İ»wÓÛÛË¢E‹¨¬¬¤²²Ò4ùRU§|Æê”ÏXò«3}¾„ZÊºô½„P°¬^O	>ÇÈ_÷U¸ó((ôQ3PAı†‘¿îoñ‘¨Ÿ§}ÕÅøèB.Ã[X€ÛåfEe3}‘XmèõVàöø({z+ë\+¨w‚8ÓCÓZ/…n¼%54?]JŞım

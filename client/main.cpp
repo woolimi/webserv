@@ -157,7 +157,7 @@ void send_request_and_receive_respond(const std::string &server_name, const std:
 	{
 		read_set = init_set;
 		int ret;
-		timeout.tv_sec = 50;
+		timeout.tv_sec = 3;
 		timeout.tv_usec = 0;
 		if ((ret = select(cl->client_socket + 1, &read_set, NULL, NULL, &timeout)) < 0)
 		{

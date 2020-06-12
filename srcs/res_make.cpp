@@ -7,7 +7,7 @@ void make_res_body_from_fd(t_client &cli)
 	int nb_read = read(res.fd, buff, MAX_BUFFER_SIZE);
 	if (nb_read == 0)
 	{
-		printf("make res body\n");
+		printf("making res body finished\n");
 		if (res.headers.find("Transfer-Encoding") != res.headers.end())
 			res.body += "0\r\n\r\n";
 		else
@@ -26,10 +26,11 @@ void make_res_body_from_fd(t_client &cli)
 		if (res.headers.find("Transfer-Encoding") != res.headers.end())
 		{
 			res.body += int_to_hexstr(nb_read) + "\r\n";
-			res.body += std::string(buff) + "\r\n";
+			res.body.insert(res.body.end(), buff, buff + nb_read);
+			res.body += "\r\n";
 		}
 		else
-			res.body += buff;
+			res.body.insert(res.body.end(), buff, buff + nb_read);
 	}
 }
 
