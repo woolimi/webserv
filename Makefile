@@ -7,6 +7,7 @@ FLAG =
 
 SRC_NAME = ConfigParser.cpp \
 	handle_get.cpp \
+	handle_put.cpp \
 	HTTP.cpp \
 	main.cpp \
 	mimetype.cpp \
