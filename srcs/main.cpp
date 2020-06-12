@@ -2,10 +2,19 @@
 #include "HTTP.hpp"
 #include "ConfigParser.hpp"
 
+void signal_handler(int signo)
+{
+	if (signo == SIGPIPE)
+	{
+		DEBUG("SIGPIPE");
+	}
+}
+
 int main(int ac, char **av, char **env)
 {
 	try
 	{
+		signal(SIGPIPE, signal_handler);
 		// get config file param. If not exist, use default config
 		ConfigParser conf(ac, av);
 		// set server

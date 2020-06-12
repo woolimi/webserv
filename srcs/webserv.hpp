@@ -29,8 +29,12 @@
 # define MAX_BUFFER_SIZE 100
 # define MAX_CLIENT 100
 # define CLIENT_TIMEOUT_SEC 30
+# define SERVER_TIMEOUT_SEC 3
+# define SERVER_TIMEOUT_USEC 0
 # define SERVER_NAME "webserv/1.0"
 # define OK 0
+/* debug */
+#define DEBUG(x) std::cout << "\033[33m" << (x) << "\033[0m" << std::endl
 
 typedef std::string route;
 

@@ -136,7 +136,7 @@ void make_folder_list_res(t_client &cli, t_location *loc, std::string &uri_path,
 	}
 	closedir(dp);
 	res.status_code = 200;
-	res.body += "\t</pre>\n\t<hr>\n\t</body>\n</html>";
+	res.body += "\t</pre>\n\t<hr>\n\t</body>\n</html>\n";
 	res.headers["Content-Type"] = "text/html";
 	res.headers["Content-Length"] = std::to_string(res.body.size());
 	res.content_length = res.body.size();
