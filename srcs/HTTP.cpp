@@ -217,8 +217,8 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 		// make res body if res.body not exist
 		if (it->req_arrived && !it->res_sent && it->res.body.empty())
 		{	// read()
-			make_res_body_from_fd(*it);
 			printf("make res body from fd\n");
+			make_res_body_from_fd(*it);
 			continue;
 		}
 

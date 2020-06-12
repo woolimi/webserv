@@ -6,7 +6,7 @@ void signal_handler(int signo)
 {
 	if (signo == SIGPIPE)
 	{
-		DEBUG("SIGPIPE");
+		DEBUG("SIGPIPE : sending data to already closed client socket");
 	}
 }
 
