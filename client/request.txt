@@ -1,7 +1,15 @@
-HEAD / HTTP/1.1
-Host: localhost:8080
+GET / HTTP/1.1
+Host: localhost
 
 
 GET / HTTP/1.1
-Host: localhost:8080
-User-agent: Go-http-client/1.1
+Host: localhost
+
+
+GET / HTTP/1.1
+Host: localhost
+
+
+GET / HTTP/1.1
+Host: localhost
+
