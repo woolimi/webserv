@@ -76,7 +76,7 @@ typedef struct s_req
 	int chunk_size_read;
 	std::string version;
 	/* raw data */
-	std::string raw; // 100 + 100
+	std::string raw;
 	/* request line */
 	std::string req_line; // ex) GET /index.html HTTP/1.1
 	std::string method;
@@ -137,7 +137,7 @@ bool send_res_body(t_client &cli);
 bool send_res_head(t_client &cli);
 void make_res_body_from_fd(t_client &cli);
 std::string make_real_path(std::string &root, std::string &path);
-
+std::string gmt_time_string(time_t &sec);
 
 // void handle_head(t_client &cli);
 // void handle_post(t_client &cli);

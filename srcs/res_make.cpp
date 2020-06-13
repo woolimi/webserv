@@ -77,10 +77,13 @@ void make_file_res(t_client &cli, t_location *loc, char **env, std::string &file
 	}
 	else
 	{
+		struct stat st;
 		res.content_length = lseek(res.fd, 0, SEEK_END);
 		lseek(res.fd, 0, SEEK_SET);
+		fstat(res.fd, &st);
 		res.headers["Content-Type"] = mimetype(ext);
 		res.headers["Content-Length"] = std::to_string(res.content_length);
+		res.headers["Last-Modified"] = gmt_time_string(st.st_mtim.tv_sec);
 	}
 	res.status_code = 200;
 }
