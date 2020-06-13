@@ -74,3 +74,13 @@ t_location *find_matched_location(t_server &serv, std::string &path)
 	}
 	return ret;
 }
+
+std::string gmt_time_string(time_t &sec)
+{
+	struct tm *timeinfo;
+	char buffer[80];
+
+	timeinfo = gmtime(&sec);
+	strftime(buffer, sizeof(buffer), "%a, %d %b %Y %H:%M:%S GMT", timeinfo);
+	return buffer;
+}
