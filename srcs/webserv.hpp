@@ -28,7 +28,7 @@
 # define DEFAULT_CONF_NAME "webserv.conf"
 # define MAX_BUFFER_SIZE 100
 # define MAX_CLIENT 100
-# define CLIENT_TIMEOUT_SEC 30
+# define CLIENT_TIMEOUT_SEC 15
 # define SERVER_NAME "webserv/1.0"
 # define OK 0
 

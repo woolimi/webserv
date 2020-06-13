@@ -103,12 +103,12 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 	{
 		// close client when timeout
 		gettimeofday(&tv, NULL);
-		// if (tv.tv_sec - it->time_stamp > CLIENT_TIMEOUT_SEC)
-		// {
-		// 	printf("client timeout disconnect\n");
-		// 	disconnect(init_set, fds, it);
-		// 	continue;
-		// }
+		if (tv.tv_sec - it->time_stamp > CLIENT_TIMEOUT_SEC)
+		{
+			printf("client timeout disconnect\n");
+			disconnect(init_set, fds, it);
+			continue;
+		}
 
 		// Server reject client connection with 503 respond
 		if (it - clients.begin() > MAX_CLIENT)
@@ -169,6 +169,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 				if (x)
 					continue;
 			}
+
 			// request body parsing
 			if (it->req.req_line_parsed == 2 && it->req.req_header_parsed == 2 && it->req.req_body_parsed != 2)
 			{
@@ -411,9 +412,7 @@ void HTTP::handle_methods(t_client &cli, char **env)
 		return ;
 	}
 
-	if (req.method == "GET")
-		handle_get(cli, env, loc, is_file, folder_path, file);
-	else if (req.method == "HEAD")
+	if (req.method == "GET" || req.method == "HEAD")
 		handle_get(cli, env, loc, is_file, folder_path, file);
 	else if (req.method == "PUT")
 		handle_put(cli, env, loc, is_file, folder_path, file);

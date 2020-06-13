@@ -9,8 +9,7 @@ void handle_put(t_client &cli, char **env, t_location *loc, bool is_file, std::s
 	std::cout << "is_file: " << is_file << std::endl;
 	std::cout << "is_sizeof body: " << req.body.size() << std::endl;
 
-	int fd = open((loc->abs_path).c_str(), O_CREAT  | O_WRONLY, 0777);
-	std::cout << req.body.c_str() << std::endl;
+	int fd = open((loc->abs_path).c_str(), O_CREAT  | O_WRONLY | O_TRUNC, 0777);
 	write(fd, req.body.c_str(), req.body.size());
 	close(fd);
 	cli.res.status_code = 201;
