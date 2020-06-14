@@ -99,9 +99,6 @@ void parse_request_line(char *request_line, t_client &client)
 		size++;
 	if (size != 3)
 	{
-		std::cout <<"Request Line2: " <<request_line << std::endl;
-		std::cout << size << std::endl;
-		std::cout << "HERE\n";
 		free_tab(request_line_split);
 		set_http_status(client, 400);
 		return;
@@ -274,7 +271,6 @@ int string_is_digit(std::string str)
 void parse_request_body(t_client &client)
 {
 	t_req& req = client.req;
-
 	if (req.headers.find("transfer-encoding") != req.headers.end() && req.headers.find("content-length") != req.headers.end())
 	{
 		set_http_status(client, 400);
@@ -288,12 +284,21 @@ void parse_request_body(t_client &client)
 			return;
 		if(req.chunk_size_read < 0)
 		{
-			client.req.chunk_size_read = read_chunk_size((char*)req.raw.substr(0, req.raw.find("\r\n")).c_str(), client);
+			req.chunk_size_read = read_chunk_size((char*)req.raw.substr(0, req.raw.find("\r\n")).c_str(), client);
 			if (req.chunk_size_read < 0)
+			{
 				set_http_status(client, 400);
+			}
 			req.raw = req.raw.substr(req.raw.find("\r\n") + 2);
+			if (req.chunk_size_read == 0 && client.req.raw[0] == '\r' && client.req.raw[1] == '\n')
+			{
+				req.req_body_parsed = 2;
+				client.req_arrived = true;
+				return;
+			}
 			return;
 		}
+
 		if (req.chunk_size_read >= req.raw.length() && req.raw.find("\r\n") == std::string::npos)
 			return;
 		if (req.chunk_size_read != (req.raw.substr(0, req.raw.find("\r\n")).length()))
@@ -315,8 +320,8 @@ void parse_request_body(t_client &client)
 		req.chunk_size_read = -1;
 		if (req.raw.find("\r\n\r\n") != std::string::npos)
 			req.raw = req.raw.substr(req.raw.find("\r\n\r\n") + 4);
-		else
-			req.raw = "";
+		// else
+		// 	req.raw = "";
 	}
 	else if (req.headers.find("content-length") != req.headers.end())
 	{
