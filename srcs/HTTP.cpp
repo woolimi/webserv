@@ -137,7 +137,6 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 					nb_read = 0;
 				}
 				buffer[nb_read] = '\0';
-				// std::cout <<"BUFFER IS: ["<< buffer <<  "]"<<std::endl;
 				renew_client_timestamp(*it);
 				skip_leading_empty_line(*it, buffer);
 			}
@@ -171,7 +170,6 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 						break;
 					}
 					parse_request_header(*it, it->req.raw.substr(0, it->req.raw.find("\r\n") + 2));
-					std::cout << "req arrived: " << it->req_arrived <<std::endl;
 					it->req.raw = it->req.raw.substr(it->req.raw.find("\r\n") + 2);
 				}
 				if (x)
@@ -179,14 +177,12 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 			}
 
 			// request body parsing
-			// std::cout << (it->req.req_line_parsed == 2)  << " " << (it->req.req_header_parsed == 2) << " " << (it->req.req_body_parsed != 2) <<std::endl;
 			if (it->req.req_line_parsed == 2 && it->req.req_header_parsed == 2 && it->req.req_body_parsed != 2)
 			{
 				if (it->req_arrived)
 					it->req.req_body_parsed = 2;
 				else
 				{
-					std::cout << "HERE RAW is [" << it->req.raw << "]\n";
 					parse_request_body(*it);
 				}
 			}

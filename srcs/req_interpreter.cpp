@@ -99,7 +99,6 @@ void parse_request_line(char *request_line, t_client &client)
 		size++;
 	if (size != 3)
 	{
-		std::cout << size << std::endl;
 		free_tab(request_line_split);
 		set_http_status(client, 400);
 		return;
@@ -288,8 +287,6 @@ void parse_request_body(t_client &client)
 			req.chunk_size_read = read_chunk_size((char*)req.raw.substr(0, req.raw.find("\r\n")).c_str(), client);
 			if (req.chunk_size_read < 0)
 			{
-				std::cout << req.raw;
-				exit(0);
 				set_http_status(client, 400);
 			}
 			req.raw = req.raw.substr(req.raw.find("\r\n") + 2);
