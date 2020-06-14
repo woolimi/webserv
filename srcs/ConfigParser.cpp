@@ -157,7 +157,7 @@ void ConfigParser::block_level_1(t_server &sv, t_location &lc, std::vector<std::
 		if (*it == "client_max_body_size" && ++it != end && *it != ";")
 		{
 			sv.client_max_body_size = str_to_size(*it);
-			if (sv.client_max_body_size == -1)
+			if (sv.client_max_body_size == 0)
 				throw FormatError("Config Error : Invalid client_max_body_size '" + *it + "'\n");
 		}
 		else if (it == end)
@@ -291,13 +291,20 @@ bool ConfigParser::is_http_method(std::string &token)
 	return false;
 }
 
-int ConfigParser::str_to_size(std::string const &str)
+size_t ConfigParser::str_to_size(std::string const &str)
 {
 	char last_char = *str.rbegin();
+	int tmp = atoi(str.c_str());
+	if (tmp <= 0)
+		return (0);
 	if (last_char == 'm' || last_char == 'M')
-		return (atoi(str.c_str()) * 1000 * 1000);
+		return (tmp * 1000 * 1000);
+	if (last_char == 'k' || last_char == 'K')
+		return (tmp * 1000);
+	if (ft_isdigit(last_char))
+		return (tmp * 1000);
 	else
-		return (-1);
+		return (0);
 }
 
 void ConfigParser::default_server_config(t_server &sv)
@@ -313,6 +320,7 @@ void ConfigParser::default_server_config(t_server &sv)
 void ConfigParser::default_location_config(t_location &lc)
 {
 	lc.root = std::string(cur_path) + "/www/";
+	lc.update_folder = lc.root;
 	lc.autoindex = "off";
 	size_t len = sizeof(http_methods) / sizeof(std::string);
 	for (size_t i = 0; i < len; i++)

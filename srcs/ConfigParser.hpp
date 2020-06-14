@@ -25,7 +25,7 @@ private:
 		const std::vector<std::string>::iterator &end, int &block_level);
 	void block_level_2(t_server &sv, t_location &lc, std::vector<std::string>::iterator &it,
 		const std::vector<std::string>::iterator &end, int &block_level);
-	int str_to_size(std::string const &str);
+	size_t str_to_size(std::string const &str);
 
 	std::string server_attr[5] = {
 		"listen",
@@ -40,7 +40,7 @@ private:
 		"index",
 		"allow",
 		"cgi",
-		"upload_folder"
+		"upload_folder",
 	};
 	std::string http_methods[8] = {
 		"GET",

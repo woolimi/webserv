@@ -62,7 +62,7 @@ typedef struct s_server
 	std::string server_name;
 	std::string root;
 	std::string error_page;
-	int client_max_body_size;
+	size_t client_max_body_size;
 	/* access with route ex) server[0].location["/"] */
 	std::map<route, t_location> location;
 } t_server;
