@@ -308,6 +308,8 @@ void parse_request_body(t_client &client)
 		}
 		if (req.chunk_size_read == 0 && client.req.raw[0] == '\r' && client.req.raw[1] == '\n')
 		{
+			if (client.server.client_max_body_size < req.body.length())
+				set_http_status(client, 413);
 			req.req_body_parsed = 2;
 			client.req_arrived = true;
 			return;
