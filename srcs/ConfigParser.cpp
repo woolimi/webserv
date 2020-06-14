@@ -198,14 +198,15 @@ void ConfigParser::block_level_2(t_server &sv, t_location &lc, std::vector<std::
 			{
 				if (errno == EACCES)
 					throw FormatError("Config Error : No right to access update_folder directory '" + *it + "'\n");
-				throw FormatError("Config Error : update_folder directory '" + *it + "' does not exist.\n");
+				throw FormatError("Config Error : upload_folder directory '" + *it + "' does not exist.\n");
 			}
 			if (!(S_ISDIR(info.st_mode)))
-				throw FormatError("Config Error : update_folder '" + *it + "' is not directory\n");
-			sv.location[tmp_route].update_folder = *it;
+				throw FormatError("Config Error : upload_folder '" + *it + "' is not directory\n");
+			sv.location[tmp_route].upload_folder = *it;
+			sv.location[tmp_route].upload_folder_is_set = true;
 		}
 		else if (it == end)
-			throw FormatError("Config Error : Invalid 'update_folder' in location\n");
+			throw FormatError("Config Error : Invalid 'upload_folder' in location\n");
 
 		if (*it == "root" && ++it != end && *it != ";")
 		{
@@ -220,6 +221,8 @@ void ConfigParser::block_level_2(t_server &sv, t_location &lc, std::vector<std::
 			if (!(S_ISDIR(info.st_mode)))
 				throw FormatError("Config Error : root '" + *it + "' is not directory\n");
 			sv.location[tmp_route].root = *it;
+			if (sv.location[tmp_route].upload_folder_is_set == false)
+				sv.location[tmp_route].upload_folder = *it;
 		}
 		else if (it == end)
 			throw FormatError("Config Error : Invalid 'root' in location\n");
@@ -328,7 +331,8 @@ void ConfigParser::default_server_config(t_server &sv)
 void ConfigParser::default_location_config(t_location &lc)
 {
 	lc.root = std::string(cur_path) + "/www/";
-	lc.update_folder = lc.root;
+	lc.upload_folder = lc.root;
+	lc.upload_folder_is_set = false;
 	lc.autoindex = "off";
 	size_t len = sizeof(http_methods) / sizeof(std::string);
 	for (size_t i = 0; i < len; i++)
