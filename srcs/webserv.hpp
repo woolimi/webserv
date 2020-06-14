@@ -46,6 +46,7 @@ typedef struct s_location
 	std::vector<std::string> allow;
 	std::map<std::string, std::string> cgi;
 	std::string abs_path;
+	std::string update_folder;
 	// cgi["extension"] = ".php";
 	// cgi["paths"] = "/usr/bin/php-cgi";
 } t_location;
@@ -61,7 +62,7 @@ typedef struct s_server
 	std::string server_name;
 	std::string root;
 	std::string error_page;
-	int client_max_body_size;
+	size_t client_max_body_size;
 	/* access with route ex) server[0].location["/"] */
 	std::map<route, t_location> location;
 } t_server;
