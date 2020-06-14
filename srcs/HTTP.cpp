@@ -59,7 +59,7 @@ void HTTP::run(char **env)
 		write_set = init_set;
 		fdmax = *fds.rbegin();
 
-		init_timeout(timeout, 3, 0); // sec, usec
+		init_timeout(timeout, SERVER_TIMEOUT_SEC, SERVER_TIMEOUT_USEC); // sec, usec
 		http_select(fdmax, read_set, write_set, timeout);
 		manage_clients(read_set, write_set, init_set, fds, env);
 		manage_servers(read_set, init_set, fds);
@@ -115,32 +115,39 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 		{
 			respond_service_unavailable(*it);
 			disconnect(init_set, fds, it);
+			printf("max client exceed disconnect");
 			continue;
 		}
-
 		// receive request
-		if (!it->req_arrived && FD_ISSET(it->socket, &read_set))
+		if (!it->req_arrived)
 		{
-			nb_read = read(it->socket, buffer, MAX_BUFFER_SIZE);
-			if (nb_read == 0 && it->req.raw.empty())
-			{
-				disconnect(init_set, fds, it);
-				printf("disconnected after parsing all request\n");
-				continue;
+			if (!it->req.raw.empty() || FD_ISSET(it->socket, &read_set))
+			{	// something to read
+				nb_read = read(it->socket, buffer, MAX_BUFFER_SIZE);
+				if (nb_read == 0 && it->req.raw.empty())
+					continue;
+				// Client close connection unexpectly
+				if (nb_read < 0)
+				{
+					if (it->req.raw.empty())
+					{
+						disconnect(init_set, fds, it);
+						continue;
+					}
+					nb_read = 0;
+				}
+				buffer[nb_read] = '\0';
+				// std::cout <<"BUFFER IS: ["<< buffer <<  "]"<<std::endl;
+				renew_client_timestamp(*it);
+				skip_leading_empty_line(*it, buffer);
 			}
-			// Client close connection unexpectly
-			if (nb_read < 0)
-			{
-				disconnect(init_set, fds, it);
-				continue;
-			}
-			buffer[nb_read] = '\0';
-			// std::cout <<"BUFFER IS: ["<< buffer <<  "]"<<std::endl;
-			renew_client_timestamp(*it);
-			skip_leading_empty_line(*it, buffer);
 
 			if (it->req.raw.find("\r\n") == std::string::npos)
+			{
+				/* need to find why raw is empty in second step */
 				continue;
+			}
+
 			// request line parsing
 			if (it->req.req_line_parsed != 2)
 			{
@@ -215,6 +222,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 		// make res body if res.body not exist
 		if (it->req_arrived && !it->res_sent && it->res.body.empty())
 		{	// read()
+			// printf("make res body from fd\n");
 			make_res_body_from_fd(*it);
 			continue;
 		}
@@ -320,7 +328,7 @@ void HTTP::http_select(int fdmax, fd_set &read_set, fd_set &write_set, struct ti
 
 	if ((ret = select(fdmax + 1, &read_set, &write_set, NULL, &timeout)) < 0)
 	{
-		std::cout << strerror(errno) << std::endl;
+		std::cerr << strerror(errno) << std::endl;
 		throw FailToSelect();
 	}
 	/* debug */
@@ -337,18 +345,15 @@ int isDirectory(const char *path)
    return S_ISDIR(statbuf.st_mode);
 }
 
-
 void HTTP::handle_methods(t_client &cli, char **env)
 {
 	t_server &serv = cli.server;
 	t_req &req = cli.req;
 	t_location *loc;
 	bool is_file = true;
+	std::string folder_path;
+	std::string file;
 
-	std::string folder_path = req.path.substr(0, req.path.find_last_of('/'));
-	std::string file = req.path.substr(req.path.find_last_of('/'));
-	// if (file == "/")
-		// is_file = false;
 	loc = find_matched_location(serv, req.path);
 	is_file = isDirectory(loc->abs_path.c_str()) ? false : true;
 	if (is_file)

@@ -26,11 +26,15 @@
 # include "HttpStatus.hpp"
 
 # define DEFAULT_CONF_NAME "webserv.conf"
-# define MAX_BUFFER_SIZE 100
+# define MAX_BUFFER_SIZE 4096
 # define MAX_CLIENT 100
-# define CLIENT_TIMEOUT_SEC 15
+# define CLIENT_TIMEOUT_SEC 30
+# define SERVER_TIMEOUT_SEC 3
+# define SERVER_TIMEOUT_USEC 0
 # define SERVER_NAME "webserv/1.0"
 # define OK 0
+/* debug */
+#define DEBUG(x) std::cout << "\033[33m" << (x) << "\033[0m" << std::endl
 
 typedef std::string route;
 
@@ -72,7 +76,7 @@ typedef struct s_req
 	int chunk_size_read;
 	std::string version;
 	/* raw data */
-	std::string raw; // 100 + 100
+	std::string raw;
 	/* request line */
 	std::string req_line; // ex) GET /index.html HTTP/1.1
 	std::string method;
@@ -94,6 +98,7 @@ typedef struct s_res
 	std::map<std::string, std::string> headers;
 	std::string head; // res_line + headers
 	std::string body; // message body
+	std::string fname; 
 	off_t content_length;
 } t_res;
 
@@ -132,7 +137,7 @@ bool send_res_body(t_client &cli);
 bool send_res_head(t_client &cli);
 void make_res_body_from_fd(t_client &cli);
 std::string make_real_path(std::string &root, std::string &path);
-
+std::string gmt_time_string(time_t &sec);
 
 // void handle_head(t_client &cli);
 // void handle_post(t_client &cli);

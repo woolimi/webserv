@@ -7,8 +7,14 @@ void make_res_body_from_fd(t_client &cli)
 	int nb_read = read(res.fd, buff, MAX_BUFFER_SIZE);
 	if (nb_read == 0)
 	{
-		cli.res_sent = true;
-		res.body = "";
+		// printf("making res body finished\n");
+		if (res.headers.find("Transfer-Encoding") != res.headers.end())
+			res.body += "0\r\n\r\n";
+		else
+		{
+			cli.res_sent = true;
+			res.body = "";
+		}
 	}
 	else if (nb_read < 0)
 	{
@@ -23,10 +29,11 @@ void make_res_body_from_fd(t_client &cli)
 		if (res.headers.find("Transfer-Encoding") != res.headers.end())
 		{
 			res.body += int_to_hexstr(nb_read) + "\r\n";
-			res.body += std::string(buff) + "\r\n";
+			res.body.insert(res.body.end(), buff, buff + nb_read);
+			res.body += "\r\n";
 		}
 		else
-			res.body += buff;
+			res.body.insert(res.body.end(), buff, buff + nb_read);
 	}
 }
 
@@ -73,10 +80,13 @@ void make_file_res(t_client &cli, t_location *loc, char **env, std::string &file
 	}
 	else
 	{
+		struct stat st;
 		res.content_length = lseek(res.fd, 0, SEEK_END);
 		lseek(res.fd, 0, SEEK_SET);
+		fstat(res.fd, &st);
 		res.headers["Content-Type"] = mimetype(ext);
 		res.headers["Content-Length"] = std::to_string(res.content_length);
+		res.headers["Last-Modified"] = gmt_time_string(st.st_mtim.tv_sec);
 	}
 	res.status_code = 200;
 }
@@ -163,7 +173,7 @@ void make_folder_list_res(t_client &cli, t_location *loc, std::string &uri_path,
 	}
 	closedir(dp);
 	res.status_code = 200;
-	res.body += "\t</pre>\n\t<hr>\n\t</body>\n</html>";
+	res.body += "\t</pre>\n\t<hr>\n\t</body>\n</html>\n";
 	res.headers["Content-Type"] = "text/html";
 	res.headers["Content-Length"] = std::to_string(res.body.size());
 	res.content_length = res.body.size();

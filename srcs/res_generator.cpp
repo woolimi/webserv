@@ -9,15 +9,11 @@ static void make_res_line(t_res &res)
 static void add_common_res_header(t_res &res)
 {
 	timeval tv;
-	struct tm *timeinfo;
-	char buffer[80];
 
 	gettimeofday(&tv, NULL);
-	timeinfo = gmtime(&tv.tv_sec);
-	strftime(buffer, sizeof(buffer), "%a, %d %b %Y %H:%M:%S GMT", timeinfo);
 
 	res.headers["Server"] = SERVER_NAME;
-	res.headers["Date"] = buffer;
+	res.headers["Date"] = gmt_time_string(tv.tv_sec);
 }
 
 static void make_res_header(t_res &res)

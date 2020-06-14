@@ -1,5 +1,18 @@
 #include "webserv.hpp"
 
+static std::string random_fname(void)
+{
+	std::string ret;
+	std::string charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+	int nb_char = 15;
+	int i = 0;
+	while (nb_char-- > 0)
+	{
+		ret += charset[rand() % charset.size()];
+	}
+	return ret;
+}
+
 static char **cgi_env(t_client &cli, char **env, std::string &real_path)
 {
 	t_req &req = cli.req;
@@ -11,7 +24,7 @@ static char **cgi_env(t_client &cli, char **env, std::string &real_path)
 	new_env["GATEWAY_INTERFACE"] = "CGI/1.1";
 	new_env["PATH_INFO"] = real_path;
 	new_env["PATH_TRANSLATED"] = "";
-	new_env["QUERY_STRING"] = "";
+	new_env["QUERY_STRING"] = cli.req.query_string;
 	new_env["REMOTE_ADDR"] = inet_ntoa(cli.addr.sin_addr); // ??
 	new_env["REMOTE_IDENT"] = "";
 	new_env["REMOTE_USER"] = "";
@@ -45,58 +58,58 @@ static char **cgi_env(t_client &cli, char **env, std::string &real_path)
 	return (ret);
 }
 
-bool execute_cgi(t_client &cli, t_location &loc, char **env, std::string &real_path, std::string &ext)
+bool execute_cgi(t_client &cli, t_location &loc, char **env, std::string &realpath, std::string &ext)
 {
-	int p2c_fd[2];
 	int c2p_fd[2];
 	int pid;
 	int status;
+	std::string ranfname = random_fname();
+	int resfd = open(ranfname.c_str(), O_CREAT | O_RDWR | O_TRUNC, 0777);
 
-	if (pipe(p2c_fd) < 0 || pipe(c2p_fd) < 0 || (pid = fork()) < 0)
+	if (resfd < 0 || pipe(c2p_fd) < 0)
 	{
 		cli.res.status_code = 404;	
+		return false;
+	}
+	// c2p_fd[1]
+	if (!cli.req.body.empty() && write(c2p_fd[1], cli.req.body.c_str(), cli.req.body.size()) < 0)
+	{
+		cli.res.status_code = 404;
+		close(resfd);
+		return false;
+	}
+
+	close(c2p_fd[1]);
+
+	if ((pid = fork()) < 0)
+	{
+		cli.res.status_code = 404;
+		close(resfd);
 		return false;
 	}
 
 	if (pid == 0) // child
 	{
-		dup2(p2c_fd[0], 0);
-		close(p2c_fd[1]);
-		dup2(c2p_fd[1], 1);
+		dup2(resfd, 1);
+		close(resfd);
+		dup2(c2p_fd[0], 0);
 		close(c2p_fd[0]);
-
-		const char *av[2];
-		av[0] = loc.cgi["path"].c_str();
-		av[1] = 0;
-		errno = 0;
-		char **new_env = cgi_env(cli, env, real_path);
+		const char *av[3] = { loc.cgi["path"].c_str(), realpath.c_str(), 0 };
+		char **new_env = cgi_env(cli, env, realpath);
 		if (execve(av[0], (char **)av, new_env) < 0)
-			std::cout << strerror(errno) << std::endl;
+			std::cerr << strerror(errno) << std::endl;
 		exit(1);
 	}
-	else // parent
+	// parent
+	close(c2p_fd[0]);
+	waitpid(pid, &status, 0);
+	if (!WIFEXITED(status))
 	{
-		close(c2p_fd[1]);
-		close(p2c_fd[0]);
-		if (!cli.req.body.empty())
-		{ // send POST data
-			if (write(p2c_fd[1], cli.req.body.c_str(), cli.req.body.size()) <= 0)
-			{
-				close(p2c_fd[1]);
-				kill(pid, SIGKILL);
-				cli.res.status_code = 404;
-				return false;
-			}
-			cli.req.body.clear();
-		}
-		cli.res.fd = c2p_fd[0];
-		waitpid(pid, &status, 0);
-		if (!WIFEXITED(status))
-		{
-			cli.res.status_code = 404;
-			return false;
-		}
-		close(p2c_fd[1]);
+		cli.res.status_code = 404;
+		return false;
 	}
+	lseek(resfd, 0, SEEK_SET);
+	cli.res.fname = ranfname;
+	cli.res.fd = resfd;
 	return true;
 }
