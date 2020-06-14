@@ -121,7 +121,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 		// receive request
 		if (!it->req_arrived)
 		{
-			if (FD_ISSET(it->socket, &read_set))
+			if (!it->req.raw.empty() || FD_ISSET(it->socket, &read_set))
 			{	// something to read
 				nb_read = read(it->socket, buffer, MAX_BUFFER_SIZE);
 				if (nb_read == 0 && it->req.raw.empty())
@@ -129,11 +129,14 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 				// Client close connection unexpectly
 				if (nb_read < 0)
 				{
-					disconnect(init_set, fds, it);
-					continue;
+					if (it->req.raw.empty())
+					{
+						disconnect(init_set, fds, it);
+						continue;
+					}
+					nb_read = 0;
 				}
 				buffer[nb_read] = '\0';
-				// std::cout <<"BUFFER IS: ["<< buffer <<  "]"<<std::endl;
 				renew_client_timestamp(*it);
 				skip_leading_empty_line(*it, buffer);
 			}
@@ -172,6 +175,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 				if (x)
 					continue;
 			}
+
 			// request body parsing
 			if (it->req.req_line_parsed == 2 && it->req.req_header_parsed == 2 && it->req.req_body_parsed != 2)
 			{
@@ -209,7 +213,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 			if (!send_res_head(*it))
 				disconnect(init_set, fds, it);
 			printf("sent response head\n");
-			if (it->req.method == "HEAD")
+			if (it->req.method == "HEAD" || it->req.method == "PUT")
 				it->res_sent = true;
 			continue;
 		}
@@ -217,7 +221,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 		// make res body if res.body not exist
 		if (it->req_arrived && !it->res_sent && it->res.body.empty())
 		{	// read()
-			printf("make res body from fd\n");
+			// printf("make res body from fd\n");
 			make_res_body_from_fd(*it);
 			continue;
 		}
@@ -238,7 +242,9 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 			it->req.req_line_parsed = 0;
 			it->req.req_header_parsed = 0;
 			it->req.req_body_parsed = 0;
+			it->req.body.clear();
 			it->req_arrived = false;
+			it->req.content_length = -1;
 			it->res_sent = false;
 			it->res.status_code = 0;
 			it->res.sent_head = false;
@@ -412,10 +418,10 @@ void HTTP::handle_methods(t_client &cli, char **env)
 		return ;
 	}
 
-	if (req.method == "GET")
+	if (req.method == "GET" || req.method == "HEAD")
 		handle_get(cli, env, loc, is_file, folder_path, file);
-	else if (req.method == "HEAD")
-		handle_get(cli, env, loc, is_file, folder_path, file);
+	else if (req.method == "PUT")
+		handle_put(cli, env, loc, is_file, folder_path, file);
 
 	// 	handle_head(cli);
 	// ...

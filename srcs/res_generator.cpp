@@ -107,6 +107,10 @@ void res_generator(t_client &cli)
 	{
 		add_common_res_header(res);
 		make_res_line(res);
+		if(cli.req. method == "PUT" || cli.req. method == "POST")
+		{
+			res.headers["Location"] = cli.req.path;
+		}
 		make_res_header(res);
 		res.head += "\r\n";
 	}
