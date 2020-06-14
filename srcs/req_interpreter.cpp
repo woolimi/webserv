@@ -340,6 +340,8 @@ void parse_request_body(t_client &client)
 				return;
 			}
 			req.content_length = ft_atoi((char *)req.headers["content-length"].c_str());
+			if (req.content_length > client.server.client_max_body_size)
+					set_http_status(client, 413);
 		}
 		if (req.content_length <= req.raw.size())
 		{
