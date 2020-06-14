@@ -293,16 +293,24 @@ bool ConfigParser::is_http_method(std::string &token)
 
 size_t ConfigParser::str_to_size(std::string const &str)
 {
+	int cnt = 0;
+	for (std::string::const_iterator it = str.begin(); it != str.end() - 1; ++it)
+	{
+		if (!ft_isdigit(*it))
+			return (0);
+	}
+
 	char last_char = *str.rbegin();
 	int tmp = atoi(str.c_str());
 	if (tmp <= 0)
 		return (0);
+
 	if (last_char == 'm' || last_char == 'M')
 		return (tmp * 1000 * 1000);
 	if (last_char == 'k' || last_char == 'K')
 		return (tmp * 1000);
 	if (ft_isdigit(last_char))
-		return (tmp * 1000);
+		return (tmp);
 	else
 		return (0);
 }
