@@ -20,6 +20,41 @@ ConfigParser::ConfigParser(int ac, char **av)
 			throw CustomConfNotExist();
 	}
 	parsing(fd);
+	verify_server_settings();
+}
+
+void ConfigParser::verify_server_settings()
+{
+	// case1. same server_name, same port
+	// ->	run only first one, and show message
+	//		that second server is ignored, then remove server in container.
+	// case2. different server_name, same port
+	// ->	make 1 server socket and check header host:domain_name 
+	// 		give different server structure when client access
+	// ->	if request host (host:domain_name) doesn't exist,
+	//		choose first one. 
+	// case3. different server_name, different port
+	// ->	run 2 server
+
+	// find case 1
+	std::vector<t_server>::iterator it;
+	for (it = srvs.begin(); it != srvs.end(); ++it)
+	{
+		std::vector<t_server>::iterator i;
+		for (i = it + 1; i != srvs.end(); ++i)
+		{
+			if (it->server_name == i->server_name
+				&& it->listen == i->listen)
+				break;
+		}
+		if (i != srvs.end())
+		{
+			std::cerr << "conflicting server name \""
+				<< i->server_name << "\" ignored"<< std::endl;
+			srvs.erase(i);
+			it = srvs.begin();
+		}
+	}
 }
 
 void ConfigParser::parsing(int fd)
@@ -321,7 +356,7 @@ size_t ConfigParser::str_to_size(std::string const &str)
 void ConfigParser::default_server_config(t_server &sv)
 {
 	sv.listen = 80;
-	sv.server_name = "localhost";
+	sv.server_name = "";
 	sv.root = std::string(cur_path) + "/www/";
 	sv.error_page = std::string(cur_path) + "/error.html";
 	sv.client_max_body_size = 1000000; // 1M = 1,000,000 bytes

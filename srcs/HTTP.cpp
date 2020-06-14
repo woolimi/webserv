@@ -26,7 +26,7 @@ HTTP::HTTP(std::vector<t_server> &srvs)
 		if (bind(it->socket, (struct sockaddr *)&it->addr, it->addr_len) < 0)
 			throw FailToSetServerSocket();
 		// listen
-		if (listen(it->socket, 1000) < 0)
+		if (listen(it->socket, 2500) < 0)
 			throw FailToSetServerSocket();
 	}
 }
@@ -234,28 +234,36 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 				continue;
 			}
 			if (it->res_sent)
+			{
 				printf("sent all response body\n");
+				continue;
+			}
 		}
 		
 		if (it->res_sent)
 		{
-			it->req.req_line_parsed = 0;
-			it->req.req_header_parsed = 0;
-			it->req.req_body_parsed = 0;
-			it->req.body.clear();
-			it->req_arrived = false;
-			it->req.content_length = -1;
-			it->res_sent = false;
-			it->res.status_code = 0;
-			it->res.sent_head = false;
-			it->res.head.clear();
-			it->res.headers.clear();
-			it->res.body.clear();
-			it->req.headers.clear();
-			it->req.method.clear();
-			it->req.path.clear();
-			it->req.chunk_size_read = -1;
-			printf("reset\n");
+			if (it->req.raw.empty() && FD_ISSET(it->socket, &write_set))
+				disconnect(init_set, fds, it);
+			else
+			{
+				it->req.req_line_parsed = 0;
+				it->req.req_header_parsed = 0;
+				it->req.req_body_parsed = 0;
+				it->req.body.clear();
+				it->req_arrived = false;
+				it->req.content_length = -1;
+				it->res_sent = false;
+				it->res.status_code = 0;
+				it->res.sent_head = false;
+				it->res.head.clear();
+				it->res.headers.clear();
+				it->res.body.clear();
+				it->req.headers.clear();
+				it->req.method.clear();
+				it->req.path.clear();
+				it->req.chunk_size_read = -1;
+				printf("reset\n");
+			}
 		}
 	}
 }
