@@ -13,6 +13,7 @@ int file_check(std::string file_path)
 	struct stat info;
 	errno = 0;
 	int ret = stat(file_path.c_str(), &info);
+	std::cout<<"FILEPATHHH." << file_path << std::endl;
 	if (ret < 0)
 	{
 		if (errno == ENOENT) // not exist
@@ -51,7 +52,7 @@ t_location *find_matched_location(t_server &serv, std::string &path)
 
 	for (it = serv.location.begin(); it != serv.location.end(); ++it)
 	{
-		if (it->first == path) //100% match
+		if ((it->first == path) || (it->first == path + "/")) //100% match
 		{
 			it->second.abs_path = it->second.root;
 			if (*it->second.abs_path.rbegin() != '/')
@@ -62,14 +63,17 @@ t_location *find_matched_location(t_server &serv, std::string &path)
 
 	for (it = serv.location.begin(); it != serv.location.end(); ++it) // part match
 	{
+		std::cout << "loc path"<<it->first << std::endl;
+		std::cout << (path.find(it->first) != std::string::npos) << " " << (path.find(it->first) == 0) << " " <<  (it->first.size() > max_matched_size)<< std::endl;
 		if (((pos = path.find(it->first)) != std::string::npos && pos == 0 && it->first.size() > max_matched_size))
 		{
 			it->second.abs_path = it->second.root; //root/abc
 			if (*it->second.abs_path.rbegin() != '/')
 				it->second.abs_path += "/"; 
+			std::cout << "abs here: " << it->second.abs_path <<std::endl ;
 			it->second.abs_path += path.substr(it->first.size());
 			ret = &it->second;
-			max_matched_size = path.size();
+			max_matched_size = it->first.size();
 		}
 	}
 	return ret;

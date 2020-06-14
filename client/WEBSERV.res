@@ -1,10 +1,52 @@
 HTTP/1.1 200 OK
-Content-Length: 19710
-Content-Type: image/png
-Date: Fri, 12 Jun 2020 23:24:00 GMT
+Content-Length: 209
+Content-Type: text/html
+Date: Sun, 14 Jun 2020 10:01:25 GMT
+Last-Modified: Sat, 13 Jun 2020 17:09:35 GMT
 Server: webserv/1.0
 
-‰PNG
-
-ùŒÔ	@˜—ÛqŞ[B~¼²cux¿Í[p<·‚ïÔròşé
-iˆ™ûŸÙ?”oêu |FêÀüù,3£¦‹	DÒh¨›–§ZéJü.ùöÓıLfÒDDRÅ2;|øá‡¦Îgöã§|Æë¦ÍP€u…õ8î·Óöc;u=-¬z¿™êõÀ>ÛEù¶fjït5-Ï!2=?Ëåâøñãé""’ñrY7¡•sgÌH¨.Ñö’]§|Æê”ÏXUòíŞ½›İ»wÓÛÛË¢E‹¨¬¬¤²²Ò4ùRU§|Æê”ÏXò«3}¾„ZÊºô½„P°¬^O	>ÇÈ_÷U¸ó((ôQ3PAı†‘¿îoñ‘¨Ÿ§}ÕÅøèB.Ã[X€ÛåfEe3}‘XmèõVàöø({z+ë\+¨w‚8ÓCÓZ/…n¼%54?]JŞım
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+</head>
+<body>
+	<h1>default</h1>
+</body>
+</html>HTTP/1.1 200 OK
+Content-Length: 209
+Content-Type: text/html
+Date: Sun, 14 Jun 2020 10:01:25 GMT
+Last-Modified: Sat, 13 Jun 2020 17:09:35 GMT
+Server: webserv/1.0
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+</head>
+<body>
+	<h1>default</h1>
+</body>
+</html>HTTP/1.1 200 OK
+Content-Length: 209
+Content-Type: text/html
+Date: Sun, 14 Jun 2020 10:01:25 GMT
+Last-Modified: Sat, 13 Jun 2020 17:09:35 GMT
+Server: webserv/1.0
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+</head>
+<body>
+	<h1>default</h1>
+</body>
+</html>
