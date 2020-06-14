@@ -190,6 +190,23 @@ void ConfigParser::block_level_2(t_server &sv, t_location &lc, std::vector<std::
 		throw FormatError("Config Error : Invalid attribute '" + *it + "'\n");
 	else
 	{
+		if (*it == "upload_folder" && ++it != end && *it != ";")
+		{
+			struct stat info;
+			errno = 0;
+			if (stat(it->c_str(), &info) != 0)
+			{
+				if (errno == EACCES)
+					throw FormatError("Config Error : No right to access update_folder directory '" + *it + "'\n");
+				throw FormatError("Config Error : update_folder directory '" + *it + "' does not exist.\n");
+			}
+			if (!(S_ISDIR(info.st_mode)))
+				throw FormatError("Config Error : update_folder '" + *it + "' is not directory\n");
+			sv.location[tmp_route].update_folder = *it;
+		}
+		else if (it == end)
+			throw FormatError("Config Error : Invalid 'update_folder' in location\n");
+
 		if (*it == "root" && ++it != end && *it != ";")
 		{
 			struct stat info;
