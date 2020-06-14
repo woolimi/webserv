@@ -46,7 +46,8 @@ typedef struct s_location
 	std::vector<std::string> allow;
 	std::map<std::string, std::string> cgi;
 	std::string abs_path;
-	std::string update_folder;
+	std::string upload_folder;
+	bool upload_folder_is_set;
 	// cgi["extension"] = ".php";
 	// cgi["paths"] = "/usr/bin/php-cgi";
 } t_location;
