@@ -63,8 +63,6 @@ t_location *find_matched_location(t_server &serv, std::string &path)
 
 	for (it = serv.location.begin(); it != serv.location.end(); ++it) // part match
 	{
-		std::cout << "loc path"<<it->first << std::endl;
-		std::cout << (path.find(it->first) != std::string::npos) << " " << (path.find(it->first) == 0) << " " <<  (it->first.size() > max_matched_size)<< std::endl;
 		if (((pos = path.find(it->first)) != std::string::npos && pos == 0 && it->first.size() > max_matched_size))
 		{
 			it->second.abs_path = it->second.root; //root/abc

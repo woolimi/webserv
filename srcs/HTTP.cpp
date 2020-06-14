@@ -137,7 +137,6 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 					nb_read = 0;
 				}
 				buffer[nb_read] = '\0';
-				// std::cout <<"BUFFER IS: ["<< buffer <<  "]"<<std::endl;
 				renew_client_timestamp(*it);
 				skip_leading_empty_line(*it, buffer);
 			}
@@ -214,7 +213,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 			if (!send_res_head(*it))
 				disconnect(init_set, fds, it);
 			printf("sent response head\n");
-			if (it->req.method == "HEAD")
+			if (it->req.method == "HEAD" || it->req.method == "PUT")
 				it->res_sent = true;
 			continue;
 		}
@@ -243,7 +242,9 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 			it->req.req_line_parsed = 0;
 			it->req.req_header_parsed = 0;
 			it->req.req_body_parsed = 0;
+			it->req.body.clear();
 			it->req_arrived = false;
+			it->req.content_length = -1;
 			it->res_sent = false;
 			it->res.status_code = 0;
 			it->res.sent_head = false;
