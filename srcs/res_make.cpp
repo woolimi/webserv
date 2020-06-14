@@ -48,8 +48,9 @@ void make_file_res(t_client &cli, t_location *loc, char **env, std::string &file
 	res.fd = open(file_path.c_str(), O_RDONLY);
 	fstat(res.fd, &info);
 	size_t file_size = info.st_size;
-	std::string ext = file.substr(file.find_last_of('.'));
-
+	std::string ext = "";
+	if (file.find(".") != std::string::npos)
+		ext = file.substr(file.find_last_of('.'));
 	// make res.head
 	if (!loc->cgi.empty() && loc->cgi["extension"] == ext)
 	{
