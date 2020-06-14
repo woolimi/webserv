@@ -68,8 +68,8 @@ t_location *find_matched_location(t_server &serv, std::string &path)
 			it->second.abs_path = it->second.root; //root/abc
 			if (*it->second.abs_path.rbegin() != '/')
 				it->second.abs_path += "/"; 
-			std::cout << "abs here: " << it->second.abs_path <<std::endl ;
-			std::cout << "UF here : " << it->second.upload_folder <<std::endl;
+			// std::cout << "abs here: " << it->second.abs_path <<std::endl ;
+			// std::cout << "UF here : " << it->second.upload_folder <<std::endl;
 			it->second.abs_path += path.substr(it->first.size());
 			ret = &it->second;
 			max_matched_size = it->first.size();
