@@ -171,6 +171,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 						break;
 					}
 					parse_request_header(*it, it->req.raw.substr(0, it->req.raw.find("\r\n") + 2));
+					std::cout << "req arrived: " << it->req_arrived <<std::endl;
 					it->req.raw = it->req.raw.substr(it->req.raw.find("\r\n") + 2);
 				}
 				if (x)
@@ -178,12 +179,14 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 			}
 
 			// request body parsing
+			// std::cout << (it->req.req_line_parsed == 2)  << " " << (it->req.req_header_parsed == 2) << " " << (it->req.req_body_parsed != 2) <<std::endl;
 			if (it->req.req_line_parsed == 2 && it->req.req_header_parsed == 2 && it->req.req_body_parsed != 2)
 			{
 				if (it->req_arrived)
 					it->req.req_body_parsed = 2;
 				else
 				{
+					std::cout << "HERE RAW is [" << it->req.raw << "]\n";
 					parse_request_body(*it);
 				}
 			}
@@ -214,7 +217,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 			if (!send_res_head(*it))
 				disconnect(init_set, fds, it);
 			printf("sent response head\n");
-			if (it->req.method == "HEAD")
+			if (it->req.method == "HEAD" || it->req.method == "PUT")
 				it->res_sent = true;
 			continue;
 		}
@@ -243,7 +246,9 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 			it->req.req_line_parsed = 0;
 			it->req.req_header_parsed = 0;
 			it->req.req_body_parsed = 0;
+			it->req.body.clear();
 			it->req_arrived = false;
+			it->req.content_length = -1;
 			it->res_sent = false;
 			it->res.status_code = 0;
 			it->res.sent_head = false;
