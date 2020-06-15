@@ -289,7 +289,7 @@ void ConfigParser::block_level_2(t_server &sv, t_location &lc, std::vector<std::
 			--it;
 		}
 		else if (it == end)
-			throw FormatError("Config Error : Invalid 'index' in location\n");
+			throw FormatError("Config Error : Invalid 'allow' in location\n");
 
 		if (*it == "cgi" && ++it != end && *it != ";")
 		{
@@ -303,7 +303,7 @@ void ConfigParser::block_level_2(t_server &sv, t_location &lc, std::vector<std::
 				throw FormatError("Config Error : cgi path not exist.\n");
 		}
 		else if (it == end)
-			throw FormatError("Config Error : Invalid 'index' in location\n");
+			throw FormatError("Config Error : Invalid 'cgi' in location\n");
 
 		/* check ";" termination */
 		++it;

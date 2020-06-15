@@ -8,20 +8,27 @@ void renew_client_timestamp(t_client &cli)
 	cli.time_stamp = tv.tv_sec;
 }
 
+int isDirectory(const char *path)
+{
+	struct stat statbuf;
+
+	if (stat(path, &statbuf) != 0)
+		return 0;
+	return S_ISDIR(statbuf.st_mode);
+}
+
 int file_check(std::string file_path)
 {
 	struct stat info;
 	errno = 0;
 	int ret = stat(file_path.c_str(), &info);
-	std::cout<<"FILEPATHHH." << file_path << std::endl;
+	// std::cout<<"FILEPATHHH." << file_path << std::endl;
 	if (ret < 0)
 	{
 		if (errno == ENOENT) // not exist
 			return 404;
 		if (errno == EACCES)
-		{
 			return 403;
-		}
 	}
 	if (!S_ISREG(info.st_mode))
 		return 404;

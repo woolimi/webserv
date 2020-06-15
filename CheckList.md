@@ -27,7 +27,7 @@
 - Launch multiple server at the same time with different configuration but with common ports. Is it working ? If it is working ask why the server should work if one of the configuration isn't working, keep going.
 
 - Use Siege to run some stress test
-- Check if there is no memroy leak
+- Check if there is no memory leak
 - Check if there is no hanging connection
 - You should be able to use siege indefinitly without restarting the server (look at siege -b)
 - Availability should be above 99.5% for a simple get on an empty page with a siege -b on that page.
