@@ -1,5 +1,4 @@
-규칙
-의문점.txt
+*.conf
 obj
 webserv
 webserv.conf
