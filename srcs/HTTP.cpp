@@ -213,7 +213,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 			if (!send_res_head(*it))
 				disconnect(init_set, fds, it);
 			printf("sent response head\n");
-			if (it->req.method == "HEAD" || it->req.method == "PUT")
+			if (it->req.method == "HEAD" || it->req.method == "PUT") // add trace
 				it->res_sent = true;
 			continue;
 		}
