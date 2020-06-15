@@ -7,7 +7,7 @@ class ConfigParser
 {
 private:
 	ConfigParser();
-	std::vector<t_server> srvs;
+	std::vector<t_server> srvs;	
 	char cur_path[256];
 	std::string tmp_route;
 	void get_config_data(int fd, std::string &raw);

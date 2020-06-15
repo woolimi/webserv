@@ -102,22 +102,22 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 	for (it = clients.begin(); it != clients.end(); ++it)
 	{
 		// close client when timeout
-		gettimeofday(&tv, NULL);
-		if (tv.tv_sec - it->time_stamp > CLIENT_TIMEOUT_SEC)
-		{
-			printf("client timeout disconnect\n");
-			disconnect(init_set, fds, it);
-			continue;
-		}
+		// gettimeofday(&tv, NULL);
+		// if (tv.tv_sec - it->time_stamp > CLIENT_TIMEOUT_SEC)
+		// {
+		// 	printf("client timeout disconnect\n");
+		// 	disconnect(init_set, fds, it);
+		// 	continue;
+		// }
 
 		// Server reject client connection with 503 respond
-		if (it - clients.begin() > MAX_CLIENT)
-		{
-			respond_service_unavailable(*it);
-			disconnect(init_set, fds, it);
-			printf("max client exceed disconnect");
-			continue;
-		}
+		// if (it - clients.begin() > MAX_CLIENT)
+		// {
+		// 	respond_service_unavailable(*it);
+		// 	disconnect(init_set, fds, it);
+		// 	printf("max client exceed disconnect");
+		// 	continue;
+		// }
 		// receive request
 		if (!it->req_arrived)
 		{
@@ -242,8 +242,12 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 		
 		if (it->res_sent)
 		{
-			if (it->req.raw.empty() && FD_ISSET(it->socket, &write_set))
+			// std::cout << it->req.raw.empty() << " " << FD_ISSET(it->socket, &read_set) << std::endl;
+			if (it->req.raw.empty() && !FD_ISSET(it->socket, &read_set))
+			{
 				disconnect(init_set, fds, it);
+				printf("disconneted after treat all request\n");
+			}
 			else
 			{
 				it->req.req_line_parsed = 0;

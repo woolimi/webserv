@@ -26,31 +26,28 @@ ConfigParser::ConfigParser(int ac, char **av)
 void ConfigParser::verify_server_settings()
 {
 	// case1. same server_name, same port
-	// ->	run only first one, and show message
-	//		that second server is ignored, then remove server in container.
+	// ->	ignore second server, and show message
 	// case2. different server_name, same port
-	// ->	make 1 server socket and check header host:domain_name 
-	// 		give different server structure when client access
-	// ->	if request host (host:domain_name) doesn't exist,
-	//		choose first one. 
-	// case3. different server_name, different port
+	// ->	ignore second server, and show message
+	// case3. same server_name, different port
+	// ->	run 2 server
+	// case4. different server_name, different port
 	// ->	run 2 server
 
-	// find case 1
+	// find case 1, 2
 	std::vector<t_server>::iterator it;
 	for (it = srvs.begin(); it != srvs.end(); ++it)
 	{
 		std::vector<t_server>::iterator i;
 		for (i = it + 1; i != srvs.end(); ++i)
 		{
-			if (it->server_name == i->server_name
-				&& it->listen == i->listen)
+			if (it->listen == i->listen)
 				break;
 		}
 		if (i != srvs.end())
 		{
-			std::cerr << "conflicting server name \""
-				<< i->server_name << "\" ignored"<< std::endl;
+			std::cerr << "conflicting server port \""
+				<< i->server_name << ":" << i->listen << "\" ignored"<< std::endl;
 			srvs.erase(i);
 			it = srvs.begin();
 		}
@@ -370,6 +367,7 @@ void ConfigParser::default_location_config(t_location &lc)
 	lc.upload_folder_is_set = false;
 	lc.autoindex = "off";
 	size_t len = sizeof(http_methods) / sizeof(std::string);
+	lc.allow.clear();
 	for (size_t i = 0; i < len; i++)
 		lc.allow.push_back(http_methods[i]);
 }
