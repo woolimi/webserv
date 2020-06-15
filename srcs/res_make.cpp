@@ -1,5 +1,11 @@
 #include "webserv.hpp"
 
+void make_res_body_for_trace(t_client &cli)
+{
+	
+}
+
+
 void make_res_body_from_fd(t_client &cli)
 {
 	t_res &res = cli.res;
