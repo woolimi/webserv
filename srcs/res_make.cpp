@@ -8,12 +8,16 @@ void make_res_body_from_fd(t_client &cli)
 	if (nb_read == 0)
 	{
 		if (res.headers.find("Transfer-Encoding") != res.headers.end())
+		{
 			res.body += "0\r\n\r\n";
+		}
 	}
 	else if (nb_read < 0)
 	{
 		if (res.headers.find("Transfer-Encoding") != res.headers.end())
+		{
 			res.body += "0\r\n\r\n";
+		}
 	}
 	else
 	{
@@ -112,6 +116,7 @@ void make_folder_list_res(t_client &cli, t_location *loc, std::string &uri_path,
 	// 	res.status_code = 404;
 	// 	return;
 	// }
+
 	if (chdir(real_path.c_str()) < 0 || !(dp = opendir("./")))
 	{
 		res.status_code = 404;
@@ -136,18 +141,6 @@ void make_folder_list_res(t_client &cli, t_location *loc, std::string &uri_path,
 			fnames.insert(std::string(entry->d_name));
 	}
 	
-	std::vector<std::string>::iterator it1;
-	for (it1 = loc->index.begin(); it1 != loc->index.end(); ++it1)
-	{
-		if(fnames.find(*it1) != fnames.end())
-			break;
-	}
-	if (it1 == loc->index.end())
-	{
-		res.status_code = 404;
-		return;
-	}
-
 	std::set<std::string>::iterator it;
 	for (it = fnames.begin(); it != fnames.end(); ++it)
 	{

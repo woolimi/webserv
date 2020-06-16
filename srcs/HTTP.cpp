@@ -169,14 +169,14 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 			if (!send_res_head(*it))
 				disconnect(init_set, fds, it);
 			printf("sent response head\n");
-			if (it->req.method == "HEAD" || it->req.method == "PUT")
-				it->res_sent = true;
+			if (it->req.method == "HEAD" || it->req.method == "PUT" || it->res.content_length == 0)
+				disconnect(init_set, fds, it);
 			continue;
 		}
 		
-		// make res body if res.body not exist
+		// make res body from fd
 		if (it->req_arrived && !it->res_sent
-			&& it->res.content_length != 0 && it->res.fd != -1)
+			&& it->res.fd != -1 && it->res.body.empty())
 		{
 			make_res_body_from_fd(*it);
 			continue;
