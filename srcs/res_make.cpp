@@ -1,5 +1,6 @@
 #include "webserv.hpp"
 
+
 void make_res_body_from_fd(t_client &cli)
 {
 	t_res &res = cli.res;
@@ -40,9 +41,9 @@ void make_file_res(t_client &cli, t_location *loc, char **env, std::string &file
 
 	if ((cli.res.status_code = file_check(file_path)) != OK)
 		return ;
+
 	// file info
-	res.fd = open(file_path.c_str(), O_RDONLY);
-	fstat(res.fd, &info);
+	stat(file_path.c_str(), &info);
 	size_t file_size = info.st_size;
 	std::string ext = "";
 	if (file.find(".") != std::string::npos)
@@ -75,8 +76,9 @@ void make_file_res(t_client &cli, t_location *loc, char **env, std::string &file
 		res.body += int_to_hexstr(raw.size()) + "\r\n";
 		res.body += raw + "\r\n";
 	}
-	else
+	else// if (req.method ==  "GET" || req.method == "HEAD")
 	{
+		res.fd = open(file_path.c_str(), O_RDONLY);
 		struct stat st;
 		res.content_length = lseek(res.fd, 0, SEEK_END);
 		lseek(res.fd, 0, SEEK_SET);
@@ -85,6 +87,7 @@ void make_file_res(t_client &cli, t_location *loc, char **env, std::string &file
 		res.headers["Content-Length"] = std::to_string(res.content_length);
 		res.headers["Last-Modified"] = gmt_time_string(st.st_mtim.tv_sec);
 	}
+	// else if (req.method == "PUT" || req.method == "POST")
 	res.status_code = 200;
 }
 
@@ -98,25 +101,6 @@ void make_folder_list_res(t_client &cli, t_location *loc, std::string &uri_path,
 	struct stat info;
 	std::string orig_path = getcwd(buff, 256);
 	uri_path = cli.req.path;
-
-	// int fd;
-	// int flag = 0;
-	// std::vector<std::string>::iterator it1;
-	// for (it1 = loc->index.begin(); it1 != loc->index.end(); ++it1)
-	// {
-	// 	std::cout << "filenm: " << uri_path + *it1 << std::endl;
-	// 	if ((fd = open((uri_path + *it1).c_str(), O_RDONLY)) >= 0)
-	// 	{
-	// 		flag = 1;
-	// 		close(fd);
-	// 		break;
-	// 	}
-	// }
-	// if (flag == 0)
-	// {
-	// 	res.status_code = 404;
-	// 	return;
-	// }
 
 	if (chdir(real_path.c_str()) < 0 || !(dp = opendir("./")))
 	{

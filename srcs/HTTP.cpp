@@ -176,7 +176,6 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 		{
 			if (!send_res_head(*it))
 				disconnect(init_set, fds, it);
-			printf("sent response head\n");
 			if (it->req.method == "HEAD" || it->req.method == "PUT" || it->res.content_length == 0)
 				disconnect(init_set, fds, it);
 			continue;
@@ -187,6 +186,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 			&& it->res.fd != -1 && it->res.body.empty())
 		{
 			make_res_body_from_fd(*it);
+			// renew_client_timestamp(*it);
 			continue;
 		}
 
@@ -201,6 +201,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 				printf("sent all response body\n");
 		}
 
+		// treat more request or disconnect client
 		if (it->res_sent)
 		{
 			if (it->req.raw.empty())
@@ -209,10 +210,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 				printf("disconneted after having treated all request\n");
 			}
 			else
-			{
 				reset_req_and_res(*it);
-				printf("reset\n");
-			}
 		}
 	}
 }
@@ -227,7 +225,6 @@ void HTTP::manage_servers(fd_set &read_set, fd_set &init_set, std::set<int> &fds
 	{
 		if (FD_ISSET(it->socket, &read_set))
 		{
-			errno = 0;
 			new_client.socket = accept(it->socket, (sockaddr *)&new_client.addr, &new_client.addr_len);
 			if (new_client.socket < 0)
 				throw FailToAccept();
@@ -243,7 +240,6 @@ void HTTP::manage_servers(fd_set &read_set, fd_set &init_set, std::set<int> &fds
 			clients.push_back(new_client);
 			fds.insert(new_client.socket); //fdmax
 			FD_SET(new_client.socket, &init_set);
-			// std::cout << "FD1: "<< FD_ISSET(new_client.socket, &init_set) << std::endl;
 			printf("client connected\n");
 		}
 	}
@@ -258,6 +254,7 @@ void HTTP::disconnect(fd_set &init_set, std::set<int> &fds, std::vector<t_client
 		unlink(it->res.fname.c_str());
 	if (it->res.fd != -1)
 		close(it->res.fd);
+
 	it = clients.erase(it);
 	--it;
 	printf("client disconnected\n");
@@ -269,6 +266,7 @@ void HTTP::init_client(t_client &client)
 	client.addr_len = sizeof(client.addr);
 	/* req */
 	client.req.req_line_parsed = 0;
+	client.req.body = "";
 	client.req.req_header_parsed = 0;
 	client.req.req_body_parsed = 0;
 	client.req.content_length = -1;
@@ -308,6 +306,11 @@ void HTTP::reset_req_and_res(t_client &cli)
 	cli.req.method.clear();
 	cli.req.path.clear();
 	cli.req.chunk_size_read = -1;
+	close(cli.res.fd);
+	cli.res.fd = -1;
+	if (!cli.res.fname.empty())
+		unlink(cli.res.fname.c_str());
+	printf("reset\n");
 }
 
 void HTTP::http_select(int fdmax, fd_set &read_set, fd_set &write_set, struct timeval &timeout)
@@ -374,8 +377,7 @@ void HTTP::handle_methods(t_client &cli, char **env)
 
 	*/
 
-	std::vector<std::string>::iterator it1;
-	it1 = std::find(loc->allow.begin(), loc->allow.end(), req.method);
+	auto it1 = std::find(loc->allow.begin(), loc->allow.end(), req.method);
 	if (it1 == loc->allow.end())
 	{
 		std::string allow = loc->allow[0];
@@ -391,6 +393,12 @@ void HTTP::handle_methods(t_client &cli, char **env)
 		handle_get(cli, env, loc, is_file, folder_path, file);
 	else if (req.method == "PUT")
 		handle_put(cli, env, loc, is_file, folder_path, file);
+	else if (req.method == "POST")
+		handle_post(cli, env, loc, is_file, folder_path, file);
+	else if (req.method == "OPTIONS")
+		handle_options(cli, env, loc, is_file, folder_path, file);
+	else if (req.method == "TRACE")
+		handle_trace(cli, env, loc, is_file, folder_path, file);
 
 	// 	handle_head(cli);
 	// ...
