@@ -97,6 +97,7 @@ void make_folder_list_res(t_client &cli, t_location *loc, std::string &uri_path,
 	std::set<std::string> fnames;
 	struct stat info;
 	std::string orig_path = getcwd(buff, 256);
+	uri_path = cli.req.path;
 
 	// int fd;
 	// int flag = 0;

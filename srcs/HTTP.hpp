@@ -6,10 +6,8 @@
 class HTTP
 {
 private:
-	HTTP();
-
-	std::vector<t_client> clients;
-	std::vector<t_server> &servers;
+	static std::vector<t_client> clients;
+	static std::vector<t_server> servers;
 	void init_timeout(struct timeval &timeout, int sec, int usec);
 	void http_select(int fdmax, fd_set &read_set, fd_set &write_set, struct timeval &timeout);
 	void manage_servers(fd_set &read_set, fd_set &init_set, std::set<int> &fds);
@@ -23,13 +21,15 @@ private:
 	void res_service_unavailable(t_client &cli);
 
 public:
+	HTTP();
 	HTTP(std::vector<t_server> &srvs);
 	// HTTP(HTTP const &other);
 	// HTTP &operator=(HTTP const &other);
 	~HTTP();
 
 	void run(char **env);
-
+	std::vector<t_client> &get_clients();
+	std::vector<t_server> &get_servers();
 	/* exceptions */
 	class FailToSetServerSocket : public std::exception
 	{

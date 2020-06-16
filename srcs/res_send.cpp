@@ -29,7 +29,6 @@ bool send_res_body(t_client &cli)
 		if (res.body.find("0\r\n\r\n") != std::string::npos)
 		{
 			cli.res_sent = true;
-			close(res.fd);
 			if (!res.fname.empty())
 				unlink(res.fname.c_str());
 		}
@@ -38,11 +37,7 @@ bool send_res_body(t_client &cli)
 	{
 		res.content_length -= ret;
 		if (res.content_length == 0)
-		{
 			cli.res_sent = true;
-			if (res.fd != -1)
-				close(res.fd);
-		}
 	}
 
 	if (ret < cli.res.body.size())

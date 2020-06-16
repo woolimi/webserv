@@ -1,8 +1,16 @@
 #include "HTTP.hpp"
 
-HTTP::HTTP(std::vector<t_server> &srvs)
-	: servers(srvs)
+std::vector<t_server> HTTP::servers;
+std::vector<t_client> HTTP::clients;
+
+HTTP::HTTP()
 {
+}
+
+HTTP::HTTP(std::vector<t_server> &srvs)
+{
+	servers = srvs;
+
 	// set server socket and bind() / listen()
 	int reuse_port = 1;
 	std::vector<t_server>::iterator it;
@@ -246,6 +254,10 @@ void HTTP::disconnect(fd_set &init_set, std::set<int> &fds, std::vector<t_client
 	fds.erase(it->socket);
 	FD_CLR(it->socket, &init_set);
 	close(it->socket);
+	if (!it->res.fname.empty())
+		unlink(it->res.fname.c_str());
+	if (it->res.fd != -1)
+		close(it->res.fd);
 	it = clients.erase(it);
 	--it;
 	printf("client disconnected\n");
@@ -452,4 +464,14 @@ const char *HTTP::FailToAccept::what() const throw()
 {
 	std::string str = "HTTP : fail to accept" + std::string(strerror(errno)) + "\n";
 	return str.c_str();
+}
+
+std::vector<t_client> &HTTP::get_clients()
+{
+	return this->clients;
+}
+
+std::vector<t_server> &HTTP::get_servers()
+{
+	return this->servers;
 }
