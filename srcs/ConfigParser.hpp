@@ -7,7 +7,7 @@ class ConfigParser
 {
 private:
 	ConfigParser();
-	std::vector<t_server> srvs;
+	std::vector<t_server> srvs;	
 	char cur_path[256];
 	std::string tmp_route;
 	void get_config_data(int fd, std::string &raw);
@@ -26,7 +26,7 @@ private:
 	void block_level_2(t_server &sv, t_location &lc, std::vector<std::string>::iterator &it,
 		const std::vector<std::string>::iterator &end, int &block_level);
 	size_t str_to_size(std::string const &str);
-
+	void verify_server_settings();
 	std::string server_attr[5] = {
 		"listen",
 		"server_name",

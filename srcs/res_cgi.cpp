@@ -65,47 +65,31 @@ bool execute_cgi(t_client &cli, t_location &loc, char **env, std::string &realpa
 	int status;
 	std::string ranfname = random_fname();
 	int resfd = open(ranfname.c_str(), O_CREAT | O_RDWR | O_TRUNC, 0777);
-	std::cout << "HERE21\n";
 
 	if (resfd < 0 || pipe(c2p_fd) < 0)
 	{
-		cli.res.status_code = 404;	
-		return false;
-	}
-	// c2p_fd[1]
-	std::cout << "fd[0]: "<< c2p_fd[0] << std::endl;
-	std::cout << "fd[1]: "<< c2p_fd[1] << std::endl;
-	std::cout << "HERE22\n";
-	size_t write_val = 0;// =  write(c2p_fd[1], cli.req.body.c_str(), cli.req.body.size());
-	size_t body_size = cli.req.body.size();
-	    // int fd = open("/home/user42/Desktop/mashar/projects/webserv/www/YoupiBanane/youpi.bla", O_WRONLY | O_TRUNC, 0777);
-
-	while (body_size > 0)
-	{
-		write_val =  write(c2p_fd[1], cli.req.body.c_str(), MAX_BUFFER_SIZE);
-		// write_val =  write(fd, cli.req.body.c_str(), MAX_BUFFER_SIZE);
-		cli.req.body.erase(0, write_val);
-		body_size -= write_val;
-		std::cout << write_val+MAX_BUFFER_SIZE << "\t" << (long)body_size <<std::endl;
-		// if (write_val + MAX_BUFFER_SIZE > (long)body_size)
-			// break;
-	}
-	std::cout << "Write_val: " << write_val << std::endl;
-	if (!cli.req.body.empty() &&  write_val < 0)
-	{
-		std::cout << strerror(errno)<<std::endl;
 		cli.res.status_code = 404;
 		close(resfd);
 		return false;
 	}
-	std::cout << "HERE23\n";
+
+	// std::cout << "fd1 " << c2p_fd[0] << std::endl;
+	// std::cout << "fd2 " << c2p_fd[1] << std::endl;
+
+	if (!cli.req.body.empty() && write(c2p_fd[1], cli.req.body.c_str(), cli.req.body.size()) < 0)
+	{
+		cli.res.status_code = 404;
+		close(c2p_fd[0]);
+		close(c2p_fd[1]);
+		return false;
+	}
 
 	close(c2p_fd[1]);
 
 	if ((pid = fork()) < 0)
 	{
 		cli.res.status_code = 404;
-		close(resfd);
+		close(c2p_fd[0]);
 		return false;
 	}
 
@@ -115,13 +99,15 @@ bool execute_cgi(t_client &cli, t_location &loc, char **env, std::string &realpa
 		close(resfd);
 		dup2(c2p_fd[0], 0);
 		close(c2p_fd[0]);
-		const char *av[3] = { loc.cgi["path"].c_str(), realpath.c_str(), 0 };
+		const char *av[3] = {loc.cgi["path"].c_str(), realpath.c_str(), 0};
 		char **new_env = cgi_env(cli, env, realpath);
 		if (execve(av[0], (char **)av, new_env) < 0)
 			std::cerr << strerror(errno) << std::endl;
 		exit(1);
 	}
 	// parent
+	cli.res.fname = ranfname;
+	cli.res.fd = resfd;
 	close(c2p_fd[0]);
 	waitpid(pid, &status, 0);
 	if (!WIFEXITED(status))
@@ -130,7 +116,5 @@ bool execute_cgi(t_client &cli, t_location &loc, char **env, std::string &realpa
 		return false;
 	}
 	lseek(resfd, 0, SEEK_SET);
-	cli.res.fname = ranfname;
-	cli.res.fd = resfd;
 	return true;
 }

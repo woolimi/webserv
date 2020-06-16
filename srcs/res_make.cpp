@@ -8,21 +8,17 @@ void make_res_body_from_fd(t_client &cli)
 	int nb_read = read(res.fd, buff, MAX_BUFFER_SIZE);
 	if (nb_read == 0)
 	{
-		// printf("making res body finished\n");
 		if (res.headers.find("Transfer-Encoding") != res.headers.end())
-			res.body += "0\r\n\r\n";
-		else
 		{
-			cli.res_sent = true;
-			res.body = "";
+			res.body += "0\r\n\r\n";
 		}
 	}
 	else if (nb_read < 0)
 	{
-		// if (nb_read == 0)
-		// 	std::cout << "her2e\n";
 		if (res.headers.find("Transfer-Encoding") != res.headers.end())
+		{
 			res.body += "0\r\n\r\n";
+		}
 	}
 	else
 	{
@@ -45,10 +41,9 @@ void make_file_res(t_client &cli, t_location *loc, char **env, std::string &file
 
 	if ((cli.res.status_code = file_check(file_path)) != OK)
 		return ;
+
 	// file info
-	std::cout << "HERE1\n";
-	res.fd = open(file_path.c_str(), O_RDONLY);
-	fstat(res.fd, &info);
+	stat(file_path.c_str(), &info);
 	size_t file_size = info.st_size;
 	std::string ext = "";
 	if (file.find(".") != std::string::npos)
@@ -83,6 +78,7 @@ void make_file_res(t_client &cli, t_location *loc, char **env, std::string &file
 	}
 	else// if (req.method ==  "GET" || req.method == "HEAD")
 	{
+		res.fd = open(file_path.c_str(), O_RDONLY);
 		struct stat st;
 		res.content_length = lseek(res.fd, 0, SEEK_END);
 		lseek(res.fd, 0, SEEK_SET);
@@ -104,25 +100,8 @@ void make_folder_list_res(t_client &cli, t_location *loc, std::string &uri_path,
 	std::set<std::string> fnames;
 	struct stat info;
 	std::string orig_path = getcwd(buff, 256);
+	uri_path = cli.req.path;
 
-	// int fd;
-	// int flag = 0;
-	// std::vector<std::string>::iterator it1;
-	// for (it1 = loc->index.begin(); it1 != loc->index.end(); ++it1)
-	// {
-	// 	std::cout << "filenm: " << uri_path + *it1 << std::endl;
-	// 	if ((fd = open((uri_path + *it1).c_str(), O_RDONLY)) >= 0)
-	// 	{
-	// 		flag = 1;
-	// 		close(fd);
-	// 		break;
-	// 	}
-	// }
-	// if (flag == 0)
-	// {
-	// 	res.status_code = 404;
-	// 	return;
-	// }
 	if (chdir(real_path.c_str()) < 0 || !(dp = opendir("./")))
 	{
 		res.status_code = 404;
@@ -147,18 +126,6 @@ void make_folder_list_res(t_client &cli, t_location *loc, std::string &uri_path,
 			fnames.insert(std::string(entry->d_name));
 	}
 	
-	std::vector<std::string>::iterator it1;
-	for (it1 = loc->index.begin(); it1 != loc->index.end(); ++it1)
-	{
-		if(fnames.find(*it1) != fnames.end())
-			break;
-	}
-	if (it1 == loc->index.end())
-	{
-		res.status_code = 404;
-		return;
-	}
-
 	std::set<std::string>::iterator it;
 	for (it = fnames.begin(); it != fnames.end(); ++it)
 	{

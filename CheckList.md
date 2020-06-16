@@ -21,11 +21,13 @@
 - Use a browser, open the network part of it and try to connect to the server with it.
 - Look at the request header and response header.
 - Try wrong URL on the server.
+
 - In the configuration file, setup multiple port and use different website, use a browser to check that the configuration is working as expected and show the right website.
 - In the configuration try to setup the same port multiple times. It should not work.
 - Launch multiple server at the same time with different configuration but with common ports. Is it working ? If it is working ask why the server should work if one of the configuration isn't working, keep going.
+
 - Use Siege to run some stress test
-- Check if there is no memroy leak
+- Check if there is no memory leak
 - Check if there is no hanging connection
 - You should be able to use siege indefinitly without restarting the server (look at siege -b)
 - Availability should be above 99.5% for a simple get on an empty page with a siege -b on that page.
