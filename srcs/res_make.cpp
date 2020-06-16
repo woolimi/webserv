@@ -125,7 +125,20 @@ void make_folder_list_res(t_client &cli, t_location *loc, std::string &uri_path,
 		else
 			fnames.insert(std::string(entry->d_name));
 	}
-	
+	closedir(dp);
+
+	std::vector<std::string>::iterator it1;
+	for (it1 = loc->index.begin(); it1 != loc->index.end(); ++it1)
+	{
+		if (fnames.find(*it1) != fnames.end())
+			break;
+	}
+	if (it1 == loc->index.end())
+	{
+		res.status_code = 404;
+		return;
+	}
+
 	std::set<std::string>::iterator it;
 	for (it = fnames.begin(); it != fnames.end(); ++it)
 	{
@@ -142,7 +155,6 @@ void make_folder_list_res(t_client &cli, t_location *loc, std::string &uri_path,
 		res.body += std::to_string(info.st_size);
 		res.body += "\n";
 	}
-	closedir(dp);
 	res.status_code = 200;
 	res.body += "\t</pre>\n\t<hr>\n\t</body>\n</html>\n";
 	res.headers["Content-Type"] = "text/html";
