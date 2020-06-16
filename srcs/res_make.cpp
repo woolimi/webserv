@@ -1,5 +1,6 @@
 #include "webserv.hpp"
 
+
 void make_res_body_from_fd(t_client &cli)
 {
 	t_res &res = cli.res;
