@@ -45,6 +45,7 @@ void make_file_res(t_client &cli, t_location *loc, char **env, std::string &file
 	if ((cli.res.status_code = file_check(file_path)) != OK)
 		return ;
 	// file info
+	std::cout << "HERE1\n";
 	res.fd = open(file_path.c_str(), O_RDONLY);
 	fstat(res.fd, &info);
 	size_t file_size = info.st_size;
@@ -79,7 +80,7 @@ void make_file_res(t_client &cli, t_location *loc, char **env, std::string &file
 		res.body += int_to_hexstr(raw.size()) + "\r\n";
 		res.body += raw + "\r\n";
 	}
-	else
+	else// if (req.method ==  "GET" || req.method == "HEAD")
 	{
 		struct stat st;
 		res.content_length = lseek(res.fd, 0, SEEK_END);
@@ -89,6 +90,7 @@ void make_file_res(t_client &cli, t_location *loc, char **env, std::string &file
 		res.headers["Content-Length"] = std::to_string(res.content_length);
 		res.headers["Last-Modified"] = gmt_time_string(st.st_mtim.tv_sec);
 	}
+	// else if (req.method == "PUT" || req.method == "POST")
 	res.status_code = 200;
 }
 

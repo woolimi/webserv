@@ -223,6 +223,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 		{	// read()
 			// printf("make res body from fd\n");
 			make_res_body_from_fd(*it);
+			renew_client_timestamp(*it);
 			continue;
 		}
 
@@ -240,6 +241,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 		if (it->res_sent)
 		{
 			it->req.req_line_parsed = 0;
+			it->req.body = "";
 			it->req.req_header_parsed = 0;
 			it->req.req_body_parsed = 0;
 			it->req.body.clear();
@@ -302,6 +304,7 @@ void HTTP::init_client(t_client &client)
 	client.addr_len = sizeof(client.addr);
 	/* req */
 	client.req.req_line_parsed = 0;
+	client.req.body = "";
 	client.req.req_header_parsed = 0;
 	client.req.req_body_parsed = 0;
 	client.req.content_length = -1;
@@ -422,6 +425,8 @@ void HTTP::handle_methods(t_client &cli, char **env)
 		handle_get(cli, env, loc, is_file, folder_path, file);
 	else if (req.method == "PUT")
 		handle_put(cli, env, loc, is_file, folder_path, file);
+	else if (req.method == "POST")
+		handle_post(cli, env, loc, is_file, folder_path, file);
 
 	// 	handle_head(cli);
 	// ...
