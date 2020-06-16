@@ -8,6 +8,7 @@ FLAG =
 SRC_NAME = ConfigParser.cpp \
 	handle_get.cpp \
 	handle_put.cpp \
+	handle_options.cpp \
 	handle_trace.cpp \
 	HTTP.cpp \
 	main.cpp \

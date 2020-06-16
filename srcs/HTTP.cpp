@@ -213,7 +213,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 			if (!send_res_head(*it))
 				disconnect(init_set, fds, it);
 			printf("sent response head\n");
-			if (it->req.method == "HEAD" || it->req.method == "PUT")
+			if (it->req.method == "HEAD" || it->req.method == "PUT" || it->req.method == "OPTIONS")
 				it->res_sent = true;
 			continue;
 		}
@@ -422,6 +422,8 @@ void HTTP::handle_methods(t_client &cli, char **env)
 		handle_get(cli, env, loc, is_file, folder_path, file);
 	else if (req.method == "PUT")
 		handle_put(cli, env, loc, is_file, folder_path, file);
+	else if (req.method == "OPTIONS")
+		handle_options(cli, env, loc, is_file, folder_path, file);
 	else if (req.method == "TRACE")
 		handle_trace(cli, env, loc, is_file, folder_path, file);
 

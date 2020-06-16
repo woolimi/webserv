@@ -5,7 +5,12 @@ void handle_trace(t_client &cli, char **env, t_location *loc, bool is_file, std:
 {
     std::map<std::string, std::string> &headers = cli.req.headers;
 
-    cli.res.body += "TRACE / HTTP/1.1\r\n";
+    cli.res.body += cli.req.method;
+    cli.res.body += " ";
+    cli.res.body += cli.req.path;
+    cli.res.body += " ";
+    cli.res.body += cli.req.version;
+    cli.res.body += "\r\n";
    for(std::map<std::string, std::string>::iterator it = cli.req.headers.begin(); it != cli.req.headers.end(); ++it)
 		{
 			// std::cout << it->first << "==" << it->second << "\n";
