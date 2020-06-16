@@ -65,6 +65,7 @@ bool execute_cgi(t_client &cli, t_location &loc, char **env, std::string &realpa
 	int status;
 	std::string ranfname = random_fname();
 	int resfd = open(ranfname.c_str(), O_CREAT | O_RDWR | O_TRUNC, 0777);
+	std::cout << "HERE21\n";
 
 	if (resfd < 0 || pipe(c2p_fd) < 0)
 	{
@@ -72,12 +73,32 @@ bool execute_cgi(t_client &cli, t_location &loc, char **env, std::string &realpa
 		return false;
 	}
 	// c2p_fd[1]
-	if (!cli.req.body.empty() && write(c2p_fd[1], cli.req.body.c_str(), cli.req.body.size()) < 0)
+	std::cout << "fd[0]: "<< c2p_fd[0] << std::endl;
+	std::cout << "fd[1]: "<< c2p_fd[1] << std::endl;
+	std::cout << "HERE22\n";
+	size_t write_val = 0;// =  write(c2p_fd[1], cli.req.body.c_str(), cli.req.body.size());
+	size_t body_size = cli.req.body.size();
+	    // int fd = open("/home/user42/Desktop/mashar/projects/webserv/www/YoupiBanane/youpi.bla", O_WRONLY | O_TRUNC, 0777);
+
+	while (body_size > 0)
 	{
+		write_val =  write(c2p_fd[1], cli.req.body.c_str(), MAX_BUFFER_SIZE);
+		// write_val =  write(fd, cli.req.body.c_str(), MAX_BUFFER_SIZE);
+		cli.req.body.erase(0, write_val);
+		body_size -= write_val;
+		std::cout << write_val+MAX_BUFFER_SIZE << "\t" << (long)body_size <<std::endl;
+		// if (write_val + MAX_BUFFER_SIZE > (long)body_size)
+			// break;
+	}
+	std::cout << "Write_val: " << write_val << std::endl;
+	if (!cli.req.body.empty() &&  write_val < 0)
+	{
+		std::cout << strerror(errno)<<std::endl;
 		cli.res.status_code = 404;
 		close(resfd);
 		return false;
 	}
+	std::cout << "HERE23\n";
 
 	close(c2p_fd[1]);
 
