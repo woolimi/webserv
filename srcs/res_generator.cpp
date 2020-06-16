@@ -51,6 +51,8 @@ static void make_default_error_page(t_res &res)
 	make_default_error_body(res);
 	res.headers["Content-Type"] = "text/html";
 	res.headers["Content-Length"] = std::to_string(res.body.size());
+	if (res.status_code == 408)
+		res.headers["Connection"] = "close";
 	res.content_length = res.body.size();
 	// make res.raw
 	make_res_line(res);
@@ -83,6 +85,8 @@ static void make_custom_error_page(t_client &cli, t_res &res)
 	add_common_res_header(res);
 	res.headers["Content-Type"] = "text/html";
 	res.headers["Content-Length"] = std::to_string(res.body.size());
+	if (res.status_code == 408)
+		res.headers["Connection"] = "close";
 	res.content_length = res.body.size();
 	// make res.head / body
 	make_res_line(res);

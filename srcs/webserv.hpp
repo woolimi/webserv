@@ -27,8 +27,8 @@
 
 # define DEFAULT_CONF_NAME "webserv.conf"
 # define MAX_BUFFER_SIZE 4096
-# define MAX_CLIENT 100
-# define CLIENT_TIMEOUT_SEC 5
+# define MAX_CLIENT 500
+# define CLIENT_TIMEOUT_SEC 30
 # define SERVER_TIMEOUT_SEC 3
 # define SERVER_TIMEOUT_USEC 0
 # define SERVER_NAME "webserv/1.0"
@@ -143,6 +143,7 @@ bool send_res_head(t_client &cli);
 void make_res_body_from_fd(t_client &cli);
 std::string make_real_path(std::string &root, std::string &path);
 std::string gmt_time_string(time_t &sec);
+int isDirectory(const char *path);
 
 // void handle_head(t_client &cli);
 // void handle_post(t_client &cli);

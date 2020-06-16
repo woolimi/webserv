@@ -20,6 +20,38 @@ ConfigParser::ConfigParser(int ac, char **av)
 			throw CustomConfNotExist();
 	}
 	parsing(fd);
+	verify_server_settings();
+}
+
+void ConfigParser::verify_server_settings()
+{
+	// case1. same server_name, same port
+	// ->	ignore second server, and show message
+	// case2. different server_name, same port
+	// ->	ignore second server, and show message
+	// case3. same server_name, different port
+	// ->	run 2 server
+	// case4. different server_name, different port
+	// ->	run 2 server
+
+	// find case 1, 2
+	std::vector<t_server>::iterator it;
+	for (it = srvs.begin(); it != srvs.end(); ++it)
+	{
+		std::vector<t_server>::iterator i;
+		for (i = it + 1; i != srvs.end(); ++i)
+		{
+			if (it->listen == i->listen)
+				break;
+		}
+		if (i != srvs.end())
+		{
+			std::cerr << "conflicting server port \""
+				<< i->server_name << ":" << i->listen << "\" ignored"<< std::endl;
+			srvs.erase(i);
+			it = srvs.begin();
+		}
+	}
 }
 
 void ConfigParser::parsing(int fd)
@@ -257,7 +289,7 @@ void ConfigParser::block_level_2(t_server &sv, t_location &lc, std::vector<std::
 			--it;
 		}
 		else if (it == end)
-			throw FormatError("Config Error : Invalid 'index' in location\n");
+			throw FormatError("Config Error : Invalid 'allow' in location\n");
 
 		if (*it == "cgi" && ++it != end && *it != ";")
 		{
@@ -271,7 +303,7 @@ void ConfigParser::block_level_2(t_server &sv, t_location &lc, std::vector<std::
 				throw FormatError("Config Error : cgi path not exist.\n");
 		}
 		else if (it == end)
-			throw FormatError("Config Error : Invalid 'index' in location\n");
+			throw FormatError("Config Error : Invalid 'cgi' in location\n");
 
 		/* check ";" termination */
 		++it;
@@ -321,7 +353,7 @@ size_t ConfigParser::str_to_size(std::string const &str)
 void ConfigParser::default_server_config(t_server &sv)
 {
 	sv.listen = 80;
-	sv.server_name = "localhost";
+	sv.server_name = "";
 	sv.root = std::string(cur_path) + "/www/";
 	sv.error_page = std::string(cur_path) + "/error.html";
 	sv.client_max_body_size = 1000000; // 1M = 1,000,000 bytes
@@ -335,6 +367,7 @@ void ConfigParser::default_location_config(t_location &lc)
 	lc.upload_folder_is_set = false;
 	lc.autoindex = "off";
 	size_t len = sizeof(http_methods) / sizeof(std::string);
+	lc.allow.clear();
 	for (size_t i = 0; i < len; i++)
 		lc.allow.push_back(http_methods[i]);
 }

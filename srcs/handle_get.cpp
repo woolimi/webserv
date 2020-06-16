@@ -18,18 +18,17 @@ void handle_get(t_client &cli, char **env, t_location *loc, bool is_file, std::s
 	t_req &req = cli.req;
 	// std::string real_path = make_real_path(loc->root, req.path);
 	// std::cout << "Real: " << real_path << std::endl;
-	std::cout << "abs: " << loc->abs_path << std::endl;
-	std::cout << "is_file: " << is_file << std::endl;
+	// std::cout << "abs: " << loc->abs_path << std::endl;
+	// std::cout << "is_file: " << is_file << std::endl;
 	std::string real_path = loc->abs_path;
-	
+
 	if (is_file)
 		make_file_res(cli, loc, env, real_path, file);
 	else
 	{
-		std::vector<std::string>::iterator it;
 		std::string file_path;
 		// folder with index index.php index.html
-		for (it = loc->index.begin(); it != loc->index.end(); ++it)
+		for (auto it = loc->index.begin(); it != loc->index.end(); ++it)
 		{
 			file_path.clear();
 			file_path = real_path + *it;
