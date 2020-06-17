@@ -100,7 +100,7 @@ void res_generator(t_client &cli)
 	t_res &res = cli.res;
 	t_server &serv = cli.server;
 
-	if (!HttpStatus::isSuccessful(res.status_code))
+	if (!res.is_cgi && !HttpStatus::isSuccessful(res.status_code))
 	{
 		if (cli.server.error_page.empty())
 			make_default_error_page(res);

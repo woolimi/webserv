@@ -1,5 +1,18 @@
 #include "webserv.hpp"
 
+std::string random_fname(void)
+{
+	std::string ret;
+	std::string charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+	int nb_char = 15;
+	int i = 0;
+	while (nb_char-- > 0)
+	{
+		ret += charset[rand() % charset.size()];
+	}
+	return ret;
+}
+
 void renew_client_timestamp(t_client &cli)
 {
 	struct timeval tv;
