@@ -84,8 +84,8 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 		// close client when timeout
 		if (!it->req_arrived && check_client_timeout(*it))
 		{
+			printf("client timeout\n");
 			disconnect(init_set, fds, it);
-			printf("client timeout disconnect\n");
 			continue;
 		}
 
@@ -95,7 +95,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 			if (!it->req.raw.empty() || FD_ISSET(it->socket, &read_set))
 			{	// something to read
 				nb_read = read(it->socket, buffer, MAX_BUFFER_SIZE);
-				if (nb_read == 0 && it->req.raw.empty())
+				if (nb_read == 0)
 					continue;
 				// connection is closed from client side
 				if (nb_read < 0)
@@ -174,21 +174,30 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 		// send res head
 		if (it->req_arrived && !it->res.sent_head && FD_ISSET(it->socket, &write_set))
 		{
-			if (!send_res_head(*it))
+			if (!send_res_head(*it)) {
 				disconnect(init_set, fds, it);
-			if (it->req.method == "HEAD" || it->req.method == "PUT" || it->res.content_length == 0)
+				continue;
+			}
+			if (it->req.method == "PUT") {
 				disconnect(init_set, fds, it);
-			continue;
+				continue;
+			}
+			if (it->req.method == "HEAD" || it->res.content_length == 0)
+			{
+				reset_req_and_res(*it);
+				renew_client_timestamp(*it);
+				continue;
+			}
 		}
-		
+
 		// make res body from fd
 		if (it->req_arrived && !it->res_sent
 			&& it->res.fd != -1 && it->res.body.empty())
 		{
 			make_res_body_from_fd(*it);
-			// renew_client_timestamp(*it);
 			continue;
 		}
+
 
 		if (it->req_arrived && !it->res_sent && FD_ISSET(it->socket, &write_set))
 		{
@@ -199,6 +208,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 			}
 			if (it->res_sent)
 				printf("sent all response body\n");
+			renew_client_timestamp(*it);
 		}
 
 		// treat more request or disconnect client
@@ -248,8 +258,8 @@ void HTTP::disconnect(fd_set &init_set, std::set<int> &fds, std::vector<t_client
 	fds.erase(it->socket);
 	FD_CLR(it->socket, &init_set);
 	close(it->socket);
-	if (!it->res.fname.empty())
-		unlink(it->res.fname.c_str());
+	// if (!it->res.fname.empty())
+	// 	unlink(it->res.fname.c_str());
 	if (it->res.fd != -1)
 		close(it->res.fd);
 
@@ -278,6 +288,7 @@ void HTTP::init_client(t_client &client)
 	client.res.sent_head = false;
 	client.res.content_length = -1;
 	client.res.fd = -1;
+	client.res.is_cgi = false;
 }
 
 void HTTP::init_timeout(struct timeval &timeout, int sec, int usec)
@@ -307,7 +318,11 @@ void HTTP::reset_req_and_res(t_client &cli)
 	close(cli.res.fd);
 	cli.res.fd = -1;
 	if (!cli.res.fname.empty())
-		unlink(cli.res.fname.c_str());
+	{
+		// unlink(cli.res.fname.c_str());
+		cli.res.fname.clear();
+	}
+	cli.res.is_cgi = false;
 	printf("reset\n");
 }
 

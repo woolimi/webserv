@@ -1,6 +1,5 @@
 #include "webserv.hpp"
 
-
 void make_res_body_from_fd(t_client &cli)
 {
 	t_res &res = cli.res;
@@ -70,13 +69,26 @@ void make_file_res(t_client &cli, t_location *loc, char **env, std::string &file
 			if (tmp == "")
 				break;
 			pos = tmp.find(": ");
-			res.headers[tmp.substr(0, pos)] = tmp.substr(pos + 2);
+			std::string attr = tmp.substr(0, pos);
+			if (attr == "Status") {
+				continue;
+				// res.status_code = std::atoi(tmp.substr(pos + 2).c_str());
+			}
+			else
+				res.headers[attr] = tmp.substr(pos + 2);
 		}
-		res.headers["Transfer-Encoding"] = "chunked";
-		res.body += int_to_hexstr(raw.size()) + "\r\n";
-		res.body += raw + "\r\n";
+		if (raw.size() == 0) {
+			res.headers["Content-Length"] = "0";
+			res.body.clear();
+		} else
+		{
+			res.headers["Transfer-Encoding"] = "chunked";
+			res.body += int_to_hexstr(raw.size()) + "\r\n";
+			res.body += raw + "\r\n";
+		}
+		res.is_cgi = true;
 	}
-	else// if (req.method ==  "GET" || req.method == "HEAD")
+	else
 	{
 		res.fd = open(file_path.c_str(), O_RDONLY);
 		struct stat st;
@@ -87,8 +99,8 @@ void make_file_res(t_client &cli, t_location *loc, char **env, std::string &file
 		res.headers["Content-Length"] = std::to_string(res.content_length);
 		res.headers["Last-Modified"] = gmt_time_string(st.st_mtim.tv_sec);
 	}
-	// else if (req.method == "PUT" || req.method == "POST")
-	res.status_code = 200;
+	if (!res.status_code)
+		res.status_code = 200;
 }
 
 void make_folder_list_res(t_client &cli, t_location *loc, std::string &uri_path, std::string &real_path)
@@ -126,7 +138,7 @@ void make_folder_list_res(t_client &cli, t_location *loc, std::string &uri_path,
 			fnames.insert(std::string(entry->d_name));
 	}
 	closedir(dp);
-
+	chdir(orig_path.c_str());
 	std::vector<std::string>::iterator it1;
 	for (it1 = loc->index.begin(); it1 != loc->index.end(); ++it1)
 	{
