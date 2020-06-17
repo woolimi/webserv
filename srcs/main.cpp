@@ -23,6 +23,7 @@ void signal_handler(int signo)
 		{
 			close(it->socket);
 		}
+		std::cout << std::endl;
 		exit(0);
 	}
 }

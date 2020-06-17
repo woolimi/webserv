@@ -73,9 +73,6 @@ bool execute_cgi(t_client &cli, t_location &loc, char **env, std::string &realpa
 		return false;
 	}
 
-	// std::cout << "fd1 " << c2p_fd[0] << std::endl;
-	// std::cout << "fd2 " << c2p_fd[1] << std::endl;
-
 	if (!cli.req.body.empty() && write(c2p_fd[1], cli.req.body.c_str(), cli.req.body.size()) < 0)
 	{
 		cli.res.status_code = 404;

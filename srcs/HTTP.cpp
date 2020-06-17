@@ -97,7 +97,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 				nb_read = read(it->socket, buffer, MAX_BUFFER_SIZE);
 				if (nb_read == 0 && it->req.raw.empty())
 					continue;
-				// Client close connection unexpectly
+				// connection is closed from client side
 				if (nb_read < 0)
 				{
 					if (it->req.raw.empty())
@@ -204,13 +204,13 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 		// treat more request or disconnect client
 		if (it->res_sent)
 		{
-			if (it->req.raw.empty())
-			{
-				disconnect(init_set, fds, it);
-				printf("disconneted after having treated all request\n");
-			}
-			else
-				reset_req_and_res(*it);
+			// if (it->req.raw.empty())
+			// {
+			// 	disconnect(init_set, fds, it);
+			// 	printf("disconneted after having treated all request\n");
+			// }
+			// else
+			reset_req_and_res(*it);
 		}
 	}
 }
@@ -225,16 +225,14 @@ void HTTP::manage_servers(fd_set &read_set, fd_set &init_set, std::set<int> &fds
 	{
 		if (FD_ISSET(it->socket, &read_set))
 		{
+			if (clients.size() > MAX_CLIENT)
+				continue;
 			new_client.socket = accept(it->socket, (sockaddr *)&new_client.addr, &new_client.addr_len);
 			if (new_client.socket < 0)
 				throw FailToAccept();
 			if (fcntl(new_client.socket, F_SETFL, O_NONBLOCK) < 0)
 				throw FailToSetClientSocket();
-			if (clients.size() > MAX_CLIENT)
-			{
-				res_service_unavailable(new_client);
-				continue;
-			}
+
 			renew_client_timestamp(new_client);
 			new_client.server = *it;
 			clients.push_back(new_client);
@@ -424,7 +422,8 @@ void HTTP::res_service_unavailable(t_client &cli)
 	cli.res.status_code = 503; // Service Unavailable
 	res_generator(cli);
 	send(cli.socket, cli.res.head.c_str(), cli.res.head.size(), MSG_NOSIGNAL);
-	close(cli.socket);
+	cli.req_arrived = true;
+	cli.res_sent = true;
 	printf("max client exceed disconnect");
 }
 
