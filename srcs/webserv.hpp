@@ -28,13 +28,13 @@
 # define DEFAULT_CONF_NAME "webserv.conf"
 # define MAX_BUFFER_SIZE 4096
 # define MAX_CLIENT 500
-# define CLIENT_TIMEOUT_SEC 5
+# define CLIENT_TIMEOUT_SEC 30
 # define SERVER_TIMEOUT_SEC 3
 # define SERVER_TIMEOUT_USEC 0
 # define SERVER_NAME "webserv/1.0"
 # define OK 0
 /* debug */
-#define DEBUG(x) std::cout << "\033[33m" << (x) << "\033[0m" << std::endl
+#define DEBUG(x) std::cerr << "\033[33m" << (x) << "\033[0m" << std::endl
 
 typedef std::string route;
 
@@ -88,6 +88,8 @@ typedef struct s_req
 	std::map<std::string, std::string> headers;
 	/* body */
 	std::string body;
+	std::string body_fpath;
+	int body_fd;
 } t_req;
 
 typedef struct s_res
@@ -102,6 +104,7 @@ typedef struct s_res
 	std::string body; // message body
 	std::string fname; 
 	off_t content_length;
+	bool is_cgi;
 } t_res;
 
 typedef struct s_client
@@ -144,6 +147,7 @@ void make_res_body_from_fd(t_client &cli);
 std::string make_real_path(std::string &root, std::string &path);
 std::string gmt_time_string(time_t &sec);
 int isDirectory(const char *path);
+std::string random_fname(void);
 
 // void handle_head(t_client &cli);
 // void handle_post(t_client &cli);

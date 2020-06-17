@@ -1,18 +1,5 @@
 #include "webserv.hpp"
 
-static std::string random_fname(void)
-{
-	std::string ret;
-	std::string charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-	int nb_char = 15;
-	int i = 0;
-	while (nb_char-- > 0)
-	{
-		ret += charset[rand() % charset.size()];
-	}
-	return ret;
-}
-
 static char **cgi_env(t_client &cli, char **env, std::string &real_path)
 {
 	t_req &req = cli.req;
@@ -22,7 +9,7 @@ static char **cgi_env(t_client &cli, char **env, std::string &real_path)
 
 	new_env["AUTH_TYPE"] = "";
 	new_env["GATEWAY_INTERFACE"] = "CGI/1.1";
-	new_env["PATH_INFO"] = real_path;
+	new_env["PATH_INFO"] = cli.req.path;
 	new_env["PATH_TRANSLATED"] = "";
 	new_env["QUERY_STRING"] = cli.req.query_string;
 	new_env["REMOTE_ADDR"] = inet_ntoa(cli.addr.sin_addr); // ??
@@ -60,33 +47,19 @@ static char **cgi_env(t_client &cli, char **env, std::string &real_path)
 
 bool execute_cgi(t_client &cli, t_location &loc, char **env, std::string &realpath, std::string &ext)
 {
-	int c2p_fd[2];
 	int pid;
 	int status;
-	std::string ranfname = random_fname();
+	std::string ranfname = "cgires_" + random_fname();
 	int resfd = open(ranfname.c_str(), O_CREAT | O_RDWR | O_TRUNC, 0777);
-
-	if (resfd < 0 || pipe(c2p_fd) < 0)
+	if (resfd < 0)
 	{
 		cli.res.status_code = 404;
-		close(resfd);
 		return false;
 	}
-
-	if (!cli.req.body.empty() && write(c2p_fd[1], cli.req.body.c_str(), cli.req.body.size()) < 0)
-	{
-		cli.res.status_code = 404;
-		close(c2p_fd[0]);
-		close(c2p_fd[1]);
-		return false;
-	}
-
-	close(c2p_fd[1]);
 
 	if ((pid = fork()) < 0)
 	{
 		cli.res.status_code = 404;
-		close(c2p_fd[0]);
 		return false;
 	}
 
@@ -94,8 +67,13 @@ bool execute_cgi(t_client &cli, t_location &loc, char **env, std::string &realpa
 	{
 		dup2(resfd, 1);
 		close(resfd);
-		dup2(c2p_fd[0], 0);
-		close(c2p_fd[0]);
+		if (cli.req.method == "POST") {
+			cli.req.body_fd = open(cli.req.body_fpath.c_str(), O_RDONLY);
+			dup2(cli.req.body_fd, 0);
+			close(cli.req.body_fd);
+		}
+		else if (cli.req.method == "GET")
+			close(0);
 		const char *av[3] = {loc.cgi["path"].c_str(), realpath.c_str(), 0};
 		char **new_env = cgi_env(cli, env, realpath);
 		if (execve(av[0], (char **)av, new_env) < 0)
@@ -105,7 +83,6 @@ bool execute_cgi(t_client &cli, t_location &loc, char **env, std::string &realpa
 	// parent
 	cli.res.fname = ranfname;
 	cli.res.fd = resfd;
-	close(c2p_fd[0]);
 	waitpid(pid, &status, 0);
 	if (!WIFEXITED(status))
 	{
