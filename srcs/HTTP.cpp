@@ -95,7 +95,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 			if (!it->req.raw.empty() || FD_ISSET(it->socket, &read_set))
 			{	// something to read
 				nb_read = read(it->socket, buffer, MAX_BUFFER_SIZE);
-				if (nb_read == 0 && it->req.raw.empty())
+				if (nb_read == 0)
 					continue;
 				// connection is closed from client side
 				if (nb_read < 0)
@@ -176,8 +176,12 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 		{
 			if (!send_res_head(*it))
 				disconnect(init_set, fds, it);
-			if (it->req.method == "HEAD" || it->req.method == "PUT" || it->res.content_length == 0)
-				disconnect(init_set, fds, it);
+			if (it->req.method == "HEAD" || it->req.method == "PUT"
+				|| it->req.method == "POST" || it->res.content_length == 0)
+			{
+				reset_req_and_res(*it);
+				renew_client_timestamp(*it);
+			}
 			continue;
 		}
 		
@@ -307,7 +311,10 @@ void HTTP::reset_req_and_res(t_client &cli)
 	close(cli.res.fd);
 	cli.res.fd = -1;
 	if (!cli.res.fname.empty())
+	{
 		unlink(cli.res.fname.c_str());
+		cli.res.fname.clear();
+	}
 	printf("reset\n");
 }
 
