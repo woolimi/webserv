@@ -11,6 +11,7 @@ SRC_NAME = ConfigParser.cpp \
 	handle_post.cpp \
 	handle_options.cpp \
 	handle_trace.cpp \
+	handle_delete.cpp \
 	HTTP.cpp \
 	main.cpp \
 	mimetype.cpp \

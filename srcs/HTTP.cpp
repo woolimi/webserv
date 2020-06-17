@@ -397,6 +397,8 @@ void HTTP::handle_methods(t_client &cli, char **env)
 		handle_options(cli, env, loc, is_file, folder_path, file);
 	else if (req.method == "TRACE")
 		handle_trace(cli, env, loc, is_file, folder_path, file);
+	else if (req.method == "DELETE")
+		handle_delete(cli, env, loc, is_file, folder_path, file);
 
 	// 	handle_head(cli);
 	// ...

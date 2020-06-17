@@ -11,7 +11,7 @@ void handle_put(t_client &cli, char **env, t_location *loc, bool is_file, std::s
 		cli.res_sent = true;
 		return ;
 	}
-	write(fd, req.body.c_str(), req.body.size());
+	write(fd, req.body.c_str(), req.body.size()); //protect and/or chunk
 	close(fd);
 	cli.res.status_code = 201;
 	cli.res_sent = true;
