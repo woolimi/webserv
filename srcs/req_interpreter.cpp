@@ -94,7 +94,7 @@ void parse_request_line(char *request_line, t_client &client)
 	int size = 0;
 	std::set<std::string> methods = {"GET", "POST", "PUT", "OPTIONS", "HEAD", "DELETE", "TRACE", "CONNECT"};
 	char **request_line_split = ft_split(request_line, " \t");
-	std::cout <<"Request Line1: "<< request_line << std::endl;
+	std::cerr <<"Request Line1: "<< request_line << std::endl;
 	while (request_line_split[size] != 0)
 		size++;
 	if (size != 3)
@@ -201,11 +201,11 @@ void parse_request_header(t_client &client, std::string header_sub)
 	std::string d = "--";
 	if (!header_sub.empty() && header_sub[0] == '\r' && header_sub[1] == '\n')
 	{
-		// for(std::map<std::string, std::string>::iterator it = req.headers.begin(); it != req.headers.end(); ++it)
-		// {
-		// 	std::cerr << it->first << d << it->second << std::endl;
-		// 	// if (it->first == "x-secret-header-for-test")
-		// }
+		for(std::map<std::string, std::string>::iterator it = req.headers.begin(); it != req.headers.end(); ++it)
+		{
+			std::cerr << it->first << d << it->second << std::endl;
+			// if (it->first == "x-secret-header-for-test")
+		}
 		// req.headers.erase("x-secret-header-for-test");
 		client.req.req_header_parsed = 2;
 		if (req.version != "1.0" && req.headers.find("host") == req.headers.end())

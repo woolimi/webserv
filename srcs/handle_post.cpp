@@ -64,11 +64,13 @@ void handle_post(t_client &cli, char **env, t_location *loc, bool is_file, std::
 	}
 	// else
 	// {
-	// 	if (req.method == "POST")
-	// 	{
 	// 		if (res.body.empty())
+	// 		{
+	// 			std::cerr << "pppp";
 	// 			cli.res.status_code = 400;
-	// 	}
+	// 		}
+	// 		else
+	// 			std::cerr << "body: " << res.body << std::endl;
 	// }
 	
 	cli.res.status_code = 200;
