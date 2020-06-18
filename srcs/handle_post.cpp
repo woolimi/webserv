@@ -65,5 +65,14 @@ void handle_post(t_client &cli, char **env, t_location *loc, bool is_file, std::
 		res.body += int_to_hexstr(raw.size()) + "\r\n";
 		res.body += raw + "\r\n";
 	}
+	// else
+	// {
+	// 	if (req.method == "POST")
+	// 	{
+	// 		if (res.body.empty())
+	// 			cli.res.status_code = 400;
+	// 	}
+	// }
+	
 	cli.res.status_code = 200;
 }
