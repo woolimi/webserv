@@ -3,10 +3,6 @@
 std::vector<t_server> HTTP::servers;
 std::vector<t_client> HTTP::clients;
 
-// debug
-int count = 0;
-int read_total = 0;
-
 HTTP::HTTP()
 {
 }
@@ -96,13 +92,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 
 		// receive request
 		if (!it->req_arrived)
-		{
-			// debug
-			if (count == 3) {
-				DEBUG(FD_ISSET(it->socket, &read_set));
-				sleep(1);
-			}
-			
+		{			
 			if (!it->req.raw.empty() || FD_ISSET(it->socket, &read_set))
 			{	// something to read
 				nb_read = read(it->socket, buffer, MAX_BUFFER_SIZE);
@@ -120,16 +110,6 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 					nb_read = 0;
 				}
 				buffer[nb_read] = '\0';
-				// debug
-				if (count == 3)
-				{
-					// DEBUG("nb_body size");
-					// DEBUG(it->req.body.size());
-					// read_total += nb_read;
-					// DEBUG("read_total");
-					// DEBUG(read_total);
-					std::cout << buffer << std::endl;
-				}
 				renew_client_timestamp(*it);
 				skip_leading_empty_line(*it, buffer);
 			}
@@ -237,15 +217,6 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 		// treat more request or disconnect client
 		if (it->res_sent)
 		{
-			// if (it->req.raw.empty())
-			// {
-			// 	disconnect(init_set, fds, it);
-			// 	printf("disconneted after having treated all request\n");
-			// }
-			// else
-			// debug
-			if (it->req.method == "POST")
-				count++;
 			reset_req_and_res(*it);
 		}
 	}
@@ -284,8 +255,10 @@ void HTTP::disconnect(fd_set &init_set, std::set<int> &fds, std::vector<t_client
 	fds.erase(it->socket);
 	FD_CLR(it->socket, &init_set);
 	close(it->socket);
-	// if (!it->res.fname.empty())
-	// 	unlink(it->res.fname.c_str());
+	if (!it->res.fname.empty())
+		unlink(it->res.fname.c_str());
+	if (!it->req.body_fname.empty())
+		unlink(it->req.body_fname.c_str());
 	if (it->res.fd != -1)
 		close(it->res.fd);
 
@@ -345,8 +318,13 @@ void HTTP::reset_req_and_res(t_client &cli)
 	cli.res.fd = -1;
 	if (!cli.res.fname.empty())
 	{
-		// unlink(cli.res.fname.c_str());
+		unlink(cli.res.fname.c_str());
 		cli.res.fname.clear();
+	}
+	if (!cli.req.body_fname.empty())
+	{
+		unlink(cli.req.body_fname.c_str());
+		cli.req.body_fname.clear();
 	}
 	cli.res.is_cgi = false;
 	printf("reset\n");

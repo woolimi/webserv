@@ -13,8 +13,6 @@ void handle_post(t_client &cli, char **env, t_location *loc, bool is_file, std::
 	// save body message into file
 	req.body_fname = "body_" + random_fname();
 	req.body_fd = open(req.body_fname.c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0777);
-	// DEBUG(req.body_fname);
-	// DEBUG(req.body.size());
 	if (req.body_fd < 0)
 	{
 		res.status_code = 404;
@@ -22,8 +20,11 @@ void handle_post(t_client &cli, char **env, t_location *loc, bool is_file, std::
 		return;
 	}
 	int ret = write(req.body_fd, req.body.c_str(), req.body.size());
-	// DEBUG("charactor write");
-	// DEBUG(ret);
+	if (ret < req.body.size())
+	{
+		DEBUG("write req.body -> bodyfile failed");
+		exit(1);
+	}
 	close(req.body_fd);
 	
 	// check file
@@ -38,7 +39,6 @@ void handle_post(t_client &cli, char **env, t_location *loc, bool is_file, std::
 		if (!execute_cgi(cli, *loc, env, loc->abs_path, ext))
 			return;
 		res.is_cgi = true;
-		DEBUG(res.fname);
 
 		char buff[MAX_BUFFER_SIZE + 1];
 		int ret = read(res.fd, buff, MAX_BUFFER_SIZE);
@@ -65,14 +65,6 @@ void handle_post(t_client &cli, char **env, t_location *loc, bool is_file, std::
 		res.body += int_to_hexstr(raw.size()) + "\r\n";
 		res.body += raw + "\r\n";
 	}
-	// else
-	// {
-	// 	if (req.method == "POST")
-	// 	{
-	// 		if (res.body.empty())
-	// 			cli.res.status_code = 400;
-	// 	}
-	// }
 	
 	cli.res.status_code = 200;
 }

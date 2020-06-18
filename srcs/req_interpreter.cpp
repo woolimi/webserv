@@ -1,8 +1,5 @@
 #include "webserv.hpp"
 
-// debug
-extern int count;
-
 int is_newline_char(char c)
 {
 	if (c == '\r' || c == '\n')
