@@ -88,7 +88,7 @@ typedef struct s_req
 	std::map<std::string, std::string> headers;
 	/* body */
 	std::string body;
-	std::string body_fpath;
+	std::string body_fname;
 	int body_fd;
 } t_req;
 

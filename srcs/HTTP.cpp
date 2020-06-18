@@ -3,6 +3,10 @@
 std::vector<t_server> HTTP::servers;
 std::vector<t_client> HTTP::clients;
 
+// debug
+int count = 0;
+int read_total = 0;
+
 HTTP::HTTP()
 {
 }
@@ -73,6 +77,7 @@ void HTTP::run(char **env)
 	}
 }
 
+
 void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set, std::set<int> &fds, char **env)
 {
 	std::vector<t_client>::iterator it;
@@ -92,11 +97,18 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 		// receive request
 		if (!it->req_arrived)
 		{
+			// debug
+			if (count == 3) {
+				DEBUG(FD_ISSET(it->socket, &read_set));
+				sleep(1);
+			}
+			
 			if (!it->req.raw.empty() || FD_ISSET(it->socket, &read_set))
 			{	// something to read
 				nb_read = read(it->socket, buffer, MAX_BUFFER_SIZE);
-				if (nb_read == 0)
+				if (nb_read == 0) {
 					continue;
+				}
 				// connection is closed from client side
 				if (nb_read < 0)
 				{
@@ -108,6 +120,16 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 					nb_read = 0;
 				}
 				buffer[nb_read] = '\0';
+				// debug
+				if (count == 3)
+				{
+					// DEBUG("nb_body size");
+					// DEBUG(it->req.body.size());
+					// read_total += nb_read;
+					// DEBUG("read_total");
+					// DEBUG(read_total);
+					std::cout << buffer << std::endl;
+				}
 				renew_client_timestamp(*it);
 				skip_leading_empty_line(*it, buffer);
 			}
@@ -146,7 +168,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 
 			// request body parsing
 			if (it->req.req_line_parsed == 2 && it->req.req_header_parsed == 2 && it->req.req_body_parsed != 2)
-			{
+			{				
 				if (it->req_arrived)
 					it->req.req_body_parsed = 2;
 				else
@@ -220,6 +242,9 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 			// 	printf("disconneted after having treated all request\n");
 			// }
 			// else
+			// debug
+			if (it->req.method == "POST")
+				count++;
 			reset_req_and_res(*it);
 		}
 	}

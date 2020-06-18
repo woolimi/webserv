@@ -15,7 +15,7 @@ void signal_handler(int signo)
 		std::vector<t_server> &servers = http.get_servers();
 		for (auto it = clients.begin(); it != clients.end(); ++it)
 		{
-			unlink(it->req.body_fpath.c_str());
+			// unlink(it->req.body_fname.c_str());
 			// unlink(it->res.fname.c_str());
 			close(it->res.fd);
 			close(it->socket);

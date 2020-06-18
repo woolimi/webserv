@@ -1,5 +1,8 @@
 #include "webserv.hpp"
 
+// debug
+extern int count;
+
 int is_newline_char(char c)
 {
 	if (c == '\r' || c == '\n')
@@ -270,7 +273,7 @@ int string_is_digit(std::string str)
 
 void parse_request_body(t_client &client)
 {
-	t_req& req = client.req;
+	t_req &req = client.req;
 	if (req.headers.find("transfer-encoding") != req.headers.end() && req.headers.find("content-length") != req.headers.end())
 	{
 		set_http_status(client, 400);
@@ -282,9 +285,10 @@ void parse_request_body(t_client &client)
 	{
 		if (client.req.chunk_size_read < 0 && req.raw.empty())
 			return;
-		if(req.chunk_size_read < 0)
+	
+		if (req.chunk_size_read < 0)
 		{
-			req.chunk_size_read = read_chunk_size((char*)req.raw.substr(0, req.raw.find("\r\n")).c_str(), client);
+			req.chunk_size_read = read_chunk_size((char *)req.raw.substr(0, req.raw.find("\r\n")).c_str(), client);
 			if (req.chunk_size_read < 0)
 			{
 				set_http_status(client, 400);
@@ -301,11 +305,13 @@ void parse_request_body(t_client &client)
 
 		if (req.chunk_size_read >= req.raw.length() && req.raw.find("\r\n") == std::string::npos)
 			return;
+
 		if (req.chunk_size_read != (req.raw.substr(0, req.raw.find("\r\n")).length()))
 		{
 			set_http_status(client, 400);
 			return;
 		}
+
 		if (req.chunk_size_read == 0 && client.req.raw[0] == '\r' && client.req.raw[1] == '\n')
 		{
 			if (client.server.client_max_body_size < req.body.length())
@@ -314,14 +320,17 @@ void parse_request_body(t_client &client)
 			client.req_arrived = true;
 			return;
 		}
+
 		if (req.chunk_size_read > (req.raw.substr(0, req.raw.find("\r\n")).length()))
 			req.body += req.raw.substr(0, req.raw.find("\r\n"));
 		else
 			req.body += req.raw.substr(0, req.chunk_size_read);
 		req.raw = req.raw.substr(req.raw.find("\r\n") + 2);
 		req.chunk_size_read = -1;
+
 		if (req.raw.find("\r\n\r\n") != std::string::npos)
 			req.raw = req.raw.substr(req.raw.find("\r\n\r\n") + 4);
+
 		// else
 		// 	req.raw = "";
 	}

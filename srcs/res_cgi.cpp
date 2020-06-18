@@ -68,7 +68,7 @@ bool execute_cgi(t_client &cli, t_location &loc, char **env, std::string &realpa
 		dup2(resfd, 1);
 		close(resfd);
 		if (cli.req.method == "POST") {
-			cli.req.body_fd = open(cli.req.body_fpath.c_str(), O_RDONLY);
+			cli.req.body_fd = open(cli.req.body_fname.c_str(), O_RDONLY);
 			dup2(cli.req.body_fd, 0);
 			close(cli.req.body_fd);
 		}
