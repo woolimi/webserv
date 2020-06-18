@@ -198,13 +198,15 @@ static std::string trim(const std::string& s)
 void parse_request_header(t_client &client, std::string header_sub)
 {
 	t_req &req = client.req;
-
+	std::string d = "--";
 	if (!header_sub.empty() && header_sub[0] == '\r' && header_sub[1] == '\n')
 	{
 		// for(std::map<std::string, std::string>::iterator it = req.headers.begin(); it != req.headers.end(); ++it)
 		// {
-		// 	std::cout << it->first << "==" << it->second << "\n";
+		// 	std::cerr << it->first << d << it->second << std::endl;
+		// 	// if (it->first == "x-secret-header-for-test")
 		// }
+		// req.headers.erase("x-secret-header-for-test");
 		client.req.req_header_parsed = 2;
 		if (req.version != "1.0" && req.headers.find("host") == req.headers.end())
 			set_http_status(client, 400);
@@ -292,6 +294,7 @@ void parse_request_body(t_client &client)
 			req.raw = req.raw.substr(req.raw.find("\r\n") + 2);
 			if (req.chunk_size_read == 0 && client.req.raw[0] == '\r' && client.req.raw[1] == '\n')
 			{
+				// std::cerr << "body size: " << req.body.size() << std::endl;
 				req.req_body_parsed = 2;
 				client.req_arrived = true;
 				return;

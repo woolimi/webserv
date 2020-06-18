@@ -20,13 +20,20 @@ bool send_res_body(t_client &cli)
 	t_res &res = cli.res;
 
 	int ret = send(cli.socket, cli.res.body.c_str(), cli.res.body.size(), MSG_NOSIGNAL);
+	if (ret != 0)
+	// std::cerr << res.content_length << "ret: " << ret << std::endl;
+	
 	if (ret < 0)
 		return false; // disconnect
 
 	if (res.headers.find("Transfer-Encoding") != res.headers.end())
 	{
+		// if (res.body.empty())
+		// 	res.body += "0\r\n\r\n";
 		if (res.body.find("0\r\n\r\n") != std::string::npos)
 			cli.res_sent = true;
+		// else
+		// 	std::cerr << "body: "<< cli.res.body << std::endl;
 	}
 	else
 	{

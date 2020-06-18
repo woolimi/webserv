@@ -174,6 +174,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 		// send res head
 		if (it->req_arrived && !it->res.sent_head && FD_ISSET(it->socket, &write_set))
 		{
+			// std::cerr << "fd: " << it->res.fd << std::endl;
 			if (!send_res_head(*it)) {
 				disconnect(init_set, fds, it);
 				continue;
