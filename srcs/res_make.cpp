@@ -150,7 +150,6 @@ void make_folder_list_res(t_client &cli, t_location *loc, std::string &uri_path,
 		res.status_code = 404;
 		return;
 	}
-
 	std::set<std::string>::iterator it;
 	for (it = fnames.begin(); it != fnames.end(); ++it)
 	{

@@ -196,6 +196,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 		// send res head
 		if (it->req_arrived && !it->res.sent_head && FD_ISSET(it->socket, &write_set))
 		{
+			// std::cerr << "fd: " << it->res.fd << std::endl;
 			if (!send_res_head(*it)) {
 				disconnect(init_set, fds, it);
 				continue;
@@ -437,6 +438,8 @@ void HTTP::handle_methods(t_client &cli, char **env)
 		handle_options(cli, env, loc, is_file, folder_path, file);
 	else if (req.method == "TRACE")
 		handle_trace(cli, env, loc, is_file, folder_path, file);
+	else if (req.method == "DELETE")
+		handle_delete(cli, env, loc, is_file, folder_path, file);
 
 	// 	handle_head(cli);
 	// ...
