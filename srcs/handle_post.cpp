@@ -11,8 +11,10 @@ void handle_post(t_client &cli, char **env, t_location *loc, bool is_file, std::
 	// make_file_res(cli, loc, env, real_path, file);
 	
 	// save body message into file
-	req.body_fpath = random_fname();
-	req.body_fd = open(req.body_fpath.c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0777);
+	req.body_fname = "body_" + random_fname();
+	req.body_fd = open(req.body_fname.c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0777);
+	// DEBUG(req.body_fname);
+	// DEBUG(req.body.size());
 	if (req.body_fd < 0)
 	{
 		res.status_code = 404;
@@ -20,9 +22,10 @@ void handle_post(t_client &cli, char **env, t_location *loc, bool is_file, std::
 		return;
 	}
 	int ret = write(req.body_fd, req.body.c_str(), req.body.size());
-	DEBUG("charactor write");
-	DEBUG(ret);
+	// DEBUG("charactor write");
+	// DEBUG(ret);
 	close(req.body_fd);
+	
 	// check file
 	std::string fname = loc->abs_path.substr(loc->abs_path.find_last_of("/"));
 	std::string ext = "";
