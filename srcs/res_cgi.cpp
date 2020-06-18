@@ -1,5 +1,17 @@
 #include "webserv.hpp"
 
+static void httphHeader_to_cgiHeader(std::string &attr)
+{
+	attr.insert(0, "HTTP_");
+	for (size_t i = 0; i != attr.size(); i++)
+	{
+		if (attr[i] == '-')
+			attr[i] = '_';
+		else
+			attr[i] = ft_toupper(attr[i]);
+	}
+}
+
 static char **cgi_env(t_client &cli, char **env, std::string &real_path)
 {
 	t_req &req = cli.req;
@@ -24,18 +36,14 @@ static char **cgi_env(t_client &cli, char **env, std::string &real_path)
 	new_env["SERVER_PROTOCOL"] = req.version;
 	new_env["SERVER_SOFTWARE"] = SERVER_NAME;
 	if (req.method == "POST")
+		new_env["CONTENT_LENGTH"] = std::to_string(req.body.size());
+	for (auto it = req.headers.begin(); it != req.headers.end(); ++it)
 	{
-		new_env["HTTP_X_SECRET_HEADER_FOR_TEST"] = "1"; // MANUAL ADDITION OF HEADER 
-		new_env["CONTENT_LENGTH"] = std::string(ft_itoa(req.body.size()));
-		// if count === 3
-		// DEBUG("CAUGHT!!!!!");
-		// std::cerr << req.body.size() << std::endl;
-		// for(std::map<std::string, std::string>::iterator it = new_env.begin();
-		// it != new_env.end(); ++it)
-		// {
-		// 	std::cerr << it->first << "-" << it->second << std::endl;
-		// }
+		std::string attr = it->first;
+		httphHeader_to_cgiHeader(attr);
+		new_env[attr] = it->second;
 	}
+
 	int nb = 0;
 	while (env[nb] != 0)
 		nb++;
