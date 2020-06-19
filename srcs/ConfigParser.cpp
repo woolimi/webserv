@@ -89,7 +89,7 @@ void ConfigParser::parsing(int fd)
 		if (i->location.empty())
 		{
 			t_location lc;
-			default_location_config(lc);
+			default_location_config(lc, sv);
 			sv.location["/"] = lc;
 		}
 	}
@@ -120,7 +120,7 @@ void ConfigParser::block_level_1(t_server &sv, t_location &lc, std::vector<std::
 	}
 	else if (*it == "location" && ++it != end)
 	{
-		default_location_config(lc);
+		default_location_config(lc, sv);
 		// check if route start from '/'
 		tmp_route = *it;
 		if (tmp_route[0] != '/')
@@ -222,6 +222,15 @@ void ConfigParser::block_level_2(t_server &sv, t_location &lc, std::vector<std::
 		throw FormatError("Config Error : Invalid attribute '" + *it + "'\n");
 	else
 	{
+		if (*it == "client_max_body_size" && ++it != end && *it != ";")
+		{
+			sv.client_max_body_size = str_to_size(*it);
+			if (sv.client_max_body_size == 0)
+				throw FormatError("Config Error : Invalid client_max_body_size '" + *it + "'\n");
+		}
+		else if (it == end)
+			throw FormatError("Config Error : Invalid 'client_max_body_size' in location\n");
+
 		if (*it == "upload_folder" && ++it != end && *it != ";")
 		{
 			struct stat info;
@@ -356,15 +365,16 @@ void ConfigParser::default_server_config(t_server &sv)
 	sv.server_name = "";
 	sv.root = std::string(cur_path) + "/www/";
 	sv.error_page = std::string(cur_path) + "/error.html";
-	sv.client_max_body_size = 1000000; // 1M = 1,000,000 bytes
+	sv.client_max_body_size = 1000 * 1000; // 1M = 1,000,000 bytes
 	sv.location.clear();
 }
 
-void ConfigParser::default_location_config(t_location &lc)
+void ConfigParser::default_location_config(t_location &lc, t_server &sv)
 {
 	lc.root = std::string(cur_path) + "/www/";
 	lc.upload_folder = lc.root;
 	lc.upload_folder_is_set = false;
+	lc.client_max_body_size = sv.client_max_body_size;
 	lc.autoindex = "off";
 	size_t len = sizeof(http_methods) / sizeof(std::string);
 	lc.allow.clear();

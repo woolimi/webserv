@@ -15,7 +15,7 @@ private:
 	void parsing(int fd);
 	void tokenizing(std::string &raw, std::vector<std::string> &tokens);
 	void default_server_config(t_server &sv);
-	void default_location_config(t_location &lc);
+	void default_location_config(t_location &lc, t_server &sv);
 	bool is_server_attr(std::string const &attr);
 	bool is_location_attr(std::string const &attr);
 	bool is_http_method(std::string &token);
@@ -34,13 +34,14 @@ private:
 		"error_page",
 		"client_max_body_size"
 	};
-	std::string location_attr[6] = {
+	std::string location_attr[7] = {
 		"root",
 		"autoindex",
 		"index",
 		"allow",
 		"cgi",
 		"upload_folder",
+		"client_max_body_size"
 	};
 	std::string http_methods[8] = {
 		"GET",
