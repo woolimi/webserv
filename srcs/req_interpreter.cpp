@@ -121,7 +121,7 @@ void parse_request_line(char *request_line, t_client &client)
 		return;
 	}
 	uri_decode(client);
-	
+	client.req.loc = find_matched_location(client.server, client.req.path);
 	// std::cout << "path: " << client.req.path << std::endl;
 	// std::cout << "qs: " << client.req.query_string << std::endl;
 	
@@ -207,10 +207,10 @@ void parse_request_header(t_client &client, std::string header_sub)
 		// debug
 		// if (count == 5)
 		// {
-		// 	for (std::map<std::string, std::string>::iterator it = req.headers.begin(); it != req.headers.end(); ++it)
-		// 	{
-		// 		std::cerr << it->first << d << it->second << std::endl;
-		// 	}
+			for (std::map<std::string, std::string>::iterator it = req.headers.begin(); it != req.headers.end(); ++it)
+			{
+				std::cerr << it->first << d << it->second << std::endl;
+			}
 		// }
 
 		client.req.req_header_parsed = 2;
@@ -300,7 +300,8 @@ void parse_request_body(t_client &client)
 			req.raw = req.raw.substr(req.raw.find("\r\n") + 2);
 			if (req.chunk_size_read == 0 && client.req.raw[0] == '\r' && client.req.raw[1] == '\n')
 			{
-				std::cerr << "body size: " << req.body.size() << std::endl;
+				if (client.req.loc->client_max_body_size < req.body.length())
+					set_http_status(client, 413);
 				req.req_body_parsed = 2;
 				client.req_arrived = true;
 				return;
@@ -319,7 +320,9 @@ void parse_request_body(t_client &client)
 
 		if (req.chunk_size_read == 0 && client.req.raw[0] == '\r' && client.req.raw[1] == '\n')
 		{
-			if (client.server.client_max_body_size < req.body.length())
+			// std::cerr << "client max: " << client.req.loc->client_max_body_size << std::endl;
+			// std::cerr << "req.body.length: " << req.body.length << std::endl;
+			if (client.req.loc->client_max_body_size < req.body.length())
 				set_http_status(client, 413);
 			req.req_body_parsed = 2;
 			client.req_arrived = true;
@@ -354,7 +357,7 @@ void parse_request_body(t_client &client)
 				return;
 			}
 			req.content_length = ft_atoi((char *)req.headers["content-length"].c_str());
-			if (req.content_length > client.server.client_max_body_size)
+			if (req.content_length > client.req.loc->client_max_body_size)
 					set_http_status(client, 413);
 		}
 		if (req.content_length <= req.raw.size())

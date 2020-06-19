@@ -4,7 +4,7 @@ bool send_res_head(t_client &cli)
 {
 	t_res &res = cli.res;
 
-	// std::cout << cli.res.head << std::endl;
+	std::cerr << "Header: " << cli.res.head << std::endl;
 	int ret = send(cli.socket, cli.res.head.c_str(), cli.res.head.size(), MSG_NOSIGNAL);
 	if (ret < 0)
 		return false; // disconnect

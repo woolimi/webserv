@@ -28,16 +28,17 @@ void handle_options(t_client &cli, char **env, t_location *loc, bool is_file, st
    std::map<route, t_location>::iterator it;
    int set = 0;
 
-   for (it = serv.location.begin(); it != serv.location.end(); ++it)
-   {
-       if ((it->first == path) || (it->first == path + "/")) //100% match
-		{
-	        cli.res.headers["Allow: "] = vector_to_string_with_delimitter(it->second.allow, ", ");
-            set++;
-            break;
-		}
-   }
-    if (set == 0)
-        cli.res.headers["Allow: "]  = vector_to_string_with_delimitter(serv.location["/"].allow, ", ");
+//    for (it = serv.location.begin(); it != serv.location.end(); ++it)
+//    {
+//        if ((it->first == path) || (it->first == path + "/")) //100% match
+// 		{
+// 	        cli.res.headers["Allow: "] = vector_to_string_with_delimitter(it->second.allow, ", ");
+//             set++;
+//             break;
+// 		}
+//    }
+//     if (set == 0)
+//         cli.res.headers["Allow: "]  = vector_to_string_with_delimitter(serv.location["/"].allow, ", ");
+    cli.res.headers["Allow: "] = vector_to_string_with_delimitter(loc->allow, ", ");
     cli.res.status_code = 200;
 }

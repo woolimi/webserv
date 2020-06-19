@@ -368,12 +368,12 @@ void HTTP::handle_methods(t_client &cli, char **env)
 {
 	t_server &serv = cli.server;
 	t_req &req = cli.req;
-	t_location *loc;
+	t_location *loc = cli.req.loc;
 	bool is_file = true;
 	std::string folder_path;
 	std::string file;
 
-	loc = find_matched_location(serv, req.path);
+	// loc = find_matched_location(serv, req.path);
 	is_file = isDirectory(loc->abs_path.c_str()) ? false : true;
 	if (is_file)
 	{

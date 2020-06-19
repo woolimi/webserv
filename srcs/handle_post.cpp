@@ -86,12 +86,46 @@ void handle_post(t_client &cli, char **env, t_location *loc, bool is_file, std::
 	}
 	else // POST without cgi
 	{
+
+		int fd;
+		std::string filename = req.path.substr(req.path.find_last_of("/") + 1);
+		if (filename.empty())
+		{
+			set_http_status(cli, 200);
+			cli.res_sent = true;
+			return;
+		}
+		
+		fd = open((loc->upload_folder + "/" + filename).c_str(), O_CREAT  | O_WRONLY | O_APPEND, 0777);
+		if (fd < 0)
+		{
+			std::cerr << "can't do POST" << std::endl;
+			return;
+		}
+		write(fd, req.body.c_str(), req.body.size());
+		close(fd);
+		set_http_status(cli, 201);
+		res.headers["Location"] = req.path;
+		cli.res_sent = true;
+		/*
+		
+				get file name?
+					get substring "0" OR "filename"
+				if (filename is empty) 
+					no -> 201, create/append to file
+						add location header
+					yes-> 200, no change 
+
+		*/
 		// DEBUG("POST WITHOUT CGI");
 		// if (is_file_created)
 		// {
-			res.status_code = 201;
-			res.headers["Location"] = req.path;
-			cli.res_sent = true;
+			// if (cli.req.loc->client_max_body_size < req.body.length())
+			// 	res.status_code = 413;
+			// else
+			// 	res.status_code = 201;
+			// res.headers["Location"] = req.path;
+			// cli.res_sent = true;
 		// } else {
 		// 	res.status_code = 200;
 		// 	cli.res_sent = true;

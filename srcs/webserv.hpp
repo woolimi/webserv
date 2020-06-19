@@ -89,6 +89,7 @@ typedef struct s_req
 	/* body */
 	std::string body;
 	std::string body_fname;
+	t_location *loc;
 	int body_fd;
 	bool is_cgi;
 } t_req;
@@ -150,6 +151,7 @@ std::string make_real_path(std::string &root, std::string &path);
 std::string gmt_time_string(time_t &sec);
 int isDirectory(const char *path);
 std::string random_fname(void);
+void set_http_status(t_client &client, int status);
 
 // void handle_head(t_client &cli);
 // void handle_post(t_client &cli);
