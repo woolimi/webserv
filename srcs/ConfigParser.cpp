@@ -83,14 +83,21 @@ void ConfigParser::parsing(int fd)
 	if (!srvs.size())
 		throw FormatError("Config Error : At least one server blcok is needed\n");
 	// if server has no location, add default location.
-	std::vector<t_server>::iterator i;
-	for (i = srvs.begin(); i != srvs.end() ; ++i)
+	std::vector<t_server>::iterator s;
+	for (s = srvs.begin(); s != srvs.end() ; ++s)
 	{
-		if (i->location.empty())
+		if (s->location.empty())
 		{
 			t_location lc;
 			default_location_config(lc, sv);
 			sv.location["/"] = lc;
+		}
+		for (auto it = s->location.begin(); it != s->location.end(); ++it)
+		{
+			if (it->second.client_max_body_size == -1)
+				it->second.client_max_body_size = s->client_max_body_size;
+			if (it->second.upload_folder.empty())
+				it->second.upload_folder = it->second.root;
 		}
 	}
 }
@@ -224,8 +231,8 @@ void ConfigParser::block_level_2(t_server &sv, t_location &lc, std::vector<std::
 	{
 		if (*it == "client_max_body_size" && ++it != end && *it != ";")
 		{
-			sv.client_max_body_size = str_to_size(*it);
-			if (sv.client_max_body_size == 0)
+			sv.location[tmp_route].client_max_body_size = str_to_size(*it);
+			if (sv.location[tmp_route].client_max_body_size == 0)
 				throw FormatError("Config Error : Invalid client_max_body_size '" + *it + "'\n");
 		}
 		else if (it == end)
@@ -244,7 +251,6 @@ void ConfigParser::block_level_2(t_server &sv, t_location &lc, std::vector<std::
 			if (!(S_ISDIR(info.st_mode)))
 				throw FormatError("Config Error : upload_folder '" + *it + "' is not directory\n");
 			sv.location[tmp_route].upload_folder = *it;
-			sv.location[tmp_route].upload_folder_is_set = true;
 		}
 		else if (it == end)
 			throw FormatError("Config Error : Invalid 'upload_folder' in location\n");
@@ -262,8 +268,6 @@ void ConfigParser::block_level_2(t_server &sv, t_location &lc, std::vector<std::
 			if (!(S_ISDIR(info.st_mode)))
 				throw FormatError("Config Error : root '" + *it + "' is not directory\n");
 			sv.location[tmp_route].root = *it;
-			if (sv.location[tmp_route].upload_folder_is_set == false)
-				sv.location[tmp_route].upload_folder = *it;
 		}
 		else if (it == end)
 			throw FormatError("Config Error : Invalid 'root' in location\n");
@@ -372,9 +376,8 @@ void ConfigParser::default_server_config(t_server &sv)
 void ConfigParser::default_location_config(t_location &lc, t_server &sv)
 {
 	lc.root = std::string(cur_path) + "/www/";
-	lc.upload_folder = lc.root;
-	lc.upload_folder_is_set = false;
-	lc.client_max_body_size = sv.client_max_body_size;
+	lc.upload_folder = "";
+	lc.client_max_body_size = -1;
 	lc.autoindex = "off";
 	size_t len = sizeof(http_methods) / sizeof(std::string);
 	lc.allow.clear();
