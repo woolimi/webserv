@@ -47,7 +47,6 @@ typedef struct s_location
 	std::map<std::string, std::string> cgi;
 	std::string abs_path;
 	std::string upload_folder;
-	bool upload_folder_is_set;
 	size_t client_max_body_size;
 	// cgi["extension"] = ".php";
 	// cgi["paths"] = "/usr/bin/php-cgi";
