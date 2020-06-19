@@ -48,6 +48,7 @@ typedef struct s_location
 	std::string abs_path;
 	std::string upload_folder;
 	bool upload_folder_is_set;
+	size_t client_max_body_size;
 	// cgi["extension"] = ".php";
 	// cgi["paths"] = "/usr/bin/php-cgi";
 } t_location;
@@ -90,6 +91,7 @@ typedef struct s_req
 	std::string body;
 	std::string body_fname;
 	int body_fd;
+	bool is_cgi;
 } t_req;
 
 typedef struct s_res

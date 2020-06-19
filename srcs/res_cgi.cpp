@@ -1,5 +1,8 @@
 #include "webserv.hpp"
 
+// debug
+extern int count;
+
 static void httphHeader_to_cgiHeader(std::string &attr)
 {
 	attr.insert(0, "HTTP_");
@@ -103,6 +106,7 @@ bool execute_cgi(t_client &cli, t_location &loc, char **env, std::string &realpa
 	cli.res.fname = ranfname;
 	cli.res.fd = resfd;
 	waitpid(pid, &status, 0);
+	// debug
 	if (!WIFEXITED(status))
 	{
 		cli.res.status_code = 404;
