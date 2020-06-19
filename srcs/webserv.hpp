@@ -90,6 +90,7 @@ typedef struct s_req
 	std::string body;
 	std::string body_fname;
 	int body_fd;
+	bool is_cgi;
 } t_req;
 
 typedef struct s_res

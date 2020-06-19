@@ -1,5 +1,8 @@
 #include "webserv.hpp"
 
+//debug
+extern int count;
+
 int is_newline_char(char c)
 {
 	if (c == '\r' || c == '\n')
@@ -201,12 +204,15 @@ void parse_request_header(t_client &client, std::string header_sub)
 	std::string d = "--";
 	if (!header_sub.empty() && header_sub[0] == '\r' && header_sub[1] == '\n')
 	{
-		// for(std::map<std::string, std::string>::iterator it = req.headers.begin(); it != req.headers.end(); ++it)
+		// debug
+		// if (count == 5)
 		// {
-		// 	std::cerr << it->first << d << it->second << std::endl;
-		// 	// if (it->first == "x-secret-header-for-test")
+		// 	for (std::map<std::string, std::string>::iterator it = req.headers.begin(); it != req.headers.end(); ++it)
+		// 	{
+		// 		std::cerr << it->first << d << it->second << std::endl;
+		// 	}
 		// }
-		// req.headers.erase("x-secret-header-for-test");
+
 		client.req.req_header_parsed = 2;
 		if (req.version != "1.0" && req.headers.find("host") == req.headers.end())
 			set_http_status(client, 400);
@@ -284,7 +290,6 @@ void parse_request_body(t_client &client)
 	{
 		if (client.req.chunk_size_read < 0 && req.raw.empty())
 			return;
-	
 		if (req.chunk_size_read < 0)
 		{
 			req.chunk_size_read = read_chunk_size((char *)req.raw.substr(0, req.raw.find("\r\n")).c_str(), client);
@@ -295,7 +300,7 @@ void parse_request_body(t_client &client)
 			req.raw = req.raw.substr(req.raw.find("\r\n") + 2);
 			if (req.chunk_size_read == 0 && client.req.raw[0] == '\r' && client.req.raw[1] == '\n')
 			{
-				// std::cerr << "body size: " << req.body.size() << std::endl;
+				std::cerr << "body size: " << req.body.size() << std::endl;
 				req.req_body_parsed = 2;
 				client.req_arrived = true;
 				return;
@@ -328,9 +333,9 @@ void parse_request_body(t_client &client)
 		req.raw = req.raw.substr(req.raw.find("\r\n") + 2);
 		req.chunk_size_read = -1;
 
-		if (req.raw.find("\r\n\r\n") != std::string::npos)
+		if (req.raw.find("\r\n\r\n") == 0)
 			req.raw = req.raw.substr(req.raw.find("\r\n\r\n") + 4);
-
+		
 		// else
 		// 	req.raw = "";
 	}

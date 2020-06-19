@@ -1,24 +1,49 @@
 #include "webserv.hpp"
 
+//debug
+extern int count;
+
 void handle_post(t_client &cli, char **env, t_location *loc, bool is_file, std::string folder_path, std::string file)
 {
 	int fd;
 	t_req &req = cli.req;
 	t_res &res = cli.res;
+	bool &is_cgi = cli.req.is_cgi;
+	bool is_file_created = false;
 
-    // std::string real_path = loc->upload_folder + loc->abs_path.substr(loc->abs_path.find_last_of('/'));
-	// std::cout << "Real Path is : " << real_path <<std::endl;
-	// make_file_res(cli, loc, env, real_path, file);
-	
-	// save body message into file
-	req.body_fname = "body_" + random_fname();
-	req.body_fd = open(req.body_fname.c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0777);
+	std::string fname = loc->abs_path.substr(loc->abs_path.find_last_of("/"));
+
+	// check cgi or not
+	std::string ext = "";
+	if (fname.find(".") != std::string::npos)
+		ext = file.substr(file.find_last_of('.'));
+
+	if (!loc->cgi.empty() && loc->cgi["extension"] == ext)
+		is_cgi = true;
+
+	if (is_cgi) {
+		req.body_fname = "body_" + random_fname();
+		req.body_fd = open(req.body_fname.c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0777);
+	}
+	else
+	{
+		struct stat status;
+		req.body_fname = loc->abs_path + req.path;
+		if (stat(req.body_fname.c_str(), &status) < 0)
+		{
+			is_file_created = true;
+		}
+		req.body_fd = open(req.body_fname.c_str(), O_CREAT | O_WRONLY | O_APPEND, 0777);
+	}
+
 	if (req.body_fd < 0)
 	{
 		res.status_code = 404;
 		cli.res_sent = true;
 		return;
 	}
+
+	// req.body -> req.body_fname
 	int ret = write(req.body_fd, req.body.c_str(), req.body.size());
 	if (ret < req.body.size())
 	{
@@ -26,15 +51,9 @@ void handle_post(t_client &cli, char **env, t_location *loc, bool is_file, std::
 		exit(1);
 	}
 	close(req.body_fd);
-	
-	// check file
-	std::string fname = loc->abs_path.substr(loc->abs_path.find_last_of("/"));
-	std::string ext = "";
-	if (fname.find(".") != std::string::npos)
-		ext = file.substr(file.find_last_of('.'));
 
-
-	if (!loc->cgi.empty() && loc->cgi["extension"] == ext)
+	// POST with cgi
+	if (is_cgi)
 	{
 		if (!execute_cgi(cli, *loc, env, loc->abs_path, ext))
 			return;
@@ -57,7 +76,7 @@ void handle_post(t_client &cli, char **env, t_location *loc, bool is_file, std::
 			pos = tmp.find(": ");
 			std::string attr = tmp.substr(0, pos);
 			if (attr == "Status")
-				continue;
+				res.status_code = ft_atoi(tmp.substr(pos + 2).c_str());
 			else
 				res.headers[attr] = tmp.substr(pos + 2);
 		}
@@ -65,6 +84,17 @@ void handle_post(t_client &cli, char **env, t_location *loc, bool is_file, std::
 		res.body += int_to_hexstr(raw.size()) + "\r\n";
 		res.body += raw + "\r\n";
 	}
-	
-	cli.res.status_code = 200;
+	else // POST without cgi
+	{
+		// DEBUG("POST WITHOUT CGI");
+		// if (is_file_created)
+		// {
+			res.status_code = 201;
+			res.headers["Location"] = req.path;
+			cli.res_sent = true;
+		// } else {
+		// 	res.status_code = 200;
+		// 	cli.res_sent = true;
+		// }
+	}
 }

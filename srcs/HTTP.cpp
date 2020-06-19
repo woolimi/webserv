@@ -7,6 +7,10 @@ HTTP::HTTP()
 {
 }
 
+// debug
+int count = 0;
+
+
 HTTP::HTTP(std::vector<t_server> &srvs)
 {
 	servers = srvs;
@@ -109,7 +113,12 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 					}
 					nb_read = 0;
 				}
+				//debug
 				buffer[nb_read] = '\0';
+				// if (count == 5)
+				// {
+				// 	DEBUG(buffer);
+				// }
 				renew_client_timestamp(*it);
 				skip_leading_empty_line(*it, buffer);
 			}
@@ -148,7 +157,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 
 			// request body parsing
 			if (it->req.req_line_parsed == 2 && it->req.req_header_parsed == 2 && it->req.req_body_parsed != 2)
-			{				
+			{
 				if (it->req_arrived)
 					it->req.req_body_parsed = 2;
 				else
@@ -176,12 +185,17 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 		// send res head
 		if (it->req_arrived && !it->res.sent_head && FD_ISSET(it->socket, &write_set))
 		{
-			// std::cerr << "fd: " << it->res.fd << std::endl;
 			if (!send_res_head(*it)) {
 				disconnect(init_set, fds, it);
 				continue;
 			}
-			if (it->req.method == "PUT") {
+
+			// debug
+			if (it->req.method == "POST")
+				count++;
+
+			if (it->req.method == "PUT" ||
+				(it->req.method == "POST" && it->res.status_code == 201)) {
 				disconnect(init_set, fds, it);
 				continue;
 			}
@@ -258,7 +272,10 @@ void HTTP::disconnect(fd_set &init_set, std::set<int> &fds, std::vector<t_client
 	if (!it->res.fname.empty())
 		unlink(it->res.fname.c_str());
 	if (!it->req.body_fname.empty())
-		unlink(it->req.body_fname.c_str());
+	{
+		if (it->req.is_cgi)
+			unlink(it->req.body_fname.c_str());
+	}
 	if (it->res.fd != -1)
 		close(it->res.fd);
 
@@ -282,6 +299,7 @@ void HTTP::init_client(t_client &client)
 	client.res_sent = false;
 	client.res.status_code = 0;
 	client.req.chunk_size_read = -1;
+	client.req.is_cgi = false;
 	/* res */
 	client.res.status_code = 0;
 	client.res.sent_head = false;
@@ -323,9 +341,11 @@ void HTTP::reset_req_and_res(t_client &cli)
 	}
 	if (!cli.req.body_fname.empty())
 	{
-		unlink(cli.req.body_fname.c_str());
+		if (cli.req.is_cgi)
+			unlink(cli.req.body_fname.c_str());
 		cli.req.body_fname.clear();
 	}
+	cli.req.is_cgi = false;
 	cli.res.is_cgi = false;
 	printf("reset\n");
 }
