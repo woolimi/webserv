@@ -15,7 +15,7 @@ private:
 	void init_client(t_client &client);
 	void disconnect(fd_set& init_set, std::set<int> &fds, std::vector<t_client>::iterator &it);
 	void handle_methods(t_client &cli, char **env);
-	void skip_leading_empty_line(t_client &cli, char *buffer);
+	void skip_leading_empty_line(t_client &cli, char *buffer, size_t nb_read);
 	void reset_req_and_res(t_client &cli);
 	bool check_client_timeout(t_client &cli);
 	void res_service_unavailable(t_client &cli);

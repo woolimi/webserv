@@ -115,12 +115,28 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 				}
 				//debug
 				buffer[nb_read] = '\0';
+				// DEBUG("read: ");
+				// DEBUG(buffer);
+				// static int x;
+				// if (count > 10000)
+				// {
+				// 	std::string tmp(buffer);
+				// 	std::string get = "GET / HTTP/1.1\r\nHost: localhost:8080\r\nUser-Agent: Go-http-client/1.1\r\nAccept-Encoding: gzip";
+				// 	if (tmp.find(get) == std::string::npos) {
+				// 		if (nb_read > 100)
+				// 			write(2, buffer, 100);
+				// 		else
+				// 		write(2, buffer, 100);
+				// 			exit(1);
+				// 		sleep(1);
+				// 	}
+				// }
 				// if (count == 5)
 				// {
 				// 	DEBUG(buffer);
 				// }
 				renew_client_timestamp(*it);
-				skip_leading_empty_line(*it, buffer);
+				skip_leading_empty_line(*it, buffer, nb_read);
 			}
 
 			if (it->req.raw.find("\r\n") == std::string::npos)
@@ -130,7 +146,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 			if (it->req.req_line_parsed != 2)
 			{
 				it->req.req_line_parsed = 1;
-				parse_request_line((char *)it->req.raw.substr(0, it->req.raw.find("\r\n")).c_str(), *it);
+				parse_request_line(it->req.raw.substr(0, it->req.raw.find("\r\n")), *it);
 				it->req.req_line_parsed = 2;
 				it->req.raw = it->req.raw.substr(it->req.raw.find("\r\n") + 2);
 			}
@@ -190,9 +206,12 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 				continue;
 			}
 
+			// if (it->req.method == "GET")
+			// 	count++;
+
 			// debug
-			if (it->req.method == "POST")
-				count++;
+			// if (it->req.method == "POST")
+			// 	count++;
 
 			if (it->req.method == "PUT" ||
 				(it->req.method == "POST" && it->res.status_code == 201)) {
@@ -468,7 +487,7 @@ void HTTP::res_service_unavailable(t_client &cli)
 	printf("max client exceed disconnect");
 }
 
-void HTTP::skip_leading_empty_line(t_client &cli, char *buffer)
+void HTTP::skip_leading_empty_line(t_client &cli, char *buffer, size_t nb_read)
 {
 	int i = 0;
 	if (!cli.req.req_line_parsed && !cli.req.req_header_parsed && !cli.req.req_body_parsed)
@@ -477,20 +496,24 @@ void HTTP::skip_leading_empty_line(t_client &cli, char *buffer)
 		{
 			while (is_newline_char(cli.req.raw[i]))
 				i++;
-			cli.req.raw = &cli.req.raw[i];
+			// cli.req.raw = &cli.req.raw[i];
+			cli.req.raw.erase(0, i); // erase(0, i)
 			return;
 		}
 		while (buffer[i] && is_newline_char(buffer[i])) //skip leading empty lines before the request
 			i++;
-		cli.req.raw += std::string(&buffer[i]);
+		// cli.req.raw += std::string(&buffer[i]); // insert
+		cli.req.raw.insert(cli.req.raw.end(), buffer + i, buffer + nb_read); // insert
 		i = 0;
 		while (is_newline_char(cli.req.raw[i]))
 			i++;
-		cli.req.raw = &cli.req.raw[i];
+		cli.req.raw.erase(0, i); // erase(0, i)
+		// cli.req.raw = &cli.req.raw[i]; // erase(0, i)
 		// std::cout << "RAW: [" << cli.req.raw << "]\nBUUUFFER: [" << buffer << "]\n";
 	}
 	else
-		cli.req.raw += std::string(buffer);
+		cli.req.raw.insert(cli.req.raw.end(), buffer + i, buffer + nb_read); // insert
+		// cli.req.raw += std::string(buffer);
 }
 
 const char *HTTP::FailToSetServerSocket::what() const throw()

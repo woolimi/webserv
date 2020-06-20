@@ -32,6 +32,13 @@ void set_http_status(t_client &client, int status)
 {
 	if (client.res.status_code == 0)
 		client.res.status_code = status;
+	if (client.res.status_code == 400)
+	{
+		client.req_arrived = true;
+		client.req.req_line_parsed = 2;
+		client.req.req_header_parsed = 2;
+		client.req.req_body_parsed = 2;
+	}
 }
 
 int ft_pow(int x, unsigned int y) 
@@ -91,12 +98,32 @@ void uri_decode(t_client &client)
 	}
 }
 
-void parse_request_line(char *request_line, t_client &client)
+int	non_printable(std::string str)
+{
+	int i;
+
+	i = 0;
+	while (i < str.size())
+	{
+		if ((!ft_isprint(str[i])) && !is_newline_char(str[i])) //r /n
+			return(1); 
+		i++;
+	}
+	return (0);
+}
+
+void parse_request_line(std::string request_line, t_client &client)
 {
 
 	int size = 0;
 	std::set<std::string> methods = {"GET", "POST", "PUT", "OPTIONS", "HEAD", "DELETE", "TRACE", "CONNECT"};
-	char **request_line_split = ft_split(request_line, " \t");
+	
+	if (non_printable(request_line))
+	{
+		set_http_status(client, 400);
+		return;
+	}
+	char **request_line_split = ft_split(request_line.c_str(), " \t");
 	std::cout <<"Request Line1: "<< request_line << std::endl;
 	while (request_line_split[size] != 0)
 		size++;
@@ -202,15 +229,20 @@ void parse_request_header(t_client &client, std::string header_sub)
 {
 	t_req &req = client.req;
 	std::string d = "--";
+	if (non_printable(header_sub))
+	{
+		set_http_status(client, 400);
+		return;
+	}
 	if (!header_sub.empty() && header_sub[0] == '\r' && header_sub[1] == '\n')
 	{
 		// debug
 		// if (count == 5)
 		// {
-			for (std::map<std::string, std::string>::iterator it = req.headers.begin(); it != req.headers.end(); ++it)
-			{
-				std::cerr << it->first << d << it->second << std::endl;
-			}
+			// for (std::map<std::string, std::string>::iterator it = req.headers.begin(); it != req.headers.end(); ++it)
+			// {
+			// 	std::cerr << it->first << d << it->second << std::endl;
+			// }
 		// }
 
 		client.req.req_header_parsed = 2;

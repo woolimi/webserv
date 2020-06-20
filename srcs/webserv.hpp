@@ -123,7 +123,7 @@ typedef struct s_client
 } t_client;
 
 void free_tab(char **args, int length);
-void parse_request_line(char *request_line, t_client &client);
+void parse_request_line(std::string request_line, t_client &client);
 void parse_request_header(t_client &client, std::string header_sub);
 void parse_request_body(t_client &client);
 

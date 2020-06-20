@@ -104,8 +104,9 @@ void ready_to_request()
 	while ((res = read(fd, buff, BUFF_SIZE)) > 0)
 	{
 		buff[res] = 0;
-		cl->request += std::string(buff);
+		cl->request.insert(cl->request.end(), buff, buff + res);
 	}
+	// printf("size: %ld\n", cl->request.size());
 	if (res < 0)
 		print_error(("fail to read request file '" + cl->conf["REQUEST_FILE"] + "'").c_str());
 	close(fd);
@@ -141,6 +142,7 @@ void send_request_and_receive_respond(const std::string &server_name, const std:
 		print_error((server_name + " is not runing").c_str());
 
 	// send request
+	std::cout << "Sending request: " << cl->request.c_str() << std::endl;
 	int send_request = write(cl->client_socket, cl->request.c_str(), cl->request.size());
 	if (send_request < 0)
 		print_error(("fail to send request to " + server_name).c_str());
