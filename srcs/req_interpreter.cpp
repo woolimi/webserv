@@ -34,6 +34,7 @@ void set_http_status(t_client &client, int status)
 		client.res.status_code = status;
 	if (client.res.status_code == 400)
 	{
+		client.req.raw.clear();
 		client.req_arrived = true;
 		client.req.req_line_parsed = 2;
 		client.req.req_header_parsed = 2;

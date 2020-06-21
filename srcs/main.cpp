@@ -35,6 +35,7 @@ int main(int ac, char **av, char **env)
 	{
 		signal(SIGPIPE, signal_handler);
 		signal(SIGINT, signal_handler);
+		int fd = open("new_debug_log", O_CREAT | O_WRONLY | O_TRUNC, 0777);
 		// get config file param. If not exist, use default config
 		ConfigParser conf(ac, av);
 		// set server

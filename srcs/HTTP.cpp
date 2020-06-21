@@ -83,6 +83,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 	std::vector<t_client>::iterator it;
 	char buffer[MAX_BUFFER_SIZE + 1];
 	ssize_t nb_read = 0;
+	static int log_fd;
 
 	for (it = clients.begin(); it != clients.end(); ++it)
 	{
@@ -118,19 +119,19 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 				// DEBUG("read: ");
 				// DEBUG(buffer);
 				// static int x;
-				// if (count > 10000)
-				// {
-				// 	std::string tmp(buffer);
-				// 	std::string get = "GET / HTTP/1.1\r\nHost: localhost:8080\r\nUser-Agent: Go-http-client/1.1\r\nAccept-Encoding: gzip";
-				// 	if (tmp.find(get) == std::string::npos) {
-				// 		if (nb_read > 100)
-				// 			write(2, buffer, 100);
-				// 		else
-				// 		write(2, buffer, 100);
-				// 			exit(1);
-				// 		sleep(1);
-				// 	}
-				// }
+				if (count > 80)
+				{
+					std::string tmp(buffer);
+					std::string get = "GET / HTTP/1.1\r\nHost: localhost:8080\r\nUser-Agent: Go-http-client/1.1\r\nAccept-Encoding: gzip";
+					if (tmp.find(get) == std::string::npos) {
+						if (nb_read > 100)
+							write(3, buffer, 100);
+						else
+						write(3, buffer, 100);
+						sleep(1);
+						// exit(1);
+					}
+				}
 				// if (count == 5)
 				// {
 				// 	DEBUG(buffer);
@@ -148,7 +149,8 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 				it->req.req_line_parsed = 1;
 				parse_request_line(it->req.raw.substr(0, it->req.raw.find("\r\n")), *it);
 				it->req.req_line_parsed = 2;
-				it->req.raw = it->req.raw.substr(it->req.raw.find("\r\n") + 2);
+				if (!it->req.raw.empty())
+					it->req.raw = it->req.raw.substr(it->req.raw.find("\r\n") + 2);
 			}
 			// request header parsing
 			if (it->req.req_line_parsed == 2 && it->req.req_header_parsed != 2)
@@ -206,8 +208,8 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 				continue;
 			}
 
-			// if (it->req.method == "GET")
-			// 	count++;
+			if (it->req.method == "GET")
+				count++;
 
 			// debug
 			// if (it->req.method == "POST")
@@ -250,7 +252,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 		// treat more request or disconnect client
 		if (it->res_sent)
 		{
-			reset_req_and_res(*it);
+				reset_req_and_res(*it);
 		}
 	}
 }
@@ -366,6 +368,7 @@ void HTTP::reset_req_and_res(t_client &cli)
 	}
 	cli.req.is_cgi = false;
 	cli.res.is_cgi = false;
+	// cli.req.raw.clear();
 	printf("reset\n");
 }
 
