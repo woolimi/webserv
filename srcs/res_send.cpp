@@ -11,7 +11,7 @@ bool send_res_head(t_client &cli)
 	if (ret == 0)
 		return true;
 	res.sent_head = true;
-	std::cout << "send res head" << std::endl;
+	// std::cout << "send res head" << std::endl;
 	return true;
 }
 

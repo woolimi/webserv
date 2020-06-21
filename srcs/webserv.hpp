@@ -120,6 +120,8 @@ typedef struct s_client
 	t_res res;
 	t_server server;
 	int time_stamp;
+	/* debug */
+	std::string id;
 } t_client;
 
 void free_tab(char **args, int length);

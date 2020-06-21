@@ -125,7 +125,7 @@ void parse_request_line(std::string request_line, t_client &client)
 		return;
 	}
 	char **request_line_split = ft_split(request_line.c_str(), " \t");
-	std::cout <<"Request Line1: "<< request_line << std::endl;
+	// std::cout <<"Request Line1: "<< request_line << std::endl;
 	while (request_line_split[size] != 0)
 		size++;
 	if (size != 3)
@@ -227,7 +227,8 @@ static std::string trim(const std::string& s)
 // 3. if body exist in req.raw, put body data into req.body
 
 void parse_request_header(t_client &client, std::string header_sub)
-{
+{	
+	// std::cout << header_sub << std::endl;
 	t_req &req = client.req;
 	std::string d = "--";
 	if (non_printable(header_sub))

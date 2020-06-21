@@ -102,6 +102,8 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 			{	// something to read
 				nb_read = read(it->socket, buffer, MAX_BUFFER_SIZE);
 				if (nb_read == 0) {
+					// printf("connection closed by client\n");
+					disconnect(init_set, fds, it);
 					continue;
 				}
 				// connection is closed from client side
@@ -119,25 +121,35 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 				// DEBUG("read: ");
 				// DEBUG(buffer);
 				// static int x;
-				if (count > 80)
-				{
-					std::string tmp(buffer);
-					std::string get = "GET / HTTP/1.1\r\nHost: localhost:8080\r\nUser-Agent: Go-http-client/1.1\r\nAccept-Encoding: gzip";
-					if (tmp.find(get) == std::string::npos) {
-						if (nb_read > 100)
-							write(3, buffer, 100);
-						else
-						write(3, buffer, 100);
-						sleep(1);
-						// exit(1);
+				// if (count > 5)
+				// {
+					std::string tmp(buffer, buffer + nb_read);
+					size_t n = 0;
+					while ((n = tmp.find("\r\n", n)) != std::string::npos)
+					{
+						tmp.replace(n, 2, "RN");
+						n += 2;
 					}
-				}
+					n = 0;
+					while ((n = tmp.find("\n", n)) != std::string::npos)
+					{
+						tmp.replace(n, 1, "N");
+						n += 1;
+					}
+
+					write(3, std::string("\n===sock : " + it->id + "=====\n").c_str(), 17 + it->id.size());
+					if (nb_read > 100)
+						write(3, tmp.c_str(), 100);
+					else
+						write(3, tmp.c_str(), nb_read);
+				// }
 				// if (count == 5)
 				// {
 				// 	DEBUG(buffer);
 				// }
 				renew_client_timestamp(*it);
 				skip_leading_empty_line(*it, buffer, nb_read);
+
 			}
 
 			if (it->req.raw.find("\r\n") == std::string::npos)
@@ -166,6 +178,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 						x = 1;
 						break;
 					}
+					// std::cout << "basket\n";
 					parse_request_header(*it, it->req.raw.substr(0, it->req.raw.find("\r\n") + 2));
 					it->req.raw = it->req.raw.substr(it->req.raw.find("\r\n") + 2);
 				}
@@ -203,6 +216,14 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 		// send res head
 		if (it->req_arrived && !it->res.sent_head && FD_ISSET(it->socket, &write_set))
 		{
+			/* debug */
+			write(3, "\nclient id : ", 13);
+			write(3, it->id.c_str(), it->id.size());
+			write(3, " status code : ", 15);
+			write(3, std::to_string(it->res.status_code).c_str(), std::to_string(it->res.status_code).size());
+			write(3, "\n", 1);
+			/* debug */
+
 			if (!send_res_head(*it)) {
 				disconnect(init_set, fds, it);
 				continue;
@@ -244,15 +265,15 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 				disconnect(init_set, fds, it);
 				continue;
 			}
-			if (it->res_sent)
-				printf("sent all response body\n");
+			// if (it->res_sent)
+			// 	printf("sent all response body\n");
 			renew_client_timestamp(*it);
 		}
 
 		// treat more request or disconnect client
 		if (it->res_sent)
 		{
-				reset_req_and_res(*it);
+			reset_req_and_res(*it);
 		}
 	}
 }
@@ -270,6 +291,14 @@ void HTTP::manage_servers(fd_set &read_set, fd_set &init_set, std::set<int> &fds
 			if (clients.size() > MAX_CLIENT)
 				continue;
 			new_client.socket = accept(it->socket, (sockaddr *)&new_client.addr, &new_client.addr_len);
+
+			/* debug */
+			new_client.id = random_fname();
+			write(3, "\nconnected client id : ", 22);
+			write(3, new_client.id.c_str(), new_client.id.size());
+			write(3, "\n", 1);
+			/* debug */
+
 			if (new_client.socket < 0)
 				throw FailToAccept();
 			if (fcntl(new_client.socket, F_SETFL, O_NONBLOCK) < 0)
@@ -280,13 +309,20 @@ void HTTP::manage_servers(fd_set &read_set, fd_set &init_set, std::set<int> &fds
 			clients.push_back(new_client);
 			fds.insert(new_client.socket); //fdmax
 			FD_SET(new_client.socket, &init_set);
-			printf("client connected\n");
+			std::cout << "client " + new_client.id + " connected\n";
 		}
 	}
 }
 
 void HTTP::disconnect(fd_set &init_set, std::set<int> &fds, std::vector<t_client>::iterator &it)
 {
+	/* debug */
+	write(3, "\ndisconnect client id : ", 24);
+	write(3, it->id.c_str(), it->id.size());
+	write(3, "\n", 1);
+	/* debug */
+	std::cout << "client " + it->id + " disconnected\n";
+
 	fds.erase(it->socket);
 	FD_CLR(it->socket, &init_set);
 	close(it->socket);
@@ -302,7 +338,6 @@ void HTTP::disconnect(fd_set &init_set, std::set<int> &fds, std::vector<t_client
 
 	it = clients.erase(it);
 	--it;
-	printf("client disconnected\n");
 }
 
 void HTTP::init_client(t_client &client)
@@ -369,7 +404,7 @@ void HTTP::reset_req_and_res(t_client &cli)
 	cli.req.is_cgi = false;
 	cli.res.is_cgi = false;
 	// cli.req.raw.clear();
-	printf("reset\n");
+	// printf("reset\n");
 }
 
 void HTTP::http_select(int fdmax, fd_set &read_set, fd_set &write_set, struct timeval &timeout)
@@ -382,8 +417,8 @@ void HTTP::http_select(int fdmax, fd_set &read_set, fd_set &write_set, struct ti
 		throw FailToSelect();
 	}
 	/* debug */
-	if (ret == 0)
-		printf("waiting client\n");
+	// if (ret == 0)
+	// 	printf("waiting client\n");
 }
 
 void HTTP::handle_methods(t_client &cli, char **env)
@@ -493,8 +528,8 @@ void HTTP::res_service_unavailable(t_client &cli)
 void HTTP::skip_leading_empty_line(t_client &cli, char *buffer, size_t nb_read)
 {
 	int i = 0;
-	if (!cli.req.req_line_parsed && !cli.req.req_header_parsed && !cli.req.req_body_parsed)
-	{
+	if (cli.req.req_line_parsed != 2 && !cli.req.req_header_parsed && !cli.req.req_body_parsed)
+	{ 
 		if (!buffer[i] && !cli.req.raw.empty())
 		{
 			while (is_newline_char(cli.req.raw[i]))

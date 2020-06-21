@@ -24,6 +24,7 @@ typedef struct s_clients
 	std::string nginx_port;
 	std::string webserv_port;
 	std::string request;
+	std::string request_original;
 	std::string respond;
 	int client_socket;
 	s_clients()
@@ -104,8 +105,22 @@ void ready_to_request()
 	while ((res = read(fd, buff, BUFF_SIZE)) > 0)
 	{
 		buff[res] = 0;
-		cl->request.insert(cl->request.end(), buff, buff + res);
+		cl->request_original.insert(cl->request_original.end(), buff, buff + res);
 	}
+
+	size_t n = 0;
+	while ((n = cl->request_original.find("RN", n)) != std::string::npos)
+	{
+		cl->request_original.replace(n, 2, "\r\n");
+		n += 2;
+	}
+	n = 0;
+	while ((n = cl->request_original.find("N", n)) != std::string::npos)
+	{
+		cl->request_original.replace(n, 1, "\n");
+		n += 1;
+	}
+
 	// printf("size: %ld\n", cl->request.size());
 	if (res < 0)
 		print_error(("fail to read request file '" + cl->conf["REQUEST_FILE"] + "'").c_str());
@@ -123,9 +138,11 @@ void create_res_file(const std::string &server_name, const std::string &res)
 
 void send_request_and_receive_respond(const std::string &server_name, const std::string &port_str)
 {
-	fd_set read_set, init_set;
+	fd_set read_set, write_set, init_set;
 
 	t_clients *cl = get_clients();
+
+	cl->request = cl->request_original;
 	cl->client_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	// socket reuse setting
 	int reuse = 1;
@@ -141,13 +158,8 @@ void send_request_and_receive_respond(const std::string &server_name, const std:
 	if (connect(cl->client_socket, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
 		print_error((server_name + " is not runing").c_str());
 
-	// send request
-	std::cout << "Sending request: " << cl->request.c_str() << std::endl;
-	int send_request = write(cl->client_socket, cl->request.c_str(), cl->request.size());
-	if (send_request < 0)
-		print_error(("fail to send request to " + server_name).c_str());
-
 	FD_ZERO(&read_set);
+	FD_ZERO(&write_set);
 	FD_ZERO(&init_set);
 	FD_SET(cl->client_socket, &init_set);
 	std::string res;
@@ -158,32 +170,64 @@ void send_request_and_receive_respond(const std::string &server_name, const std:
 	while (1)
 	{
 		read_set = init_set;
+		write_set = init_set;
 		int ret;
-		timeout.tv_sec = 3;
+		timeout.tv_sec = 1;
 		timeout.tv_usec = 0;
 		if ((ret = select(cl->client_socket + 1, &read_set, NULL, NULL, &timeout)) < 0)
 		{
 			perror("select error");
 			exit(1);
 		}
-		if (!FD_ISSET(cl->client_socket, &read_set))
-		{	// nothing to read on socket, wait 1sec...
-			std::cout << "client read all response" << std::endl;
-			close(cl->client_socket);
-			create_res_file(server_name, res);
-			return;
+
+		// send request
+		if (!cl->request.empty() && FD_ISSET(cl->client_socket, &write_set))
+		{
+			std::cout << "Sending request to " + server_name + "..." << std::endl;
+			// std::cout << "Request: " + cl->request + "..." << std::endl;
+			int send_request = write(cl->client_socket, cl->request.c_str(), cl->request.size());
+			if (send_request < 0)
+				print_error(("fail to send request to " + server_name).c_str());
+			cl->request.erase(0, send_request);
 		}
-		if (FD_ISSET(cl->client_socket, &read_set))
+
+		// if (!FD_ISSET(cl->client_socket, &read_set))
+		// {	// nothing to read on socket, wait 1sec...
+		// 	std::cout << "here" << std::endl;
+		// }
+
+		if (cl->request.empty() && FD_ISSET(cl->client_socket, &read_set))
 		{
 			char buff[BUFF_SIZE + 1];
 			ret = read(cl->client_socket, buff, BUFF_SIZE);
 			if (ret < 0)
 			{
-				perror("read response");
+				// no datas are available to be read
+				if (errno == EWOULDBLOCK) {
+					printf("no datas are available to be read\n");
+					continue;
+				}
+				// error
+				perror("read error :");
+				return;
+			}
+			if (ret == 0) {
+				printf("connection closed by server\n");
 				return;
 			}
 			buff[ret] = 0;
-			res += buff;
+			size_t body_start;
+			res.insert(res.end(), buff, buff + ret);
+			if ((body_start = res.find("\r\n\r\n")) != std::string::npos) {
+			// 	if (res.find("Content-Length") != std::string::npos) {
+			// 		if (res.substr(body_start + 4).empty())
+			// 			continue;
+			// 	}
+				close(cl->client_socket);
+				create_res_file(server_name, res);
+				printf("respond arrived from server\n");
+			}
+			return;
 		}
 	}
 }
