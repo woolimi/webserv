@@ -1,0 +1,536 @@
+
+connected client id :pJA76AcBAanBtuB
+
+===sock : pJA76AcBAanBtuB=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: gzipRNRN
+client id : pJA76AcBAanBtuB status code : 200
+
+connected client id :oDzF97Vp1HviLhW
+
+===sock : oDzF97Vp1HviLhW=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: gzipRNRN
+client id : oDzF97Vp1HviLhW status code : 200
+
+connected client id :3uvrsqRsRft4GMp
+
+===sock : pJA76AcBAanBtuB=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: g
+===sock : 3uvrsqRsRft4GMp=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: gzipRNRN
+client id : 3uvrsqRsRft4GMp status code : 200
+
+connected client id :61QtuNod3fLomkv
+
+===sock : pJA76AcBAanBtuB=====
+zipRNRN
+client id : pJA76AcBAanBtuB status code : 200
+
+===sock : oDzF97Vp1HviLhW=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: gzipRN
+===sock : 61QtuNod3fLomkv=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: gzipRNRN
+client id : 61QtuNod3fLomkv status code : 200
+
+connected client id :8dOus6I7opdFhJi
+
+===sock : oDzF97Vp1HviLhW=====
+N
+client id : oDzF97Vp1HviLhW status code : 200
+
+===sock : 3uvrsqRsRft4GMp=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: gzipRNRN
+client id : 3uvrsqRsRft4GMp status code : 200
+
+===sock : 8dOus6I7opdFhJi=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: gzipRNRN
+client id : 8dOus6I7opdFhJi status code : 200
+
+===sock : pJA76AcBAanBtuB=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: gzipRN
+===sock : 61QtuNod3fLomkv=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: gzip
+===sock : pJA76AcBAanBtuB=====
+RN
+client id : pJA76AcBAanBtuB status code : 200
+
+===sock : oDzF97Vp1HviLhW=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: gzipRN
+===sock : 3uvrsqRsRft4GMp=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: gzip
+===sock : 61QtuNod3fLomkv=====
+RNRN
+client id : 61QtuNod3fLomkv status code : 200
+
+===sock : 8dOus6I7opdFhJi=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: gzipRN
+===sock : pJA76AcBAanBtuB=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: gzip
+===sock : 61QtuNod3fLomkv=====
+GET / HTTP/1.1RNHost: 
+===sock : pJA76AcBAanBtuB=====
+RN
+===sock : oDzF97Vp1HviLhW=====
+RN
+client id : oDzF97Vp1HviLhW status code : 200
+
+===sock : 3uvrsqRsRft4GMp=====
+NRN
+client id : 3uvrsqRsRft4GMp status code : 200
+
+===sock : 61QtuNod3fLomkv=====
+localhost:8080RNUser-Agent: Go-http-client/1.1
+===sock : 8dOus6I7opdFhJi=====
+N
+client id : 8dOus6I7opdFhJi status code : 200
+
+===sock : oDzF97Vp1HviLhW=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Enc
+===sock : 3uvrsqRsRft4GMp=====
+GET /
+===sock : 8dOus6I7opdFhJi=====
+GET / HTTP/1.1RNHost
+===sock : pJA76AcBAanBtuB=====
+N
+client id : pJA76AcBAanBtuB status code : 200
+
+===sock : oDzF97Vp1HviLhW=====
+oding: gzip
+===sock : 3uvrsqRsRft4GMp=====
+ HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Enc
+===sock : 61QtuNod3fLomkv=====
+RNAccept-Encoding: gzipRNRN
+client id : 61QtuNod3fLomkv status code : 200
+
+===sock : 8dOus6I7opdFhJi=====
+: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: gzipRN
+===sock : oDzF97Vp1HviLhW=====
+N
+===sock : 3uvrsqRsRft4GMp=====
+oding: gzipRN
+===sock : 8dOus6I7opdFhJi=====
+RN
+client id : 8dOus6I7opdFhJi status code : 200
+
+===sock : pJA76AcBAanBtuB=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: gzip
+===sock : 61QtuNod3fLomkv=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: G
+===sock : pJA76AcBAanBtuB=====
+N
+===sock : oDzF97Vp1HviLhW=====
+N
+client id : oDzF97Vp1HviLhW status code : 200
+
+===sock : 3uvrsqRsRft4GMp=====
+N
+client id : 3uvrsqRsRft4GMp status code : 200
+
+===sock : 61QtuNod3fLomkv=====
+o-http-client/1.1RNAccept-Encoding: gzipRN
+===sock : 8dOus6I7opdFhJi=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNA
+===sock : pJA76AcBAanBtuB=====
+RN
+client id : pJA76AcBAanBtuB status code : 200
+
+===sock : 61QtuNod3fLomkv=====
+RN
+client id : 61QtuNod3fLomkv status code : 200
+
+===sock : 8dOus6I7opdFhJi=====
+ccept-Encoding: gzipRNRN
+client id : 8dOus6I7opdFhJi status code : 200
+
+===sock : oDzF97Vp1HviLhW=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: gz
+===sock : 3uvrsqRsRft4GMp=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: gzipRNRN
+client id : 3uvrsqRsRft4GMp status code : 200
+
+===sock : 61QtuNod3fLomkv=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-cli
+===sock : 8dOus6I7opdFhJi=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: gz
+===sock : 61QtuNod3fLomkv=====
+ent/1.1RNAccep
+===sock : 8dOus6I7opdFhJi=====
+ipRN
+===sock : oDzF97Vp1HviLhW=====
+ipRN
+===sock : 3uvrsqRsRft4GMp=====
+GET / HTTP/1.1RNHost: localhost:8080
+===sock : oDzF97Vp1HviLhW=====
+N
+client id : oDzF97Vp1HviLhW status code : 200
+
+===sock : 3uvrsqRsRft4GMp=====
+RNUser-Agent: Go-http-client/1.1RNAccept-Encodin
+===sock : 61QtuNod3fLomkv=====
+t-Encoding: gzipRN
+===sock : 8dOus6I7opdFhJi=====
+RN
+client id : 8dOus6I7opdFhJi status code : 200
+
+===sock : 3uvrsqRsRft4GMp=====
+g: gzipRNRN
+client id : 3uvrsqRsRft4GMp status code : 200
+
+===sock : 61QtuNod3fLomkv=====
+RN
+client id : 61QtuNod3fLomkv status code : 200
+
+===sock : 8dOus6I7opdFhJi=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: gzipRNRN
+client id : 8dOus6I7opdFhJi status code : 200
+
+===sock : 3uvrsqRsRft4GMp=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: gzipRN
+===sock : 8dOus6I7opdFhJi=====
+GET / HTTP/1.1RNHost: loca
+===sock : 8dOus6I7opdFhJi=====
+lhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encodi
+===sock : 3uvrsqRsRft4GMp=====
+N
+client id : 3uvrsqRsRft4GMp status code : 200
+
+===sock : 8dOus6I7opdFhJi=====
+ng:
+===sock : 3uvrsqRsRft4GMp=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encodi
+===sock : 3uvrsqRsRft4GMp=====
+ng: gzipRNRN
+client id : 3uvrsqRsRft4GMp status code : 200
+
+===sock : 8dOus6I7opdFhJi=====
+ gzipRNRN
+client id : 8dOus6I7opdFhJi status code : 200
+
+===sock : 3uvrsqRsRft4GMp=====
+GET / HTTP/1.1RNHost: 
+===sock : 8dOus6I7opdFhJi=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/
+===sock : 3uvrsqRsRft4GMp=====
+localhost:8080RNUser-Agent: Go-http-clie
+===sock : 8dOus6I7opdFhJi=====
+1.1
+===sock : 3uvrsqRsRft4GMp=====
+nt/1.1RNAccept-Encoding: gz
+===sock : 8dOus6I7opdFhJi=====
+RNAccept-Encoding: gzi
+===sock : 3uvrsqRsRft4GMp=====
+ipRNRN
+client id : 3uvrsqRsRft4GMp status code : 200
+
+===sock : 8dOus6I7opdFhJi=====
+pRNRN
+client id : 8dOus6I7opdFhJi status code : 200
+
+===sock : 8dOus6I7opdFhJi=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Ag
+===sock : 8dOus6I7opdFhJi=====
+ent: Go-http-client/1.1RNAccept-Encoding: gzipRNRN
+client id : 8dOus6I7opdFhJi status code : 200
+
+===sock : 8dOus6I7opdFhJi=====
+GET /
+===sock : 8dOus6I7opdFhJi=====
+ HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: gzipRNRN
+client id : 8dOus6I7opdFhJi status code : 200
+
+===sock : 8dOus6I7opdFhJi=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: gz
+===sock : 8dOus6I7opdFhJi=====
+ip
+===sock : 8dOus6I7opdFhJi=====
+N
+===sock : 8dOus6I7opdFhJi=====
+N
+client id : 8dOus6I7opdFhJi status code : 200
+
+===sock : pJA76AcBAanBtuB=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: gzipRN
+===sock : pJA76AcBAanBtuB=====
+N
+client id : pJA76AcBAanBtuB status code : 200
+
+===sock : pJA76AcBAanBtuB=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: gzipRN
+===sock : pJA76AcBAanBtuB=====
+N
+client id : pJA76AcBAanBtuB status code : 200
+
+===sock : oDzF97Vp1HviLhW=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: gzipRN
+===sock : 61QtuNod3fLomkv=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: gzipRN
+===sock : pJA76AcBAanBtuB=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding:
+===sock : oDzF97Vp1HviLhW=====
+RN
+client id : oDzF97Vp1HviLhW status code : 200
+
+===sock : oDzF97Vp1HviLhW=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-
+===sock : pJA76AcBAanBtuB=====
+ gzip
+===sock : oDzF97Vp1HviLhW=====
+client/1.1RNAccept-Encoding: gzip
+===sock : 61QtuNod3fLomkv=====
+RN
+client id : 61QtuNod3fLomkv status code : 200
+
+===sock : pJA76AcBAanBtuB=====
+N
+===sock : oDzF97Vp1HviLhW=====
+
+===sock : 61QtuNod3fLomkv=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-E
+===sock : pJA76AcBAanBtuB=====
+N
+client id : pJA76AcBAanBtuB status code : 200
+
+===sock : oDzF97Vp1HviLhW=====
+N
+===sock : 61QtuNod3fLomkv=====
+ncoding: gzipRN
+===sock : oDzF97Vp1HviLhW=====
+N
+client id : oDzF97Vp1HviLhW status code : 200
+
+===sock : 61QtuNod3fLomkv=====
+RN
+client id : 61QtuNod3fLomkv status code : 200
+
+===sock : oDzF97Vp1HviLhW=====
+GET / HTTP/1.1
+===sock : 61QtuNod3fLomkv=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent
+===sock : 61QtuNod3fLomkv=====
+: Go-http-client/1.1RNAc
+===sock : oDzF97Vp1HviLhW=====
+NHost: localhost:8080
+===sock : oDzF97Vp1HviLhW=====
+NUser-Agent: Go-http-client/1.
+===sock : 61QtuNod3fLomkv=====
+cept-Encoding: gzip
+===sock : oDzF97Vp1HviLhW=====
+1RNAccept-Encoding: gzipRNRN
+client id : oDzF97Vp1HviLhW status code : 400
+
+===sock : 61QtuNod3fLomkv=====
+RNRN
+client id : 61QtuNod3fLomkv status code : 200
+
+===sock : 3uvrsqRsRft4GMp=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: gzipRNRN
+client id : 3uvrsqRsRft4GMp status code : 200
+
+connected client id :uD7aXpObsHf3Trc
+
+===sock : 61QtuNod3fLomkv=====
+GET / HTTP/1.1RNHost: localhost:8080RN
+===sock : uD7aXpObsHf3Trc=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: gzip
+===sock : 3uvrsqRsRft4GMp=====
+G
+===sock : uD7aXpObsHf3Trc=====
+NRN
+client id : uD7aXpObsHf3Trc status code : 200
+
+===sock : 3uvrsqRsRft4GMp=====
+ET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-
+===sock : 61QtuNod3fLomkv=====
+User-Agent: Go-http-client/1.1RNAccept-Encoding: gzipRN
+===sock : uD7aXpObsHf3Trc=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: gzipRN
+===sock : uD7aXpObsHf3Trc=====
+N
+client id : uD7aXpObsHf3Trc status code : 200
+
+===sock : 3uvrsqRsRft4GMp=====
+client/1.1RNAccept-Encodi
+===sock : 61QtuNod3fLomkv=====
+N
+client id : 61QtuNod3fLomkv status code : 200
+
+===sock : uD7aXpObsHf3Trc=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Enc
+===sock : 3uvrsqRsRft4GMp=====
+ng: gzipRNRN
+client id : 3uvrsqRsRft4GMp status code : 200
+
+===sock : uD7aXpObsHf3Trc=====
+oding: gzipRNRN
+client id : uD7aXpObsHf3Trc status code : 200
+
+===sock : 61QtuNod3fLomkv=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: gzipRNRN
+client id : 61QtuNod3fLomkv status code : 200
+
+===sock : 3uvrsqRsRft4GMp=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: gzip
+===sock : uD7aXpObsHf3Trc=====
+GET / HTTP/1.1RNHost
+===sock : 61QtuNod3fLomkv=====
+GET / HTTP/1.1RNHost: localhost:8080RNU
+===sock : 3uvrsqRsRft4GMp=====
+N
+===sock : 61QtuNod3fLomkv=====
+ser-Agent: Go-http-client/1.1RNAccept-Encodi
+===sock : uD7aXpObsHf3Trc=====
+: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: gzip
+===sock : 3uvrsqRsRft4GMp=====
+N
+client id : 3uvrsqRsRft4GMp status code : 200
+
+===sock : 61QtuNod3fLomkv=====
+ng: gzipRNRN
+client id : 61QtuNod3fLomkv status code : 200
+
+===sock : uD7aXpObsHf3Trc=====
+RNRN
+client id : uD7aXpObsHf3Trc status code : 200
+
+===sock : 3uvrsqRsRft4GMp=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1
+===sock : uD7aXpObsHf3Trc=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-
+===sock : 3uvrsqRsRft4GMp=====
+NAccept-Encoding: gzipRNRN
+client id : 3uvrsqRsRft4GMp status code : 200
+
+===sock : uD7aXpObsHf3Trc=====
+http-client/1.1RNAccept-Encoding: gzipRNRN
+client id : uD7aXpObsHf3Trc status code : 200
+
+===sock : 8dOus6I7opdFhJi=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: gzip
+===sock : 3uvrsqRsRft4GMp=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: g
+===sock : uD7aXpObsHf3Trc=====
+GET /
+===sock : 8dOus6I7opdFhJi=====
+N
+===sock : uD7aXpObsHf3Trc=====
+ HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: 
+===sock : 3uvrsqRsRft4GMp=====
+zipRNRN
+client id : 3uvrsqRsRft4GMp status code : 200
+
+===sock : 8dOus6I7opdFhJi=====
+RN
+client id : 8dOus6I7opdFhJi status code : 200
+
+===sock : uD7aXpObsHf3Trc=====
+gzipRNRN
+client id : uD7aXpObsHf3Trc status code : 200
+
+===sock : 8dOus6I7opdFhJi=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-
+===sock : uD7aXpObsHf3Trc=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept
+===sock : 8dOus6I7opdFhJi=====
+client/1.1RNAccept-Encoding: gzipRNRN
+client id : 8dOus6I7opdFhJi status code : 200
+
+===sock : uD7aXpObsHf3Trc=====
+-Encoding: gzipRNRN
+client id : uD7aXpObsHf3Trc status code : 200
+
+===sock : 8dOus6I7opdFhJi=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: 
+===sock : uD7aXpObsHf3Trc=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: gzi
+===sock : 8dOus6I7opdFhJi=====
+gzipRNRN
+client id : 8dOus6I7opdFhJi status code : 200
+
+===sock : uD7aXpObsHf3Trc=====
+pRNRN
+client id : uD7aXpObsHf3Trc status code : 200
+
+===sock : pJA76AcBAanBtuB=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: gzi
+===sock : pJA76AcBAanBtuB=====
+pRN
+===sock : pJA76AcBAanBtuB=====
+N
+client id : pJA76AcBAanBtuB status code : 200
+
+===sock : pJA76AcBAanBtuB=====
+GET / HTTP/1
+===sock : pJA76AcBAanBtuB=====
+.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: gzipRN
+===sock : pJA76AcBAanBtuB=====
+N
+client id : pJA76AcBAanBtuB status code : 200
+
+===sock : pJA76AcBAanBtuB=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-
+===sock : pJA76AcBAanBtuB=====
+http-client/1.1RNAcce
+===sock : pJA76AcBAanBtuB=====
+pt-Encoding: gzipRN
+===sock : pJA76AcBAanBtuB=====
+N
+client id : pJA76AcBAanBtuB status code : 200
+
+===sock : 61QtuNod3fLomkv=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: gzipRN
+===sock : 61QtuNod3fLomkv=====
+N
+client id : 61QtuNod3fLomkv status code : 200
+
+===sock : 61QtuNod3fLomkv=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-
+===sock : 61QtuNod3fLomkv=====
+client/1.1RNAccept-Encoding: g
+===sock : 3uvrsqRsRft4GMp=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: gzipRNRN
+client id : 3uvrsqRsRft4GMp status code : 200
+
+===sock : 61QtuNod3fLomkv=====
+zipRNRN
+client id : 61QtuNod3fLomkv status code : 200
+
+===sock : 3uvrsqRsRft4GMp=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: gzip
+===sock : 61QtuNod3fLomkv=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: gzipRNRN
+client id : 61QtuNod3fLomkv status code : 200
+
+===sock : 3uvrsqRsRft4GMp=====
+RN
+===sock : 61QtuNod3fLomkv=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-
+===sock : 3uvrsqRsRft4GMp=====
+N
+client id : 3uvrsqRsRft4GMp status code : 200
+
+===sock : 61QtuNod3fLomkv=====
+Encoding: gzip
+===sock : 3uvrsqRsRft4GMp=====
+GET / HTT
+===sock : 61QtuNod3fLomkv=====
+RN
+===sock : 3uvrsqRsRft4GMp=====
+P/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: gzi
+===sock : 3uvrsqRsRft4GMp=====
+pRNRN
+client id : 3uvrsqRsRft4GMp status code : 200
+
+===sock : 61QtuNod3fLomkv=====
+N
+client id : 61QtuNod3fLomkv status code : 200
+
+===sock : 3uvrsqRsRft4GMp=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept
+===sock : 61QtuNod3fLomkv=====
+GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: gz
+===sock : 61QtuNod3fLomkv=====
+ipRNRN
+client id : 61QtuNod3fLomkv status code : 200
+
+===sock : 3uvrsqRsRft4GMp=====
+-Encoding: gzipRNRN
+client id : 3uvrsqRsRft4GMp status code : 200

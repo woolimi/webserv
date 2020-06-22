@@ -184,11 +184,26 @@ void send_request_and_receive_respond(const std::string &server_name, const std:
 		if (!cl->request.empty() && FD_ISSET(cl->client_socket, &write_set))
 		{
 			std::cout << "Sending request to " + server_name + "..." << std::endl;
-			// std::cout << "Request: " + cl->request + "..." << std::endl;
-			int send_request = write(cl->client_socket, cl->request.c_str(), cl->request.size());
-			if (send_request < 0)
-				print_error(("fail to send request to " + server_name).c_str());
-			cl->request.erase(0, send_request);
+			// int send_request = write(cl->client_socket, cl->request.c_str(), cl->request.size());
+			// if (send_request < 0)
+			// 	print_error(("fail to send request to " + server_name).c_str());
+			// cl->request.erase(0, send_request);
+
+			std::string s = "GET / HTTP/1.1";
+			int send_request = write(cl->client_socket, s.c_str(), s.size());
+			usleep(500);
+			s = "\nHost: localhost:8080";
+			send_request = write(cl->client_socket, s.c_str(), s.size());
+			usleep(500);
+			s = "\nUser-Agent: Go-http-client/1.";
+			send_request = write(cl->client_socket, s.c_str(), s.size());
+			usleep(500);
+			s = "1\r\nAccept-Encoding: gzip\r\n\r\n";
+			send_request = write(cl->client_socket, s.c_str(), s.size());
+			usleep(500);
+
+
+			cl->request.clear();
 		}
 
 		// if (!FD_ISSET(cl->client_socket, &read_set))

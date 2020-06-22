@@ -178,6 +178,8 @@ void parse_request_line(std::string request_line, t_client &client)
 	std::string vno = client.req.version.substr(client.req.version.find("/") + 1);
 	if (vno[vno.length() - 2] == '\r' && vno[vno.length() - 1] == '\n')
 		vno = vno.substr(0, vno.length() - 2);
+	else if (vno[vno.length() - 1] == '\n')
+		vno = vno.substr(0, vno.length() - 1);
 	if(vno.length() > 6)
 	{
 		set_http_status(client, 400);
@@ -290,6 +292,8 @@ int read_chunk_size(char *chunk_size, t_client &client)
 	int num = 0;
 	if (ft_strlen(chunk_size) == 3 && chunk_size[0] == '0' && chunk_size[0] == '\r' && chunk_size[0] == '\n')
 		return 0;
+	else if (ft_strlen(chunk_size) == 2 && chunk_size[0] == '0' && chunk_size[0] == '\n')
+		return 0;
 	for(int i = 0; i < len - 2; i++)
 	{
 		if(!(chunk_size[i] >= '0' && chunk_size[i] <= '9') && !(chunk_size[i] >= 'a' && chunk_size[i] <= 'f'))
@@ -363,7 +367,7 @@ void parse_request_body(t_client &client)
 		}
 		else
 		{
-			if (req.chunk_size_read != (req.raw.substr(0, req.raw.find("\r\n")).length()))
+			if (req.chunk_size_read != (req.raw.substr(0, req.raw.find("\n")).length()))
 			{
 				set_http_status(client, 400);
 				return;
@@ -404,8 +408,10 @@ void parse_request_body(t_client &client)
 
 		if (req.raw.find("\r\n\r\n") == 0)
 			req.raw = req.raw.substr(req.raw.find("\r\n\r\n") + 4);
-		if (req.raw.find("\n\n") == 0)
+		else if (req.raw.find("\n\n") == 0)
 			req.raw = req.raw.substr(req.raw.find("\n\n") + 2);
+		else if (req.raw.find("\r\n\n") == 0)
+			req.raw = req.raw.substr(req.raw.find("\r\n\n") + 3);
 		
 		// else
 		// 	req.raw = "";
@@ -422,6 +428,8 @@ void parse_request_body(t_client &client)
 					req.raw = req.raw.substr(req.raw.find("\r\n\r\n") + 4);
 				else if (req.raw.find("\n\n") != std::string::npos)
 					req.raw = req.raw.substr(req.raw.find("\n\n") + 2);
+				else if (req.raw.find("\r\n\n") != std::string::npos)
+					req.raw = req.raw.substr(req.raw.find("\r\n\n") + 3);
 				else
 					req.raw = ""; 
 				return;
