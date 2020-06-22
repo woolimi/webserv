@@ -9,7 +9,6 @@ void handle_post(t_client &cli, char **env, t_location *loc, bool is_file, std::
 	t_req &req = cli.req;
 	t_res &res = cli.res;
 	bool &is_cgi = cli.req.is_cgi;
-	bool is_file_created = false;
 
 	std::string fname = loc->abs_path.substr(loc->abs_path.find_last_of("/"));
 
@@ -22,17 +21,10 @@ void handle_post(t_client &cli, char **env, t_location *loc, bool is_file, std::
 		is_cgi = true;
 
 	if (is_cgi) {
-		req.body_fname = "body_" + random_fname();
+		req.body_fname = "./obj/" + random_fname();
 		req.body_fd = open(req.body_fname.c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0777);
-	}
-	else
-	{
-		struct stat status;
+	} else {
 		req.body_fname = loc->abs_path + req.path;
-		if (stat(req.body_fname.c_str(), &status) < 0)
-		{
-			is_file_created = true;
-		}
 		req.body_fd = open(req.body_fname.c_str(), O_CREAT | O_WRONLY | O_APPEND, 0777);
 	}
 
@@ -47,7 +39,7 @@ void handle_post(t_client &cli, char **env, t_location *loc, bool is_file, std::
 	int ret = write(req.body_fd, req.body.c_str(), req.body.size());
 	if (ret < req.body.size())
 	{
-		DEBUG("write req.body -> bodyfile failed");
+		debug("write req.body -> bodyfile failed");
 		exit(1);
 	}
 	close(req.body_fd);
@@ -107,28 +99,5 @@ void handle_post(t_client &cli, char **env, t_location *loc, bool is_file, std::
 		set_http_status(cli, 201);
 		res.headers["Location"] = req.path;
 		cli.res_sent = true;
-		/*
-		
-				get file name?
-					get substring "0" OR "filename"
-				if (filename is empty) 
-					no -> 201, create/append to file
-						add location header
-					yes-> 200, no change 
-
-		*/
-		// DEBUG("POST WITHOUT CGI");
-		// if (is_file_created)
-		// {
-			// if (cli.req.loc->client_max_body_size < req.body.length())
-			// 	res.status_code = 413;
-			// else
-			// 	res.status_code = 201;
-			// res.headers["Location"] = req.path;
-			// cli.res_sent = true;
-		// } else {
-		// 	res.status_code = 200;
-		// 	cli.res_sent = true;
-		// }
 	}
 }

@@ -33,8 +33,6 @@
 # define SERVER_TIMEOUT_USEC 0
 # define SERVER_NAME "webserv/1.0"
 # define OK 0
-/* debug */
-#define DEBUG(x) std::cerr << "\033[33m" << (x) << "\033[0m" << std::endl
 
 typedef std::string route;
 
@@ -121,7 +119,6 @@ typedef struct s_client
 	t_server server;
 	int time_stamp;
 	/* debug */
-	std::string id;
 } t_client;
 
 void free_tab(char **args, int length);
@@ -154,13 +151,19 @@ std::string gmt_time_string(time_t &sec);
 int isDirectory(const char *path);
 std::string random_fname(void);
 void set_http_status(t_client &client, int status);
-
-// void handle_head(t_client &cli);
-// void handle_post(t_client &cli);
-// void handle_put(t_client &cli);
-// void handle_delete(t_client &cli);
-// void handle_connect(t_client &cli);
-// void handle_options(t_client &cli);
-// void handle_trace(t_client &cli);
+int islog();
+void log(std::string msg);
+void debug(std::string msg);
+template <typename V>
+void log(std::string msg, V value)
+{
+	if (islog())
+		std::cerr << msg << " : " << value << std::endl;
+}
+template <typename V>
+void debug(std::string msg, V value)
+{
+	std::cerr << "\033[33m" << msg << " : " << value << "\033[0m" << std::endl;
+}
 
 #endif

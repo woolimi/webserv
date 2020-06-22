@@ -71,7 +71,7 @@ bool execute_cgi(t_client &cli, t_location &loc, char **env, std::string &realpa
 {
 	int pid;
 	int status;
-	std::string ranfname = "cgires_" + random_fname();
+	std::string ranfname = "./obj/" + random_fname();
 	int resfd = open(ranfname.c_str(), O_CREAT | O_RDWR | O_TRUNC, 0777);
 	if (resfd < 0)
 	{

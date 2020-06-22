@@ -5,9 +5,7 @@
 void signal_handler(int signo)
 {
 	if (signo == SIGPIPE)
-	{
-		DEBUG("SIGPIPE : sending data to already closed client socket");
-	}
+		return;
 	else if (signo == SIGINT)
 	{
 		HTTP http;
@@ -15,8 +13,8 @@ void signal_handler(int signo)
 		std::vector<t_server> &servers = http.get_servers();
 		for (auto it = clients.begin(); it != clients.end(); ++it)
 		{
-			// unlink(it->req.body_fname.c_str());
-			// unlink(it->res.fname.c_str());
+			unlink(it->req.body_fname.c_str());
+			unlink(it->res.fname.c_str());
 			close(it->res.fd);
 			close(it->socket);
 		}
@@ -35,7 +33,6 @@ int main(int ac, char **av, char **env)
 	{
 		signal(SIGPIPE, signal_handler);
 		signal(SIGINT, signal_handler);
-		int fd = open("new_debug_log", O_CREAT | O_WRONLY | O_TRUNC, 0777);
 		// get config file param. If not exist, use default config
 		ConfigParser conf(ac, av);
 		// set server

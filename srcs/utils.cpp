@@ -1,5 +1,22 @@
 #include "webserv.hpp"
 
+int islog()
+{
+	static int islog = 0;
+	return (islog);
+}
+
+void log(std::string msg)
+{
+	if (islog())
+		std::cerr << msg << std::endl;
+}
+
+void debug(std::string msg)
+{
+	std::cerr << "\033[33m" << msg << "\033[0m" << std::endl;
+}
+
 std::string random_fname(void)
 {
 	std::string ret;
