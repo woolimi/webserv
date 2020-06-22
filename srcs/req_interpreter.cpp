@@ -124,6 +124,7 @@ void parse_request_line(std::string request_line, t_client &client)
 		set_http_status(client, 400);
 		return;
 	}
+	// std::cerr << "[" <<request_line << "]" << std::endl;
 	char **request_line_split = ft_split(request_line.c_str(), " \t");
 	// std::cout <<"Request Line1: "<< request_line << std::endl;
 	while (request_line_split[size] != 0)
@@ -228,7 +229,7 @@ static std::string trim(const std::string& s)
 
 void parse_request_header(t_client &client, std::string header_sub)
 {	
-	// std::cout << header_sub << std::endl;
+	// std::cerr << "Header sub" <<  header_sub << std::endl;
 	t_req &req = client.req;
 	std::string d = "--";
 	if (non_printable(header_sub))
@@ -236,7 +237,7 @@ void parse_request_header(t_client &client, std::string header_sub)
 		set_http_status(client, 400);
 		return;
 	}
-	if (!header_sub.empty() && header_sub[0] == '\r' && header_sub[1] == '\n')
+	if (!header_sub.empty() && ((header_sub[0] == '\r' && header_sub[1] == '\n') || header_sub[0] == '\n'))
 	{
 		// debug
 		// if (count == 5)
@@ -326,13 +327,19 @@ void parse_request_body(t_client &client)
 			return;
 		if (req.chunk_size_read < 0)
 		{
-			req.chunk_size_read = read_chunk_size((char *)req.raw.substr(0, req.raw.find("\r\n")).c_str(), client);
+			if(req.raw.find("\r\n") == std::string::npos && req.raw.find("\n") != std::string::npos)	
+				req.chunk_size_read = read_chunk_size((char *)req.raw.substr(0, req.raw.find("\n")).c_str(), client);
+			else
+				req.chunk_size_read = read_chunk_size((char *)req.raw.substr(0, req.raw.find("\r\n")).c_str(), client);
 			if (req.chunk_size_read < 0)
 			{
 				set_http_status(client, 400);
 			}
-			req.raw = req.raw.substr(req.raw.find("\r\n") + 2);
-			if (req.chunk_size_read == 0 && client.req.raw[0] == '\r' && client.req.raw[1] == '\n')
+			if(req.raw.find("\r\n") == std::string::npos && req.raw.find("\n") != std::string::npos)	
+				req.raw = req.raw.substr(req.raw.find("\n") + 1);
+			else
+				req.raw = req.raw.substr(req.raw.find("\r\n") + 2);
+			if (req.chunk_size_read == 0 && ((client.req.raw[0] == '\r' && client.req.raw[1] == '\n') || client.req.raw[0] == '\n'))
 			{
 				if (client.req.loc->client_max_body_size < req.body.length())
 					set_http_status(client, 413);
@@ -343,16 +350,27 @@ void parse_request_body(t_client &client)
 			return;
 		}
 
-		if (req.chunk_size_read >= req.raw.length() && req.raw.find("\r\n") == std::string::npos)
+		if (req.chunk_size_read >= req.raw.length() && req.raw.find("\r\n") == std::string::npos && req.raw.find("\n") == std::string::npos)
 			return;
 
-		if (req.chunk_size_read != (req.raw.substr(0, req.raw.find("\r\n")).length()))
+		if(req.raw.find("\r\n") != std::string::npos)
 		{
-			set_http_status(client, 400);
-			return;
+			if (req.chunk_size_read != (req.raw.substr(0, req.raw.find("\r\n")).length()))
+			{
+				set_http_status(client, 400);
+				return;
+			}
+		}
+		else
+		{
+			if (req.chunk_size_read != (req.raw.substr(0, req.raw.find("\r\n")).length()))
+			{
+				set_http_status(client, 400);
+				return;
+			}
 		}
 
-		if (req.chunk_size_read == 0 && client.req.raw[0] == '\r' && client.req.raw[1] == '\n')
+		if (req.chunk_size_read == 0 && (( client.req.raw[0] == '\r' && client.req.raw[1] == '\n') || client.req.raw[0] == '\n'))
 		{
 			// std::cerr << "client max: " << client.req.loc->client_max_body_size << std::endl;
 			// std::cerr << "req.body.length: " << req.body.length << std::endl;
@@ -362,16 +380,32 @@ void parse_request_body(t_client &client)
 			client.req_arrived = true;
 			return;
 		}
-
-		if (req.chunk_size_read > (req.raw.substr(0, req.raw.find("\r\n")).length()))
-			req.body += req.raw.substr(0, req.raw.find("\r\n"));
+		if(req.raw.find("\r\n") == std::string::npos && req.raw.find("\n") != std::string::npos)
+		{
+			if (req.chunk_size_read > (req.raw.substr(0, req.raw.find("\n")).length()))
+				req.body += req.raw.substr(0, req.raw.find("\n"));
+			else
+				req.body += req.raw.substr(0, req.chunk_size_read);
+		}
 		else
-			req.body += req.raw.substr(0, req.chunk_size_read);
-		req.raw = req.raw.substr(req.raw.find("\r\n") + 2);
+		{
+			if (req.chunk_size_read > (req.raw.substr(0, req.raw.find("\r\n")).length()))
+				req.body += req.raw.substr(0, req.raw.find("\r\n"));
+			else
+				req.body += req.raw.substr(0, req.chunk_size_read);
+		}
+		
+		
+		if(req.raw.find("\r\n") == std::string::npos && req.raw.find("\n") != std::string::npos)
+			req.raw = req.raw.substr(req.raw.find("\n") + 1);
+		else
+			req.raw = req.raw.substr(req.raw.find("\r\n") + 2);
 		req.chunk_size_read = -1;
 
 		if (req.raw.find("\r\n\r\n") == 0)
 			req.raw = req.raw.substr(req.raw.find("\r\n\r\n") + 4);
+		if (req.raw.find("\n\n") == 0)
+			req.raw = req.raw.substr(req.raw.find("\n\n") + 2);
 		
 		// else
 		// 	req.raw = "";
@@ -386,6 +420,8 @@ void parse_request_body(t_client &client)
 				req.req_body_parsed = 2;
 				if (req.raw.find("\r\n\r\n") != std::string::npos)
 					req.raw = req.raw.substr(req.raw.find("\r\n\r\n") + 4);
+				else if (req.raw.find("\n\n") != std::string::npos)
+					req.raw = req.raw.substr(req.raw.find("\n\n") + 2);
 				else
 					req.raw = ""; 
 				return;

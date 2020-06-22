@@ -123,25 +123,25 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 				// static int x;
 				// if (count > 5)
 				// {
-					std::string tmp(buffer, buffer + nb_read);
-					size_t n = 0;
-					while ((n = tmp.find("\r\n", n)) != std::string::npos)
-					{
-						tmp.replace(n, 2, "RN");
-						n += 2;
-					}
-					n = 0;
-					while ((n = tmp.find("\n", n)) != std::string::npos)
-					{
-						tmp.replace(n, 1, "N");
-						n += 1;
-					}
+					// std::string tmp(buffer, buffer + nb_read);
+					// size_t n = 0;
+					// while ((n = tmp.find("\r\n", n)) != std::string::npos)
+					// {
+					// 	tmp.replace(n, 2, "RN");
+					// 	n += 2;
+					// }
+					// n = 0;
+					// while ((n = tmp.find("\n", n)) != std::string::npos)
+					// {
+					// 	tmp.replace(n, 1, "N");
+					// 	n += 1;
+					// }
 
-					write(3, std::string("\n===sock : " + it->id + "=====\n").c_str(), 17 + it->id.size());
-					if (nb_read > 100)
-						write(3, tmp.c_str(), 100);
-					else
-						write(3, tmp.c_str(), nb_read);
+					// write(3, std::string("\n===sock : " + it->id + "=====\n").c_str(), 17 + it->id.size());
+					// if (nb_read > 100)
+					// 	write(3, tmp.c_str(), 100);
+					// else
+					// 	write(3, tmp.c_str(), nb_read);
 				// }
 				// if (count == 5)
 				// {
@@ -152,35 +152,55 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 
 			}
 
-			if (it->req.raw.find("\r\n") == std::string::npos)
+			if (it->req.raw.find("\r\n") == std::string::npos && it->req.raw.find("\n") == std::string::npos)
 				continue;
 
 			// request line parsing
 			if (it->req.req_line_parsed != 2)
 			{
 				it->req.req_line_parsed = 1;
-				parse_request_line(it->req.raw.substr(0, it->req.raw.find("\r\n")), *it);
+				if((it->req.raw.find("\r\n") == std::string::npos && it->req.raw.find("\n") != std::string::npos) || (it->req.raw.find("\r\n") > it->req.raw.find("\n")))
+					parse_request_line(it->req.raw.substr(0, it->req.raw.find("\n")), *it);
+				else
+					parse_request_line(it->req.raw.substr(0, it->req.raw.find("\r\n")), *it);
+				// std::cerr << "Status code: " << it->res.status_code << std::endl;
 				it->req.req_line_parsed = 2;
 				if (!it->req.raw.empty())
-					it->req.raw = it->req.raw.substr(it->req.raw.find("\r\n") + 2);
+				{
+					if((it->req.raw.find("\r\n") == std::string::npos && it->req.raw.find("\n") != std::string::npos) || (it->req.raw.find("\r\n") > it->req.raw.find("\n")))
+					
+						it->req.raw = it->req.raw.substr(it->req.raw.find("\n") + 1);
+					else
+						it->req.raw = it->req.raw.substr(it->req.raw.find("\r\n") + 2);
+				}
 			}
 			// request header parsing
 			if (it->req.req_line_parsed == 2 && it->req.req_header_parsed != 2)
 			{
 				int x = 0;
-				if (it->req.raw.empty() || it->req.raw.find("\r\n") == std::string::npos)
+				if (it->req.raw.empty() || (it->req.raw.find("\r\n") == std::string::npos && it->req.raw.find("\r\n") == std::string::npos))
 					continue;
 				it->req.req_header_parsed = 1;
 				while (it->req.req_header_parsed != 2 && !it->req.raw.empty())
 				{
-					if (it->req.raw.find("\r\n") == std::string::npos)
+					if (it->req.raw.find("\r\n") == std::string::npos && it->req.raw.find("\n") == std::string::npos)
 					{
 						x = 1;
 						break;
 					}
 					// std::cout << "basket\n";
-					parse_request_header(*it, it->req.raw.substr(0, it->req.raw.find("\r\n") + 2));
-					it->req.raw = it->req.raw.substr(it->req.raw.find("\r\n") + 2);
+					if((it->req.raw.find("\r\n") == std::string::npos && it->req.raw.find("\n") != std::string::npos) || (it->req.raw.find("\r\n") > it->req.raw.find("\n")))
+					{
+
+						parse_request_header(*it, it->req.raw.substr(0, it->req.raw.find("\n") + 1));
+						it->req.raw = it->req.raw.substr(it->req.raw.find("\n") + 1);
+					}
+					else
+					{
+						parse_request_header(*it, it->req.raw.substr(0, it->req.raw.find("\r\n") + 2));
+						it->req.raw = it->req.raw.substr(it->req.raw.find("\r\n") + 2);
+					}	
+					
 				}
 				if (x)
 					continue;
@@ -217,7 +237,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 		if (it->req_arrived && !it->res.sent_head && FD_ISSET(it->socket, &write_set))
 		{
 			/* debug */
-			write(3, "\nclient id : ", 13);
+			write(3, "\n\nclient id : ", 14);
 			write(3, it->id.c_str(), it->id.size());
 			write(3, " status code : ", 15);
 			write(3, std::to_string(it->res.status_code).c_str(), std::to_string(it->res.status_code).size());
@@ -536,7 +556,7 @@ void HTTP::skip_leading_empty_line(t_client &cli, char *buffer, size_t nb_read)
 				i++;
 			// cli.req.raw = &cli.req.raw[i];
 			cli.req.raw.erase(0, i); // erase(0, i)
-			return;
+			return ;
 		}
 		while (buffer[i] && is_newline_char(buffer[i])) //skip leading empty lines before the request
 			i++;
@@ -552,6 +572,7 @@ void HTTP::skip_leading_empty_line(t_client &cli, char *buffer, size_t nb_read)
 	else
 		cli.req.raw.insert(cli.req.raw.end(), buffer + i, buffer + nb_read); // insert
 		// cli.req.raw += std::string(buffer);
+	return;
 }
 
 const char *HTTP::FailToSetServerSocket::what() const throw()
