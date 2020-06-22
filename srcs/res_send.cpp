@@ -1,11 +1,25 @@
 #include "webserv.hpp"
 
+extern int count;
+
 bool send_res_head(t_client &cli)
 {
 	t_res &res = cli.res;
 
 	// std::cerr << "Header: " << cli.res.head << std::endl;
 	int ret = send(cli.socket, cli.res.head.c_str(), cli.res.head.size(), MSG_NOSIGNAL);
+
+	/* debug */
+	if (count > 1) {
+		write(3, "\nclient id : ", 13);
+		write(3, cli.id.c_str(), cli.id.size());
+		write(3, " status code : ", 15);
+		write(3, std::to_string(cli.res.status_code).c_str(), std::to_string(cli.res.status_code).size());
+		write(3, "\n", 1);
+		sleep(1);
+	}
+	/* debug */
+
 	if (ret < 0)
 		return false; // disconnect
 	if (ret == 0)

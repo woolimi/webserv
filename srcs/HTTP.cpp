@@ -121,9 +121,11 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 				// DEBUG("read: ");
 				// DEBUG(buffer);
 				// static int x;
-				// if (count > 5)
-				// {
-					std::string tmp(buffer, buffer + nb_read);
+				std::string tmp(buffer, buffer + nb_read);
+				if (count > 1 && tmp.size() != 0)
+				{
+					// std::cout << tmp.size() << "";
+					// std::cout << "nb_read" << nb_read << std::endl;
 					size_t n = 0;
 					while ((n = tmp.find("\r\n", n)) != std::string::npos)
 					{
@@ -142,7 +144,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 						write(3, tmp.c_str(), 100);
 					else
 						write(3, tmp.c_str(), nb_read);
-				// }
+				}
 				// if (count == 5)
 				// {
 				// 	DEBUG(buffer);
@@ -216,20 +218,12 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 		// send res head
 		if (it->req_arrived && !it->res.sent_head && FD_ISSET(it->socket, &write_set))
 		{
-			/* debug */
-			write(3, "\nclient id : ", 13);
-			write(3, it->id.c_str(), it->id.size());
-			write(3, " status code : ", 15);
-			write(3, std::to_string(it->res.status_code).c_str(), std::to_string(it->res.status_code).size());
-			write(3, "\n", 1);
-			/* debug */
-
 			if (!send_res_head(*it)) {
 				disconnect(init_set, fds, it);
 				continue;
 			}
 
-			if (it->req.method == "GET")
+			if (it->res.status_code == 413)
 				count++;
 
 			// debug
@@ -292,12 +286,15 @@ void HTTP::manage_servers(fd_set &read_set, fd_set &init_set, std::set<int> &fds
 				continue;
 			new_client.socket = accept(it->socket, (sockaddr *)&new_client.addr, &new_client.addr_len);
 
-			/* debug */
-			new_client.id = random_fname();
-			write(3, "\nconnected client id : ", 22);
-			write(3, new_client.id.c_str(), new_client.id.size());
-			write(3, "\n", 1);
-			/* debug */
+			if (count > 1)
+			{
+				/* debug */
+				new_client.id = random_fname();
+				write(3, "\nconnected client id : ", 22);
+				write(3, new_client.id.c_str(), new_client.id.size());
+				write(3, "\n", 1);
+				/* debug */
+			}
 
 			if (new_client.socket < 0)
 				throw FailToAccept();
@@ -316,11 +313,13 @@ void HTTP::manage_servers(fd_set &read_set, fd_set &init_set, std::set<int> &fds
 
 void HTTP::disconnect(fd_set &init_set, std::set<int> &fds, std::vector<t_client>::iterator &it)
 {
-	/* debug */
-	write(3, "\ndisconnect client id : ", 24);
-	write(3, it->id.c_str(), it->id.size());
-	write(3, "\n", 1);
-	/* debug */
+	if (count > 1) {
+		/* debug */
+		write(3, "\ndisconnect client id : ", 24);
+		write(3, it->id.c_str(), it->id.size());
+		write(3, "\n", 1);
+		/* debug */
+	}
 	std::cout << "client " + it->id + " disconnected\n";
 
 	fds.erase(it->socket);
