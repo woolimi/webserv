@@ -152,7 +152,10 @@ void make_folder_list_res(t_client &cli, t_location *loc, std::string &uri_path,
 			res.body += "\t";
 		res.body += buff;
 		res.body += "\t\t";
-		res.body += std::to_string(info.st_size);
+		if (S_ISDIR(info.st_mode))
+			res.body += "-";
+		else
+			res.body += std::to_string(info.st_size);
 		res.body += "\n";
 	}
 	chdir(orig_path.c_str());
