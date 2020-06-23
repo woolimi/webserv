@@ -72,7 +72,6 @@ void make_file_res(t_client &cli, t_location *loc, char **env, std::string &file
 			std::string attr = tmp.substr(0, pos);
 			if (attr == "Status") {
 				continue;
-				// res.status_code = std::atoi(tmp.substr(pos + 2).c_str());
 			}
 			else
 				res.headers[attr] = tmp.substr(pos + 2);

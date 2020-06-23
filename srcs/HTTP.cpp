@@ -105,9 +105,10 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 				// nothing to read
 				if (nb_read < 0) {
 					nb_read = 0;
-				}
+				} else
+					renew_client_timestamp(*it);
+				
 				buffer[nb_read] = '\0';
-				renew_client_timestamp(*it);
 				skip_leading_empty_line(*it, buffer, nb_read);
 			}
 
