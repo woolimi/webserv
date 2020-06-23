@@ -18,6 +18,7 @@
 # include <vector>
 # include <map>
 # include <set>
+# include <list>
 # include <netinet/in.h>
 # include <arpa/inet.h>
 # include <iostream>
@@ -45,7 +46,7 @@ typedef struct s_location
 	std::map<std::string, std::string> cgi;
 	std::string abs_path;
 	std::string upload_folder;
-	size_t client_max_body_size;
+	ssize_t client_max_body_size;
 	// cgi["extension"] = ".php";
 	// cgi["paths"] = "/usr/bin/php-cgi";
 } t_location;

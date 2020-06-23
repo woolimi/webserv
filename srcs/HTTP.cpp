@@ -1,19 +1,19 @@
 #include "HTTP.hpp"
 
-std::vector<t_server> HTTP::servers;
-std::vector<t_client> HTTP::clients;
+std::list<t_server> HTTP::servers;
+std::list<t_client> HTTP::clients;
 
 HTTP::HTTP()
 {
 }
 
-HTTP::HTTP(std::vector<t_server> &srvs)
+HTTP::HTTP(std::list<t_server> &srvs)
 {
 	servers = srvs;
 
 	// set server socket and bind() / listen()
 	int reuse_port = 1;
-	std::vector<t_server>::iterator it;
+	std::list<t_server>::iterator it;
 	for (it = servers.begin(); it != servers.end(); ++it)
 	{
 		it->addr_len = sizeof(it->addr);
@@ -48,7 +48,7 @@ void HTTP::run(char **env)
 	int fdmax;
 	fd_set read_set, write_set, init_set;
 	std::set<int> fds;
-	std::vector<t_server>::iterator it;
+	std::list<t_server>::iterator it;
 
 	FD_ZERO(&read_set);
 	FD_ZERO(&write_set);
@@ -76,7 +76,7 @@ void HTTP::run(char **env)
 
 void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set, std::set<int> &fds, char **env)
 {
-	std::vector<t_client>::iterator it;
+	std::list<t_client>::iterator it;
 	char buffer[MAX_BUFFER_SIZE + 1];
 	ssize_t nb_read = 0;
 	static int log_fd;
@@ -239,7 +239,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 void HTTP::manage_servers(fd_set &read_set, fd_set &init_set, std::set<int> &fds)
 {
 	t_client new_client;
-	std::vector<t_server>::iterator it;
+	std::list<t_server>::iterator it;
 
 	init_client(new_client);
 	for (it = servers.begin(); it != servers.end(); ++it)
@@ -263,7 +263,7 @@ void HTTP::manage_servers(fd_set &read_set, fd_set &init_set, std::set<int> &fds
 	}
 }
 
-void HTTP::disconnect(fd_set &init_set, std::set<int> &fds, std::vector<t_client>::iterator &it)
+void HTTP::disconnect(fd_set &init_set, std::set<int> &fds, std::list<t_client>::iterator &it)
 {
 	fds.erase(it->socket);
 	FD_CLR(it->socket, &init_set);
@@ -501,12 +501,12 @@ const char *HTTP::FailToAccept::what() const throw()
 	return str.c_str();
 }
 
-std::vector<t_client> &HTTP::get_clients()
+std::list<t_client> &HTTP::get_clients()
 {
 	return this->clients;
 }
 
-std::vector<t_server> &HTTP::get_servers()
+std::list<t_server> &HTTP::get_servers()
 {
 	return this->servers;
 }
