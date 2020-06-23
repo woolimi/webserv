@@ -150,7 +150,7 @@ void parse_request_line(std::string request_line, t_client &client)
 		return;
 	}
 	uri_decode(client);
-	client.req.loc = find_matched_location(client.server, client.req.path);
+	client.req.loc = find_matched_location(client.server, client.req.path, client);
 	// std::cout << "path: " << client.req.path << std::endl;
 	// std::cout << "qs: " << client.req.query_string << std::endl;
 	

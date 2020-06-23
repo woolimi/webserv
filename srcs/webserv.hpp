@@ -118,7 +118,6 @@ typedef struct s_client
 	t_res res;
 	t_server server;
 	int time_stamp;
-	/* debug */
 } t_client;
 
 void free_tab(char **args, int length);
@@ -137,9 +136,9 @@ void handle_options(t_client &cli, char **env, t_location *loc, bool is_file, st
 void handle_trace(t_client &cli, char **env, t_location *loc, bool is_file, std::string folder_path, std::string file);
 void handle_delete(t_client &cli, char **env, t_location *loc, bool is_file, std::string folder_path, std::string file);
 std::string int_to_hexstr(int n);
-t_location *find_matched_location(t_server &serv, std::string &folder_path);
+t_location *find_matched_location(t_server &serv, std::string &folder_path, t_client &cli);
 bool execute_cgi(t_client &cli, t_location &loc, char **env, std::string &real_path, std::string &ext);
-void make_folder_list_res(t_client &cli, t_location *loc, std::string &uri_path, std::string &real_path);
+void make_folder_list_res(t_client &cli, t_location *loc, std::string &real_path);
 void make_file_res(t_client &cli, t_location *loc, char **env, std::string &real_path, std::string &file);
 int file_check(std::string file_path);
 void renew_client_timestamp(t_client &cli);
