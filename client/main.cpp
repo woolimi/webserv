@@ -206,11 +206,6 @@ void send_request_and_receive_respond(const std::string &server_name, const std:
 			cl->request.clear();
 		}
 
-		// if (!FD_ISSET(cl->client_socket, &read_set))
-		// {	// nothing to read on socket, wait 1sec...
-		// 	std::cout << "here" << std::endl;
-		// }
-
 		if (cl->request.empty() && FD_ISSET(cl->client_socket, &read_set))
 		{
 			char buff[BUFF_SIZE + 1];
