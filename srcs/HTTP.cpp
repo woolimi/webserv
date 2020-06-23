@@ -221,6 +221,12 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 				disconnect(init_set, fds, it);
 				continue;
 			}
+			if (it->res_sent == true && it->req.headers.find("user-agent") != it->req.headers.end()
+				&& it->req.headers["user-agent"].find("Mozilla") != std::string::npos)
+			{
+				disconnect(init_set, fds, it);
+				continue;
+			}
 			renew_client_timestamp(*it);
 		}
 

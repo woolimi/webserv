@@ -27,7 +27,7 @@ static char **cgi_env(t_client &cli, char **env, std::string &real_path)
 	new_env["PATH_INFO"] = cli.req.path;
 	new_env["PATH_TRANSLATED"] = "";
 	new_env["QUERY_STRING"] = cli.req.query_string;
-	new_env["REMOTE_ADDR"] = inet_ntoa(cli.addr.sin_addr); // ??
+	new_env["REMOTE_ADDR"] = inet_ntoa(cli.addr.sin_addr);
 	new_env["REMOTE_IDENT"] = "";
 	new_env["REMOTE_USER"] = "";
 	new_env["REQUEST_METHOD"] = req.method;

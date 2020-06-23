@@ -19,7 +19,7 @@ bool send_res_body(t_client &cli)
 {
 	t_res &res = cli.res;
 
-	int ret = send(cli.socket, cli.res.body.c_str(), cli.res.body.size(), MSG_NOSIGNAL);
+	int ret = write(cli.socket, cli.res.body.c_str(), cli.res.body.size());
 	if (ret != 0)
 	
 	if (ret < 0)
