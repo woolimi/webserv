@@ -30,6 +30,7 @@ static void make_res_header(t_res &res)
 
 static void make_default_error_body(t_res &res)
 {
+	res.body.clear();
 	res.body += "<html>\n";
 	res.body += "\t<head>\n";
 	res.body += "\t\t<title>" + std::to_string(res.status_code) + " " + HttpStatus::reasonPhrase(res.status_code) + "</title>\n";

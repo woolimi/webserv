@@ -108,3 +108,4 @@ git pull origin master
 * [rfc7234](https://tools.ietf.org/html/rfc7234)
 * [rfc7235](https://tools.ietf.org/html/rfc7235)
 * [HTTP basics](https://www.ntu.edu.sg/home/ehchua/programming/webprogramming/HTTP_Basics.html)
+* [select() readset, writeset](https://notes.shichao.io/unp/ch6/#readset-writeset-and-exceptset-as-value-result-arguments)
