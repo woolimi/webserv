@@ -1,4 +1,0 @@
-GET /YoupiBanane HTTP/1.1
-Host: localhost
-Accept-Charsets: UTF-8
-

@@ -1,7 +1,0 @@
-1 : GET / HTTP/1.1RNHost: localhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-
-2 : Encodin
-3 : g: gzip
-4 : N
-5 : N
-
-client id : 9uKOgYZqIeSgLI4 status code : 200
