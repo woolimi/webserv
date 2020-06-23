@@ -103,7 +103,7 @@ void make_file_res(t_client &cli, t_location *loc, char **env, std::string &file
 		res.status_code = 200;
 }
 
-void make_folder_list_res(t_client &cli, t_location *loc, std::string &uri_path, std::string &real_path)
+void make_folder_list_res(t_client &cli, t_location *loc, std::string &real_path)
 {
 	char buff[256];
 	t_res &res = cli.res;
@@ -112,19 +112,19 @@ void make_folder_list_res(t_client &cli, t_location *loc, std::string &uri_path,
 	std::set<std::string> fnames;
 	struct stat info;
 	std::string orig_path = getcwd(buff, 256);
-	uri_path = cli.req.path;
 
 	if (chdir(real_path.c_str()) < 0 || !(dp = opendir("./")))
 	{
 		res.status_code = 404;
+		chdir(orig_path.c_str());
 		return;
 	}
 	res.body += "<html>\n";
 	res.body += "\t<head>\n";
-	res.body += "\t\t<title>Index of " + uri_path + "</title>\n";
+	res.body += "\t\t<title>Index of " + cli.req.path + "</title>\n";
 	res.body += "\t</head>\n";
 	res.body += "\t<body bgcolor=\"white\">\n";
-	res.body += "\t\t<h1>Index of " + uri_path + "</h1>\n";
+	res.body += "\t\t<h1>Index of " + cli.req.path + "</h1>\n";
 	res.body += "\t<hr>\n\t<pre>\n";
 
 	while ((entry = readdir(dp)) != NULL)

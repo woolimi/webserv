@@ -1,1 +1,7 @@
-GET / HTTP/1.1RNHost: localllhost:8080RNUser-Agent: Go-http-client/1.1RNAccept-Encoding: gzipRNN
+GET / HTTP/1.1
+Host: localhost
+
+
+GET / HTTP/1.1
+Host: localhost
+

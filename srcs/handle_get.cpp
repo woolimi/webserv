@@ -12,31 +12,37 @@ std::string make_real_path(std::string &root, std::string &path)
 void handle_get(t_client &cli, char **env, t_location *loc, bool is_file, std::string folder_path, std::string file)
 {
 	t_req &req = cli.req;
-	std::string real_path = loc->abs_path;
 
 	if (is_file)
-		make_file_res(cli, loc, env, real_path, file);
+		make_file_res(cli, loc, env, folder_path, file);
 	else
 	{
+		if (folder_path == "")
+			folder_path = "/";
+		if (*folder_path.rbegin() != '/')
+			folder_path += "/";
+
 		std::string file_path;
-		// folder with index index.php index.html
-		for (auto it = loc->index.begin(); it != loc->index.end(); ++it)
+		// folder with index youpi.bad_extension
+		if (!loc->index.empty())
 		{
-			file_path.clear();
-			file_path = real_path + *it;
-			if (file_check(file_path) == OK)
+			for (auto it = loc->index.begin(); it != loc->index.end(); ++it)
 			{
-				make_file_res(cli, loc, env, file_path, *it);
-				return;
+				file_path.clear();
+				file_path = folder_path + *it;
+				if (file_check(file_path) == OK)
+				{
+					make_file_res(cli, loc, env, file_path, *it);
+					return;
+				}
 			}
+			cli.res.status_code = 404;
+			return;
 		}
+
 		// folder listing
 		if (loc->autoindex == "on")
-		{
-			if (folder_path == "")
-				folder_path = "/";
-			make_folder_list_res(cli, loc, folder_path, real_path);
-		}
+			make_folder_list_res(cli, loc, folder_path);
 		else
 			cli.res.status_code = 404;
 	}

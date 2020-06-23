@@ -79,7 +79,7 @@ std::string int_to_hexstr(int n)
 	return ret;
 }
 
-t_location *find_matched_location(t_server &serv, std::string &path)
+t_location *find_matched_location(t_server &serv, std::string &path, t_client &cli)
 {
 	t_location *ret = &serv.location["/"];
 	size_t max_matched_size = 0;
