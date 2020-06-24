@@ -74,7 +74,7 @@ typedef struct s_req
 	int req_header_parsed;// 0 - Not Started, 1 - Started, 2 - Complete
 	int req_body_parsed;// 0 - Not Started, 1 - Started, 2 - Complete
 	int content_length;
-	int chunk_size_read;
+	ssize_t chunk_size_read;
 	std::string version;
 	/* raw data */
 	std::string raw;

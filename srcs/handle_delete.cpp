@@ -2,6 +2,8 @@
 
 void handle_delete(t_client &cli, char **env, t_location *loc, bool is_file, std::string folder_path, std::string file)
 {
+    (void)env;
+
 	struct stat fileStat;
 	if(stat(folder_path.c_str(), &fileStat) < 0 || !is_file)    
 	{
@@ -25,5 +27,5 @@ void handle_delete(t_client &cli, char **env, t_location *loc, bool is_file, std
 		return ;
 	}
 	unlink(folder_path.c_str());
-	cli.res.status_code = 200;
+	cli.res.status_code = 204;
 }

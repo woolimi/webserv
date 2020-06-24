@@ -17,6 +17,8 @@
 #include <arpa/inet.h>
 
 #define BUFF_SIZE 4096
+#define NO_CONTENT "204"
+#define CONTENT_CREATED "201"
 
 typedef std::string attr;
 typedef std::string value;
@@ -201,6 +203,9 @@ void req_response(t_clients *cl, std::string port, std::string server)
 		std::string response(buff);
 		size_t pos = response.find(" ");
 		std::string status_code = response.substr(pos + 1, 3);
+		// if (status_code == NO_CONTENT)
+		// 	status_code = CONTENT_CREATED;
+
 		// std::cout << "status: " << status_code << std::endl;
 		std::string res_content;
 		res_content = "#" + std::to_string(req_num) + " " + status_code + "\n";

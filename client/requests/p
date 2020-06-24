@@ -1,0 +1,3 @@
+DELETE /upload/first_file HTTP/1.1
+Host: localhost
+

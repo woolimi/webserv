@@ -70,6 +70,8 @@ static char **cgi_env(t_client &cli, char **env, std::string &real_path)
 
 bool execute_cgi(t_client &cli, t_location &loc, char **env, std::string &realpath, std::string &ext)
 {
+	(void)ext;
+
 	int pid;
 	int status;
 	std::string ranfname = "./obj/" + random_fname();

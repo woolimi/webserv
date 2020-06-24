@@ -43,7 +43,6 @@ void make_file_res(t_client &cli, t_location *loc, char **env, std::string &file
 	}
 	// file info
 	stat(file_path.c_str(), &info);
-	size_t file_size = info.st_size;
 	std::string ext = "";
 	if (file.find(".") != std::string::npos)
 		ext = file.substr(file.find_last_of('.'));
@@ -104,6 +103,7 @@ void make_file_res(t_client &cli, t_location *loc, char **env, std::string &file
 
 void make_folder_list_res(t_client &cli, t_location *loc, std::string &real_path)
 {
+	(void)loc;
 	char buff[256];
 	t_res &res = cli.res;
 	DIR *dp = NULL;

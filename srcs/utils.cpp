@@ -22,7 +22,6 @@ std::string random_fname(void)
 	std::string ret;
 	std::string charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 	int nb_char = 15;
-	int i = 0;
 	while (nb_char-- > 0)
 	{
 		ret += charset[rand() % charset.size()];
@@ -81,6 +80,7 @@ std::string int_to_hexstr(int n)
 
 t_location *find_matched_location(t_server &serv, std::string &path, t_client &cli)
 {
+	(void)cli;
 	t_location *ret = &serv.location["/"];
 	size_t max_matched_size = 0;
 	size_t pos;
