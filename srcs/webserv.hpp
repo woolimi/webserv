@@ -18,6 +18,7 @@
 # include <vector>
 # include <map>
 # include <set>
+# include <list>
 # include <netinet/in.h>
 # include <arpa/inet.h>
 # include <iostream>
@@ -45,7 +46,7 @@ typedef struct s_location
 	std::map<std::string, std::string> cgi;
 	std::string abs_path;
 	std::string upload_folder;
-	size_t client_max_body_size;
+	ssize_t client_max_body_size;
 	// cgi["extension"] = ".php";
 	// cgi["paths"] = "/usr/bin/php-cgi";
 } t_location;
@@ -131,7 +132,7 @@ std::string mimetype(const std::string &extension);
 int is_newline_char(char c);
 void handle_get(t_client &cli, char **env, t_location *loc, bool is_file, std::string folder_path, std::string file);
 void handle_put(t_client &cli, char **env, t_location *loc, bool is_file, std::string folder_path, std::string file);
-void handle_post(t_client &cli, char **env, t_location *loc, bool is_file, std::string folder_path, std::string file);
+bool handle_post(t_client &cli, char **env, t_location *loc, bool is_file, std::string folder_path, std::string file);
 void handle_options(t_client &cli, char **env, t_location *loc, bool is_file, std::string folder_path, std::string file);
 void handle_trace(t_client &cli, char **env, t_location *loc, bool is_file, std::string folder_path, std::string file);
 void handle_delete(t_client &cli, char **env, t_location *loc, bool is_file, std::string folder_path, std::string file);

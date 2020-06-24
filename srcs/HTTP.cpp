@@ -1,19 +1,19 @@
 #include "HTTP.hpp"
 
-std::vector<t_server> HTTP::servers;
-std::vector<t_client> HTTP::clients;
+std::list<t_server> HTTP::servers;
+std::list<t_client> HTTP::clients;
 
 HTTP::HTTP()
 {
 }
 
-HTTP::HTTP(std::vector<t_server> &srvs)
+HTTP::HTTP(std::list<t_server> &srvs)
 {
 	servers = srvs;
 
 	// set server socket and bind() / listen()
 	int reuse_port = 1;
-	std::vector<t_server>::iterator it;
+	std::list<t_server>::iterator it;
 	for (it = servers.begin(); it != servers.end(); ++it)
 	{
 		it->addr_len = sizeof(it->addr);
@@ -48,7 +48,7 @@ void HTTP::run(char **env)
 	int fdmax;
 	fd_set read_set, write_set, init_set;
 	std::set<int> fds;
-	std::vector<t_server>::iterator it;
+	std::list<t_server>::iterator it;
 
 	FD_ZERO(&read_set);
 	FD_ZERO(&write_set);
@@ -76,7 +76,7 @@ void HTTP::run(char **env)
 
 void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set, std::set<int> &fds, char **env)
 {
-	std::vector<t_client>::iterator it;
+	std::list<t_client>::iterator it;
 	char buffer[MAX_BUFFER_SIZE + 1];
 	ssize_t nb_read = 0;
 	static int log_fd;
@@ -105,9 +105,10 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 				// nothing to read
 				if (nb_read < 0) {
 					nb_read = 0;
-				}
+				} else
+					renew_client_timestamp(*it);
+				
 				buffer[nb_read] = '\0';
-				renew_client_timestamp(*it);
 				skip_leading_empty_line(*it, buffer, nb_read);
 			}
 
@@ -124,7 +125,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 				it->req.req_line_parsed = 2;
 				if (!it->req.raw.empty())
 				{
-					if((it->req.raw.find("\r\n") == std::string::npos && it->req.raw.find("\n") != std::string::npos) || ((it->req.raw.find("\r\n") != std::string::npos && it->req.raw.find("\n") != std::string::npos) && (it->req.raw.find("\r\n") > it->req.raw.find("\n"))))
+					if ((it->req.raw.find("\r\n") == std::string::npos && it->req.raw.find("\n") != std::string::npos) || ((it->req.raw.find("\r\n") != std::string::npos && it->req.raw.find("\n") != std::string::npos) && (it->req.raw.find("\r\n") > it->req.raw.find("\n"))))
 						it->req.raw = it->req.raw.substr(it->req.raw.find("\n") + 1);
 					else
 						it->req.raw = it->req.raw.substr(it->req.raw.find("\r\n") + 2);
@@ -166,6 +167,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 					it->req.req_body_parsed = 2;
 				else
 					parse_request_body(*it);
+				continue;
 			}
 		}
 
@@ -177,7 +179,8 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 		{
 			if (it->res.status_code == 0)
 			{
-				handle_methods(*it, env);
+				if (!handle_methods(*it, env))
+					continue;
 				res_generator(*it);
 			}
 			else
@@ -221,6 +224,12 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 				disconnect(init_set, fds, it);
 				continue;
 			}
+			if (it->res_sent == true && it->req.headers.find("user-agent") != it->req.headers.end()
+				&& it->req.headers["user-agent"].find("Mozilla") != std::string::npos)
+			{
+				disconnect(init_set, fds, it);
+				continue;
+			}
 			renew_client_timestamp(*it);
 		}
 
@@ -233,20 +242,22 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 void HTTP::manage_servers(fd_set &read_set, fd_set &init_set, std::set<int> &fds)
 {
 	t_client new_client;
-	std::vector<t_server>::iterator it;
+	std::list<t_server>::iterator it;
 
 	init_client(new_client);
 	for (it = servers.begin(); it != servers.end(); ++it)
 	{
 		if (FD_ISSET(it->socket, &read_set))
 		{
-			if (clients.size() > MAX_CLIENT)
-				continue;
 			new_client.socket = accept(it->socket, (sockaddr *)&new_client.addr, &new_client.addr_len);
 			if (new_client.socket < 0)
 				throw FailToAccept();
 			if (fcntl(new_client.socket, F_SETFL, O_NONBLOCK) < 0)
 				throw FailToSetClientSocket();
+			if (clients.size() > MAX_CLIENT)
+				continue;
+			if (clients.size() > MAX_CLIENT - 50)
+				res_too_many_requests(new_client);
 			log("client connected");
 			renew_client_timestamp(new_client);
 			new_client.server = *it;
@@ -257,7 +268,7 @@ void HTTP::manage_servers(fd_set &read_set, fd_set &init_set, std::set<int> &fds
 	}
 }
 
-void HTTP::disconnect(fd_set &init_set, std::set<int> &fds, std::vector<t_client>::iterator &it)
+void HTTP::disconnect(fd_set &init_set, std::set<int> &fds, std::list<t_client>::iterator &it)
 {
 	fds.erase(it->socket);
 	FD_CLR(it->socket, &init_set);
@@ -274,6 +285,7 @@ void HTTP::disconnect(fd_set &init_set, std::set<int> &fds, std::vector<t_client
 
 	it = clients.erase(it);
 	--it;
+	log("client disconnected");
 }
 
 void HTTP::init_client(t_client &client)
@@ -292,6 +304,8 @@ void HTTP::init_client(t_client &client)
 	client.res.status_code = 0;
 	client.req.chunk_size_read = -1;
 	client.req.is_cgi = false;
+	client.req.body_fd = -1;
+	client.req.body_fname.clear();
 	/* res */
 	client.res.status_code = 0;
 	client.res.sent_head = false;
@@ -324,6 +338,7 @@ void HTTP::reset_req_and_res(t_client &cli)
 	cli.req.method.clear();
 	cli.req.path.clear();
 	cli.req.chunk_size_read = -1;
+	cli.req.body_fd = -1;
 	close(cli.res.fd);
 	cli.res.fd = -1;
 	if (!cli.res.fname.empty())
@@ -353,7 +368,7 @@ void HTTP::http_select(int fdmax, fd_set &read_set, fd_set &write_set, struct ti
 	}
 }
 
-void HTTP::handle_methods(t_client &cli, char **env)
+bool HTTP::handle_methods(t_client &cli, char **env)
 {
 	t_server &serv = cli.server;
 	t_req &req = cli.req;
@@ -406,22 +421,23 @@ void HTTP::handle_methods(t_client &cli, char **env)
 			allow = allow + ", " + *it1;
 		cli.res.headers["Allow"] = allow;
 		cli.res.status_code = 405;
-		return ;
+		return true;
 	}
 
 	if (req.method == "GET" || req.method == "HEAD")
 		handle_get(cli, env, loc, is_file, folder_path, file);
 	else if (req.method == "PUT")
 		handle_put(cli, env, loc, is_file, folder_path, file);
-	else if (req.method == "POST")
-		handle_post(cli, env, loc, is_file, folder_path, file);
+	else if (req.method == "POST") {
+		return handle_post(cli, env, loc, is_file, folder_path, file);
+	}
 	else if (req.method == "OPTIONS")
 		handle_options(cli, env, loc, is_file, folder_path, file);
 	else if (req.method == "TRACE")
 		handle_trace(cli, env, loc, is_file, folder_path, file);
 	else if (req.method == "DELETE")
 		handle_delete(cli, env, loc, is_file, folder_path, file);
-
+	return true;
 }
 
 bool HTTP::check_client_timeout(t_client &cli)
@@ -433,20 +449,17 @@ bool HTTP::check_client_timeout(t_client &cli)
 		cli.res.status_code = 408; // client request timeout
 		res_generator(cli);
 		std::string str = cli.res.head + cli.res.body;
-		send(cli.socket, str.c_str(), str.size(), MSG_NOSIGNAL);
+		send(cli.socket, str.c_str(), str.size(), MSG_NOSIGNAL); // in any case we cut connection
 		return true;
 	}
 	return false;
 }
 
-void HTTP::res_service_unavailable(t_client &cli)
+void HTTP::res_too_many_requests(t_client &cli)
 {
-	cli.res.status_code = 503; // Service Unavailable
-	res_generator(cli);
-	send(cli.socket, cli.res.head.c_str(), cli.res.head.size(), MSG_NOSIGNAL);
+	cli.res.status_code = 429; // To many requests
+	cli.res.headers["Retry-After"] = "30";
 	cli.req_arrived = true;
-	cli.res_sent = true;
-	log("max client exceed disconnect");
 }
 
 void HTTP::skip_leading_empty_line(t_client &cli, char *buffer, size_t nb_read)
@@ -495,12 +508,12 @@ const char *HTTP::FailToAccept::what() const throw()
 	return str.c_str();
 }
 
-std::vector<t_client> &HTTP::get_clients()
+std::list<t_client> &HTTP::get_clients()
 {
 	return this->clients;
 }
 
-std::vector<t_server> &HTTP::get_servers()
+std::list<t_server> &HTTP::get_servers()
 {
 	return this->servers;
 }

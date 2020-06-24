@@ -11,10 +11,9 @@ std::string make_real_path(std::string &root, std::string &path)
 
 void handle_get(t_client &cli, char **env, t_location *loc, bool is_file, std::string folder_path, std::string file)
 {
-	t_req &req = cli.req;
-
-	if (is_file)
+	if (is_file) {
 		make_file_res(cli, loc, env, folder_path, file);
+	}
 	else
 	{
 		if (folder_path == "")
