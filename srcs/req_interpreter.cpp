@@ -55,7 +55,7 @@ int ft_pow(int x, unsigned int y)
 unsigned int hex2dec(std::string hex)
 {
     unsigned int result = 0;
-    for (int i=0; i<hex.length(); i++) {
+    for (int i=0; i < (int)hex.length(); i++) {
 		if (ft_isalpha(hex[i]))
 			hex[i] = toupper(hex[i]);
         if (hex[i]>=48 && hex[i]<=57)
@@ -104,7 +104,7 @@ int	non_printable(std::string str)
 	int i;
 
 	i = 0;
-	while (i < str.size())
+	while (i < (int)str.size())
 	{
 		if ((!ft_isprint(str[i])) && !is_newline_char(str[i])) //r /n
 			return(1); 
@@ -157,7 +157,7 @@ void parse_request_line(std::string request_line, t_client &client)
 	client.req.version = request_line_split[2];
 	free_tab(request_line_split);
 
-	int x;
+	size_t x;
 	if(((x = client.req.version.find("/")) != client.req.version.rfind("/")) || (client.req.version.find("/") == std::string::npos))
 	{
 		set_http_status(client, 400);
@@ -191,7 +191,7 @@ void parse_request_line(std::string request_line, t_client &client)
 		set_http_status(client, 505);
 		return;
 	}		
-	for (int i = 1; i < vno.length(); i++)
+	for (int i = 1; i < (int)vno.length(); i++)
 	{
 		if(vno[i] && !ft_isdigit((char)vno[i]) && vno[i] != '.')
 		{
@@ -288,6 +288,7 @@ void parse_request_header(t_client &client, std::string header_sub)
 
 int read_chunk_size(char *chunk_size, t_client &client)
 {
+	(void)client;
 	int len = ft_strlen(chunk_size);
 	int num = 0;
 	if (ft_strlen(chunk_size) == 3 && chunk_size[0] == '0' && chunk_size[0] == '\r' && chunk_size[0] == '\n')
@@ -345,7 +346,7 @@ void parse_request_body(t_client &client)
 				req.raw = req.raw.substr(req.raw.find("\r\n") + 2);
 			if (req.chunk_size_read == 0 && ((client.req.raw[0] == '\r' && client.req.raw[1] == '\n') || client.req.raw[0] == '\n'))
 			{
-				if (client.req.loc->client_max_body_size < req.body.length())
+				if (client.req.loc->client_max_body_size < (ssize_t)req.body.length())
 					set_http_status(client, 413);
 				req.req_body_parsed = 2;
 				client.req_arrived = true;
@@ -354,12 +355,12 @@ void parse_request_body(t_client &client)
 			return;
 		}
 
-		if (req.chunk_size_read >= req.raw.length() && req.raw.find("\r\n") == std::string::npos && req.raw.find("\n") == std::string::npos)
+		if (req.chunk_size_read >= (ssize_t)req.raw.length() && req.raw.find("\r\n") == std::string::npos && req.raw.find("\n") == std::string::npos)
 			return;
 
 		if(req.raw.find("\r\n") != std::string::npos)
 		{
-			if (req.chunk_size_read != (req.raw.substr(0, req.raw.find("\r\n")).length()))
+			if (req.chunk_size_read != (ssize_t)(req.raw.substr(0, req.raw.find("\r\n")).length()))
 			{
 				set_http_status(client, 400);
 				return;
@@ -367,7 +368,7 @@ void parse_request_body(t_client &client)
 		}
 		else
 		{
-			if (req.chunk_size_read != (req.raw.substr(0, req.raw.find("\n")).length()))
+			if (req.chunk_size_read != (ssize_t)(req.raw.substr(0, req.raw.find("\n")).length()))
 			{
 				set_http_status(client, 400);
 				return;
@@ -378,7 +379,7 @@ void parse_request_body(t_client &client)
 		{
 			// std::cerr << "client max: " << client.req.loc->client_max_body_size << std::endl;
 			// std::cerr << "req.body.length: " << req.body.length << std::endl;
-			if (client.req.loc->client_max_body_size < req.body.length())
+			if (client.req.loc->client_max_body_size < (ssize_t)req.body.length())
 				set_http_status(client, 413);
 			req.req_body_parsed = 2;
 			client.req_arrived = true;
@@ -386,14 +387,14 @@ void parse_request_body(t_client &client)
 		}
 		if(req.raw.find("\r\n") == std::string::npos && req.raw.find("\n") != std::string::npos)
 		{
-			if (req.chunk_size_read > (req.raw.substr(0, req.raw.find("\n")).length()))
+			if (req.chunk_size_read > (ssize_t)(req.raw.substr(0, req.raw.find("\n")).length()))
 				req.body += req.raw.substr(0, req.raw.find("\n"));
 			else
 				req.body += req.raw.substr(0, req.chunk_size_read);
 		}
 		else
 		{
-			if (req.chunk_size_read > (req.raw.substr(0, req.raw.find("\r\n")).length()))
+			if (req.chunk_size_read > (ssize_t)(req.raw.substr(0, req.raw.find("\r\n")).length()))
 				req.body += req.raw.substr(0, req.raw.find("\r\n"));
 			else
 				req.body += req.raw.substr(0, req.chunk_size_read);
@@ -438,7 +439,7 @@ void parse_request_body(t_client &client)
 			if (req.content_length > client.req.loc->client_max_body_size)
 					set_http_status(client, 413);
 		}
-		if (req.content_length <= req.raw.size())
+		if (req.content_length <= (ssize_t)req.raw.size())
 		{
 			req.body += req.raw.substr(0, req.content_length);
 			req.raw = req.raw.substr(req.content_length);
@@ -447,7 +448,7 @@ void parse_request_body(t_client &client)
 			client.req_arrived = true;
 			return;
 		}
-		else if (req.content_length > req.raw.size())
+		else if (req.content_length > (ssize_t)req.raw.size())
 		{
 			req.body += req.raw;
 			req.content_length -= req.raw.size();

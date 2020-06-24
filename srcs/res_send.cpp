@@ -37,7 +37,7 @@ bool send_res_body(t_client &cli)
 			cli.res_sent = true;
 	}
 
-	if (ret < cli.res.body.size())
+	if ((size_t)ret < cli.res.body.size())
 		cli.res.body.erase(0, ret);
 	else
 		cli.res.body.clear();

@@ -5,7 +5,8 @@ extern int count;
 
 void handle_post(t_client &cli, char **env, t_location *loc, bool is_file, std::string folder_path, std::string file)
 {
-	int fd;
+	(void)is_file;
+	(void)folder_path;
 	t_req &req = cli.req;
 	t_res &res = cli.res;
 	bool &is_cgi = cli.req.is_cgi;
@@ -37,7 +38,7 @@ void handle_post(t_client &cli, char **env, t_location *loc, bool is_file, std::
 
 	// req.body -> req.body_fname
 	int ret = write(req.body_fd, req.body.c_str(), req.body.size());
-	if (ret < req.body.size())
+	if ((ssize_t)ret < (ssize_t)req.body.size())
 	{
 		debug("write req.body -> bodyfile failed");
 		exit(1);

@@ -3,7 +3,13 @@
 
 void handle_trace(t_client &cli, char **env, t_location *loc, bool is_file, std::string folder_path, std::string file)
 {
-    std::map<std::string, std::string> &headers = cli.req.headers;
+    (void)env;
+	(void)is_file;
+	(void)file;
+	(void)folder_path;
+	(void)loc;
+    
+    // std::map<std::string, std::string> &headers = cli.req.headers;
 
     cli.res.body += cli.req.method;
     cli.res.body += " ";

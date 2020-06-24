@@ -97,9 +97,7 @@ static void make_custom_error_page(t_client &cli, t_res &res)
 
 void res_generator(t_client &cli)
 {
-	t_req &req = cli.req;
 	t_res &res = cli.res;
-	t_server &serv = cli.server;
 
 	if (!res.is_cgi && !HttpStatus::isSuccessful(res.status_code))
 	{

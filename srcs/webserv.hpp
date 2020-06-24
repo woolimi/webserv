@@ -45,7 +45,7 @@ typedef struct s_location
 	std::map<std::string, std::string> cgi;
 	std::string abs_path;
 	std::string upload_folder;
-	size_t client_max_body_size;
+	ssize_t client_max_body_size;
 	// cgi["extension"] = ".php";
 	// cgi["paths"] = "/usr/bin/php-cgi";
 } t_location;
@@ -73,7 +73,7 @@ typedef struct s_req
 	int req_header_parsed;// 0 - Not Started, 1 - Started, 2 - Complete
 	int req_body_parsed;// 0 - Not Started, 1 - Started, 2 - Complete
 	int content_length;
-	int chunk_size_read;
+	ssize_t chunk_size_read;
 	std::string version;
 	/* raw data */
 	std::string raw;

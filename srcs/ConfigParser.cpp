@@ -220,6 +220,8 @@ void ConfigParser::block_level_1(t_server &sv, t_location &lc, std::vector<std::
 void ConfigParser::block_level_2(t_server &sv, t_location &lc, std::vector<std::string>::iterator &it,
 	const std::vector<std::string>::iterator &end, int &block_level)
 {
+	(void)lc;
+
 	if (*it == "}")
 	{
 		block_level--;
@@ -341,7 +343,6 @@ bool ConfigParser::is_http_method(std::string &token)
 
 size_t ConfigParser::str_to_size(std::string const &str)
 {
-	int cnt = 0;
 	for (std::string::const_iterator it = str.begin(); it != str.end() - 1; ++it)
 	{
 		if (!ft_isdigit(*it))
@@ -375,6 +376,7 @@ void ConfigParser::default_server_config(t_server &sv)
 
 void ConfigParser::default_location_config(t_location &lc, t_server &sv)
 {
+	(void)sv;
 	lc.root = std::string(cur_path) + "/www/";
 	lc.upload_folder = "";
 	lc.client_max_body_size = -1;

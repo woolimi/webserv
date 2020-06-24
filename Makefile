@@ -1,8 +1,7 @@
 NAME = webserv
 CC = clang++
 
-# FLAG = -Wall -Wextra -Werror
-FLAG = -g3 -fsanitize=address
+ FLAG = -Wall -Wextra -Werror -g3 -fsanitize=address
 # FLAG =
 
 SRC_NAME = ConfigParser.cpp \

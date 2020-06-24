@@ -79,7 +79,6 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 	std::vector<t_client>::iterator it;
 	char buffer[MAX_BUFFER_SIZE + 1];
 	ssize_t nb_read = 0;
-	static int log_fd;
 
 	for (it = clients.begin(); it != clients.end(); ++it)
 	{
@@ -355,7 +354,6 @@ void HTTP::http_select(int fdmax, fd_set &read_set, fd_set &write_set, struct ti
 
 void HTTP::handle_methods(t_client &cli, char **env)
 {
-	t_server &serv = cli.server;
 	t_req &req = cli.req;
 	t_location *loc = cli.req.loc;
 	bool is_file = true;
