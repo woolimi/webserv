@@ -55,8 +55,14 @@ bool handle_post(t_client &cli, char **env, t_location *loc, bool is_file, std::
 
 		char buff[MAX_BUFFER_SIZE + 1];
 		int ret = read(res.fd, buff, MAX_BUFFER_SIZE);
+		if (ret < 0) {
+			set_http_status(cli, 503);
+			cli.res_sent = true;
+			return true;
+		}
 		buff[ret] = 0;
-		std::string raw = buff;
+		std::string raw;
+		raw.insert(raw.begin(), buff, buff + ret);
 
 		// inherit header + more header
 		size_t pos;

@@ -449,7 +449,7 @@ bool HTTP::check_client_timeout(t_client &cli)
 		cli.res.status_code = 408; // client request timeout
 		res_generator(cli);
 		std::string str = cli.res.head + cli.res.body;
-		send(cli.socket, str.c_str(), str.size(), MSG_NOSIGNAL);
+		send(cli.socket, str.c_str(), str.size(), MSG_NOSIGNAL); // in any case we cut connection
 		return true;
 	}
 	return false;

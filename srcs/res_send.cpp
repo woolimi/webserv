@@ -17,9 +17,9 @@ bool send_res_body(t_client &cli)
 {
 	t_res &res = cli.res;
 
-	int ret = write(cli.socket, cli.res.body.c_str(), cli.res.body.size());
-	if (ret != 0)
-	
+	int ret = send(cli.socket, cli.res.body.c_str(), cli.res.body.size(), MSG_NOSIGNAL);
+	if (ret == 0)
+		return true;
 	if (ret < 0)
 		return false; // disconnect
 
