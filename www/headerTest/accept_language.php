@@ -37,7 +37,13 @@
 <div style="background:#ffeb3b61">
 	REQUEST : <?=$_SERVER["REQUEST_METHOD"]?> <?=$_SERVER["PATH_INFO"]?> <?=$_SERVER["SERVER_PROTOCOL"]?>
 	<ul>
+	<?php
+	if (isset($_SERVER["HTTP_ACCEPT_LANGUAGE"])) {
+	?>
 		<li>Accept-Language : <?=$_SERVER["HTTP_ACCEPT_LANGUAGE"]?></li>
+	<?php
+	}
+	?>
 		<li>Content-Language : <?=$print_language?></li>
 	</ul>
 </div>

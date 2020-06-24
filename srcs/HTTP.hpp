@@ -18,7 +18,7 @@ private:
 	void skip_leading_empty_line(t_client &cli, char *buffer, size_t nb_read);
 	void reset_req_and_res(t_client &cli);
 	bool check_client_timeout(t_client &cli);
-	void res_service_unavailable(t_client &cli);
+	void res_too_many_requests(t_client &cli);
 
 public:
 	HTTP();

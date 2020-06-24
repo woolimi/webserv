@@ -37,7 +37,7 @@ void handle_post(t_client &cli, char **env, t_location *loc, bool is_file, std::
 	if (ret < req.body.size())
 	{
 		debug("write req.body -> bodyfile failed");
-		exit(1);
+		return;
 	}
 	close(req.body_fd);
 
@@ -70,13 +70,12 @@ void handle_post(t_client &cli, char **env, t_location *loc, bool is_file, std::
 				res.headers[attr] = tmp.substr(pos + 2);
 		}
 		res.headers["Transfer-Encoding"] = "chunked";
+		res.headers["Content-Location"] = req.path;
 		res.body += int_to_hexstr(raw.size()) + "\r\n";
 		res.body += raw + "\r\n";
 	}
 	else // POST without cgi
 	{
-
-		int fd;
 		std::string filename = req.path.substr(req.path.find_last_of("/") + 1);
 		if (filename.empty())
 		{
@@ -84,17 +83,8 @@ void handle_post(t_client &cli, char **env, t_location *loc, bool is_file, std::
 			cli.res_sent = true;
 			return;
 		}
-		
-		fd = open((loc->upload_folder + "/" + filename).c_str(), O_CREAT  | O_WRONLY | O_APPEND, 0777);
-		if (fd < 0)
-		{
-			std::cerr << "can't do POST" << std::endl;
-			return;
-		}
-		write(fd, req.body.c_str(), req.body.size());
-		close(fd);
 		set_http_status(cli, 201);
-		res.headers["Location"] = req.path;
+		res.headers["Content-Location"] = req.path;
 		cli.res_sent = true;
 	}
 }
