@@ -2,7 +2,7 @@
 
 int islog()
 {
-	static int islog = 1;
+	static int islog = 0;
 	return (islog);
 }
 

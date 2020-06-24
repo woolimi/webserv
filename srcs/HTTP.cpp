@@ -167,6 +167,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 					it->req.req_body_parsed = 2;
 				else
 					parse_request_body(*it);
+				continue;
 			}
 		}
 
@@ -178,7 +179,8 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 		{
 			if (it->res.status_code == 0)
 			{
-				handle_methods(*it, env);
+				if (!handle_methods(*it, env))
+					continue;
 				res_generator(*it);
 			}
 			else
@@ -302,6 +304,8 @@ void HTTP::init_client(t_client &client)
 	client.res.status_code = 0;
 	client.req.chunk_size_read = -1;
 	client.req.is_cgi = false;
+	client.req.body_fd = -1;
+	client.req.body_fname.clear();
 	/* res */
 	client.res.status_code = 0;
 	client.res.sent_head = false;
@@ -334,6 +338,7 @@ void HTTP::reset_req_and_res(t_client &cli)
 	cli.req.method.clear();
 	cli.req.path.clear();
 	cli.req.chunk_size_read = -1;
+	cli.req.body_fd = -1;
 	close(cli.res.fd);
 	cli.res.fd = -1;
 	if (!cli.res.fname.empty())
@@ -363,7 +368,7 @@ void HTTP::http_select(int fdmax, fd_set &read_set, fd_set &write_set, struct ti
 	}
 }
 
-void HTTP::handle_methods(t_client &cli, char **env)
+bool HTTP::handle_methods(t_client &cli, char **env)
 {
 	t_server &serv = cli.server;
 	t_req &req = cli.req;
@@ -416,22 +421,23 @@ void HTTP::handle_methods(t_client &cli, char **env)
 			allow = allow + ", " + *it1;
 		cli.res.headers["Allow"] = allow;
 		cli.res.status_code = 405;
-		return ;
+		return true;
 	}
 
 	if (req.method == "GET" || req.method == "HEAD")
 		handle_get(cli, env, loc, is_file, folder_path, file);
 	else if (req.method == "PUT")
 		handle_put(cli, env, loc, is_file, folder_path, file);
-	else if (req.method == "POST")
-		handle_post(cli, env, loc, is_file, folder_path, file);
+	else if (req.method == "POST") {
+		return handle_post(cli, env, loc, is_file, folder_path, file);
+	}
 	else if (req.method == "OPTIONS")
 		handle_options(cli, env, loc, is_file, folder_path, file);
 	else if (req.method == "TRACE")
 		handle_trace(cli, env, loc, is_file, folder_path, file);
 	else if (req.method == "DELETE")
 		handle_delete(cli, env, loc, is_file, folder_path, file);
-
+	return true;
 }
 
 bool HTTP::check_client_timeout(t_client &cli)
