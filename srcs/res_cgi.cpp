@@ -1,8 +1,5 @@
 #include "webserv.hpp"
 
-// debug
-extern int count;
-
 static void httphHeader_to_cgiHeader(std::string &attr)
 {
 	attr.insert(0, "HTTP_");
@@ -27,9 +24,9 @@ static char **cgi_env(t_client &cli, char **env, std::string &real_path)
 	new_env["PATH_INFO"] = cli.req.path;
 	new_env["PATH_TRANSLATED"] = "";
 	new_env["QUERY_STRING"] = cli.req.query_string;
-	new_env["REMOTE_ADDR"] = inet_ntoa(cli.addr.sin_addr); // ??
+	new_env["REMOTE_ADDR"] = inet_ntoa(cli.addr.sin_addr);
 	new_env["REMOTE_IDENT"] = "";
-	new_env["REMOTE_USER"] = "";
+	new_env["REMOTE_USER"] = cli.req.headers["remote-user"];
 	new_env["REQUEST_METHOD"] = req.method;
 	new_env["REQUEST_URI"] = req.path;
 	new_env["SCRIPT_NAME"] = "";

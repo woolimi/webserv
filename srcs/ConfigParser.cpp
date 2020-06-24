@@ -35,11 +35,13 @@ void ConfigParser::verify_server_settings()
 	// ->	run 2 server
 
 	// find case 1, 2
-	std::vector<t_server>::iterator it;
+	std::list<t_server>::iterator it;
 	for (it = srvs.begin(); it != srvs.end(); ++it)
 	{
-		std::vector<t_server>::iterator i;
-		for (i = it + 1; i != srvs.end(); ++i)
+		std::list<t_server>::iterator i;
+		i = it;
+		++i;
+		for (; i != srvs.end(); ++i)
 		{
 			if (it->listen == i->listen)
 				break;
@@ -74,7 +76,7 @@ void ConfigParser::parsing(int fd)
 		else if (block_level == 1)
 			block_level_1(sv, lc, it, tokens.end(), block_level);
 		else if (block_level == 2)
-			block_level_2(sv, lc, it, tokens.end(), block_level);
+			block_level_2(sv, it, tokens.end(), block_level);
 		else
 			throw FormatError("Config Error : Wrong block '" + *it + "'\n");
 	}
@@ -83,19 +85,21 @@ void ConfigParser::parsing(int fd)
 	if (!srvs.size())
 		throw FormatError("Config Error : At least one server blcok is needed\n");
 	// if server has no location, add default location.
-	std::vector<t_server>::iterator s;
+	std::list<t_server>::iterator s;
 	for (s = srvs.begin(); s != srvs.end() ; ++s)
 	{
 		if (s->location.empty())
 		{
 			t_location lc;
-			default_location_config(lc, sv);
+			default_location_config(lc);
 			sv.location["/"] = lc;
 		}
 		for (auto it = s->location.begin(); it != s->location.end(); ++it)
 		{
 			if (it->second.client_max_body_size == -1)
 				it->second.client_max_body_size = s->client_max_body_size;
+			if (it->second.root.empty())
+				it->second.root = sv.root;
 			if (it->second.upload_folder.empty())
 				it->second.upload_folder = it->second.root;
 		}
@@ -127,7 +131,7 @@ void ConfigParser::block_level_1(t_server &sv, t_location &lc, std::vector<std::
 	}
 	else if (*it == "location" && ++it != end)
 	{
-		default_location_config(lc, sv);
+		default_location_config(lc);
 		// check if route start from '/'
 		tmp_route = *it;
 		if (tmp_route[0] != '/')
@@ -217,11 +221,9 @@ void ConfigParser::block_level_1(t_server &sv, t_location &lc, std::vector<std::
 }
 
 
-void ConfigParser::block_level_2(t_server &sv, t_location &lc, std::vector<std::string>::iterator &it,
+void ConfigParser::block_level_2(t_server &sv, std::vector<std::string>::iterator &it,
 	const std::vector<std::string>::iterator &end, int &block_level)
 {
-	(void)lc;
-
 	if (*it == "}")
 	{
 		block_level--;
@@ -259,6 +261,8 @@ void ConfigParser::block_level_2(t_server &sv, t_location &lc, std::vector<std::
 
 		if (*it == "root" && ++it != end && *it != ";")
 		{
+			if (!sv.location[tmp_route].root.empty())
+				throw FormatError("Config Error : root directory already set\n");
 			struct stat info;
 			errno = 0;
 			if (stat(it->c_str(), &info) != 0)
@@ -374,10 +378,9 @@ void ConfigParser::default_server_config(t_server &sv)
 	sv.location.clear();
 }
 
-void ConfigParser::default_location_config(t_location &lc, t_server &sv)
+void ConfigParser::default_location_config(t_location &lc)
 {
-	(void)sv;
-	lc.root = std::string(cur_path) + "/www/";
+	lc.root = "";
 	lc.upload_folder = "";
 	lc.client_max_body_size = -1;
 	lc.autoindex = "off";
@@ -506,7 +509,7 @@ ConfigParser::~ConfigParser()
 {
 }
 
-std::vector<t_server> &ConfigParser::servers()
+std::list<t_server> &ConfigParser::servers()
 {
 	return srvs;
 }

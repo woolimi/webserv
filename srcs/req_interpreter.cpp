@@ -1,8 +1,5 @@
 #include "webserv.hpp"
 
-//debug
-extern int count;
-
 int is_newline_char(char c)
 {
 	if (c == '\r' || c == '\n')
@@ -241,13 +238,9 @@ void parse_request_header(t_client &client, std::string header_sub)
 	}
 	if (!header_sub.empty() && ((header_sub[0] == '\r' && header_sub[1] == '\n') || header_sub[0] == '\n'))
 	{
-		// debug
-		// if (count == 5)
+		// for (std::map<std::string, std::string>::iterator it = req.headers.begin(); it != req.headers.end(); ++it)
 		// {
-			// for (std::map<std::string, std::string>::iterator it = req.headers.begin(); it != req.headers.end(); ++it)
-			// {
-			// 	std::cerr << it->first << d << it->second << std::endl;
-			// }
+		// 	std::cerr << it->first << d << it->second << std::endl;
 		// }
 
 		client.req.req_header_parsed = 2;
@@ -437,7 +430,7 @@ void parse_request_body(t_client &client)
 			}
 			req.content_length = ft_atoi((char *)req.headers["content-length"].c_str());
 			if (req.content_length > client.req.loc->client_max_body_size)
-					set_http_status(client, 413);
+				set_http_status(client, 413);
 		}
 		if (req.content_length <= (ssize_t)req.raw.size())
 		{

@@ -9,8 +9,8 @@ void signal_handler(int signo)
 	else if (signo == SIGINT)
 	{
 		HTTP http;
-		std::vector<t_client> &clients = http.get_clients();
-		std::vector<t_server> &servers = http.get_servers();
+		std::list<t_client> &clients = http.get_clients();
+		std::list<t_server> &servers = http.get_servers();
 		for (auto it = clients.begin(); it != clients.end(); ++it)
 		{
 			unlink(it->req.body_fname.c_str());

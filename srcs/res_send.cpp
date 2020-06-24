@@ -1,7 +1,5 @@
 #include "webserv.hpp"
 
-extern int count;
-
 bool send_res_head(t_client &cli)
 {
 	t_res &res = cli.res;
@@ -20,8 +18,8 @@ bool send_res_body(t_client &cli)
 	t_res &res = cli.res;
 
 	int ret = send(cli.socket, cli.res.body.c_str(), cli.res.body.size(), MSG_NOSIGNAL);
-	if (ret != 0)
-	
+	if (ret == 0)
+		return true;
 	if (ret < 0)
 		return false; // disconnect
 
