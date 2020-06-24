@@ -38,9 +38,9 @@ void make_file_res(t_client &cli, t_location *loc, char **env, std::string &file
 	t_res &res = cli.res;
 	struct stat info;
 
-	if ((cli.res.status_code = file_check(file_path)) != OK)
+	if ((cli.res.status_code = file_check(file_path)) != OK) {
 		return ;
-
+	}
 	// file info
 	stat(file_path.c_str(), &info);
 	size_t file_size = info.st_size;
@@ -70,8 +70,8 @@ void make_file_res(t_client &cli, t_location *loc, char **env, std::string &file
 				break;
 			pos = tmp.find(": ");
 			std::string attr = tmp.substr(0, pos);
-			if (attr == "Status") {
-				continue;
+			if (attr == "Status" && ext == ".php") {
+				res.status_code = std::atoi(tmp.substr(pos + 2).c_str());
 			}
 			else
 				res.headers[attr] = tmp.substr(pos + 2);

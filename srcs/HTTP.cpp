@@ -125,7 +125,7 @@ void HTTP::manage_clients(fd_set &read_set, fd_set &write_set, fd_set &init_set,
 				it->req.req_line_parsed = 2;
 				if (!it->req.raw.empty())
 				{
-					if((it->req.raw.find("\r\n") == std::string::npos && it->req.raw.find("\n") != std::string::npos) || ((it->req.raw.find("\r\n") != std::string::npos && it->req.raw.find("\n") != std::string::npos) && (it->req.raw.find("\r\n") > it->req.raw.find("\n"))))
+					if ((it->req.raw.find("\r\n") == std::string::npos && it->req.raw.find("\n") != std::string::npos) || ((it->req.raw.find("\r\n") != std::string::npos && it->req.raw.find("\n") != std::string::npos) && (it->req.raw.find("\r\n") > it->req.raw.find("\n"))))
 						it->req.raw = it->req.raw.substr(it->req.raw.find("\n") + 1);
 					else
 						it->req.raw = it->req.raw.substr(it->req.raw.find("\r\n") + 2);
@@ -281,6 +281,7 @@ void HTTP::disconnect(fd_set &init_set, std::set<int> &fds, std::list<t_client>:
 
 	it = clients.erase(it);
 	--it;
+	log("client disconnected");
 }
 
 void HTTP::init_client(t_client &client)

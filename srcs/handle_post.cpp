@@ -1,8 +1,5 @@
 #include "webserv.hpp"
 
-//debug
-extern int count;
-
 void handle_post(t_client &cli, char **env, t_location *loc, bool is_file, std::string folder_path, std::string file)
 {
 	int fd;

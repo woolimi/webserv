@@ -98,6 +98,8 @@ void ConfigParser::parsing(int fd)
 		{
 			if (it->second.client_max_body_size == -1)
 				it->second.client_max_body_size = s->client_max_body_size;
+			if (it->second.root.empty())
+				it->second.root = sv.root;
 			if (it->second.upload_folder.empty())
 				it->second.upload_folder = it->second.root;
 		}
@@ -259,6 +261,8 @@ void ConfigParser::block_level_2(t_server &sv, std::vector<std::string>::iterato
 
 		if (*it == "root" && ++it != end && *it != ";")
 		{
+			if (!sv.location[tmp_route].root.empty())
+				throw FormatError("Config Error : root directory already set\n");
 			struct stat info;
 			errno = 0;
 			if (stat(it->c_str(), &info) != 0)
@@ -376,7 +380,7 @@ void ConfigParser::default_server_config(t_server &sv)
 
 void ConfigParser::default_location_config(t_location &lc)
 {
-	lc.root = std::string(cur_path) + "/www/";
+	lc.root = "";
 	lc.upload_folder = "";
 	lc.client_max_body_size = -1;
 	lc.autoindex = "off";

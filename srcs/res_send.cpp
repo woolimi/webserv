@@ -1,7 +1,5 @@
 #include "webserv.hpp"
 
-extern int count;
-
 bool send_res_head(t_client &cli)
 {
 	t_res &res = cli.res;
