@@ -18,18 +18,22 @@ static char **cgi_env(t_client &cli, char **env, std::string &real_path)
 	t_server &serv = cli.server;
 	std::map<std::string, std::string> new_env;
 	char **ret;
+	std::string auth_type;
 
-	new_env["AUTH_TYPE"] = "";
+	if (cli.req.headers.find("authorization") != cli.req.headers.end())
+		auth_type = cli.req.headers["authorization"].substr(0, cli.req.headers["authorization"].find(" "));
+
+	new_env["AUTH_TYPE"] = auth_type;
 	new_env["GATEWAY_INTERFACE"] = "CGI/1.1";
 	new_env["PATH_INFO"] = cli.req.path;
-	new_env["PATH_TRANSLATED"] = "";
+	new_env["PATH_TRANSLATED"] = cli.req.loc->abs_path;
 	new_env["QUERY_STRING"] = cli.req.query_string;
 	new_env["REMOTE_ADDR"] = inet_ntoa(cli.addr.sin_addr);
-	new_env["REMOTE_IDENT"] = "";
+	new_env["REMOTE_IDENT"] = ""; // do not use
 	new_env["REMOTE_USER"] = cli.req.headers["remote-user"];
 	new_env["REQUEST_METHOD"] = req.method;
 	new_env["REQUEST_URI"] = req.path;
-	new_env["SCRIPT_NAME"] = "";
+	new_env["SCRIPT_NAME"] = cli.req.path;
 	new_env["SCRIPT_FILENAME"] = real_path;
 	new_env["SERVER_NAME"] = serv.server_name;
 	new_env["SERVER_PORT"] = std::to_string(serv.listen);
