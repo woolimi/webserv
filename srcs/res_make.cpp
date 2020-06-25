@@ -39,7 +39,7 @@ void make_file_res(t_client &cli, t_location *loc, char **env, std::string &file
 	struct stat info;
 
 	if ((cli.res.status_code = file_check(file_path)) != OK) {
-		return ;
+		return;
 	}
 	// file info
 	stat(file_path.c_str(), &info);

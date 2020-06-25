@@ -74,15 +74,16 @@ void parse_query_string(t_client &client)
 	
 	pos = client.req.path.find("?");
 	pos2 = client.req.path.find("/n");
-	
+
 	client.req.query_string = client.req.path.substr(pos + 1, pos2);
-	client.req.path.replace(pos, pos2 - pos, "\n");
+	client.req.path.replace(pos, pos2 - pos, "");
 }
 
 void uri_decode(t_client &client)
 {
 	std::string::size_type pos;
 	std::string hex;
+
 	if (client.req.path.find("?") != std::string::npos)
 		parse_query_string(client);
 	while(1)
