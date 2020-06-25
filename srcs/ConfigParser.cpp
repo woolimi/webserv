@@ -38,8 +38,7 @@ void ConfigParser::verify_server_settings()
 	std::list<t_server>::iterator it;
 	for (it = srvs.begin(); it != srvs.end(); ++it)
 	{
-		std::list<t_server>::iterator i;
-		i = it;
+		auto i = it;
 		++i;
 		for (; i != srvs.end(); ++i)
 		{
@@ -92,14 +91,14 @@ void ConfigParser::parsing(int fd)
 		{
 			t_location lc;
 			default_location_config(lc);
-			sv.location["/"] = lc;
+			s->location["/"] = lc;
 		}
 		for (auto it = s->location.begin(); it != s->location.end(); ++it)
 		{
 			if (it->second.client_max_body_size == -1)
 				it->second.client_max_body_size = s->client_max_body_size;
 			if (it->second.root.empty())
-				it->second.root = sv.root;
+				it->second.root = s->root;
 			if (it->second.upload_folder.empty())
 				it->second.upload_folder = it->second.root;
 		}

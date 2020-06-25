@@ -387,29 +387,6 @@ bool HTTP::handle_methods(t_client &cli, char **env)
 		file = "/";
 	}
 		
-/*	
-	get loc:
-			check exact match
-				else
-			check part match
-				else
-			`
-	case: folder /directory/test/abc
-			folder_path = /test/abc/
-			file = "/"
-			
-	case: file /directory/test/abc.txt
-			folder_path = /test/
-			file = "/abc.txt"
-
-	1. req-path, root path
-	2. abs=path = root path + req path
-	3. is_file = check_is_file() returns 0 for dir 1 for file
-
-	loc = find_matched_location(serv, req_path, &is_file)
-
-*/
-
 	auto it1 = std::find(loc->allow.begin(), loc->allow.end(), req.method);
 	if (it1 == loc->allow.end())
 	{
