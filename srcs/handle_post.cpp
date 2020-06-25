@@ -48,7 +48,7 @@ bool handle_post(t_client &cli, char **env, t_location *loc, bool is_file, std::
 		close(req.body_fd);
 		if (ret < (ssize_t)req.body.size())
 		{
-			set_http_status(cli, 503); // service unavailable
+			set_http_status(cli, 500); // internal server error
 			return true;
 		}
 		return false;
@@ -63,9 +63,9 @@ bool handle_post(t_client &cli, char **env, t_location *loc, bool is_file, std::
 
 		char buff[MAX_BUFFER_SIZE + 1];
 		int ret = read(res.fd, buff, MAX_BUFFER_SIZE);
+		// ret = 0 means, no res returned from cgi, so OK.
 		if (ret < 0) {
-			set_http_status(cli, 503);
-			cli.res_sent = true;
+			set_http_status(cli, 500); // internal server error
 			return true;
 		}
 		buff[ret] = 0;
@@ -99,7 +99,6 @@ bool handle_post(t_client &cli, char **env, t_location *loc, bool is_file, std::
 		if (filename.empty())
 		{
 			set_http_status(cli, 400); // bad request
-			cli.res_sent = true;
 			return true;
 		}
 		set_http_status(cli, 201);
