@@ -1,8 +1,8 @@
 NAME = webserv
 CC = clang++
 
-FLAG = -Wall -Wextra -Werror -g3 -fsanitize=address
-# FLAG = -Wall -Wextra -Werror
+# FLAG = -Wall -Wextra -Werror -g3 -fsanitize=address
+FLAG = -Wall -Wextra -Werror
 
 SRC_NAME = ConfigParser.cpp \
 	handle_get.cpp \
@@ -46,6 +46,8 @@ $(OBJ_PATH)/%.o: $(SRC_PATH)/%.cpp
 clean:
 	@$(MAKE) -C ./lib clean
 	@rm -rf ./obj
+	@rm -rf ./www/upload/*
+	@rm -rf ./www/post_body
 
 fclean: clean
 	@$(MAKE) -C ./lib fclean
