@@ -12,7 +12,6 @@ std::string make_real_path(std::string &root, std::string &path)
 void handle_get(t_client &cli, char **env, t_location *loc, bool is_file, std::string folder_path, std::string file)
 {
 	if (is_file) {
-		printf("|%s|\n", folder_path.c_str());
 		make_file_res(cli, loc, env, folder_path, file);
 	}
 	else

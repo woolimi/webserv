@@ -55,6 +55,12 @@ void make_file_res(t_client &cli, t_location *loc, char **env, std::string &file
 		// calculate content length
 		char buff[MAX_BUFFER_SIZE + 1];
 		int ret = read(res.fd, buff, MAX_BUFFER_SIZE);
+		// ret = 0 means, no res returned from cgi, so OK.
+		if (ret < 0)
+		{
+			set_http_status(cli, 500); // internal server error
+			return;
+		}
 		buff[ret] = 0;
 		std::string raw = buff;
 

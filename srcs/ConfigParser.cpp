@@ -448,6 +448,7 @@ void ConfigParser::get_config_data(int fd, std::string &raw)
 	close(fd);
 	if (ret < 0)
 		throw FailToReadConfigFile();
+	// ret = 0 will be checked during parsing.
 }
 
 bool ConfigParser::is_server_attr(const std::string &attr)
