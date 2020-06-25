@@ -8,7 +8,9 @@ bool handle_post(t_client &cli, char **env, t_location *loc, bool is_file, std::
 	t_req &req = cli.req;
 	t_res &res = cli.res;
 	bool &is_cgi = cli.req.is_cgi;
-	std::string fname = loc->abs_path.substr(loc->abs_path.find_last_of("/"));
+
+	std::string file_path = loc->root + cli.req.path;
+	std::string fname = file_path.substr(file_path.find_last_of("/"));
 	// check cgi or not
 	std::string ext = "";
 	if (fname.find(".") != std::string::npos)
@@ -16,6 +18,11 @@ bool handle_post(t_client &cli, char **env, t_location *loc, bool is_file, std::
 
 	if (!loc->cgi.empty() && loc->cgi["extension"] == ext)
 		is_cgi = true;
+
+	if (fname == "/") {
+		res.status_code = 400;
+		return true;
+	}
 
 	if (req.body_fname.empty())
 	{
@@ -26,21 +33,20 @@ bool handle_post(t_client &cli, char **env, t_location *loc, bool is_file, std::
 		}
 		else
 		{
-			req.body_fname = loc->abs_path + req.path;
+			req.body_fname = file_path;
 			req.body_fd = open(req.body_fname.c_str(), O_CREAT | O_WRONLY | O_APPEND, 0777);
 		}
 
 		if (req.body_fd < 0)
 		{
-			res.status_code = 404;
-			cli.res_sent = true;
+			res.status_code = 400;
 			return true;
 		}
 
 		// req.body -> req.body_fname
-		int ret = write(req.body_fd, req.body.c_str(), req.body.size());
+		ssize_t ret = write(req.body_fd, req.body.c_str(), req.body.size());
 		close(req.body_fd);
-		if ((ssize_t)ret < (ssize_t)req.body.size())
+		if (ret < (ssize_t)req.body.size())
 		{
 			set_http_status(cli, 503); // service unavailable
 			return true;
@@ -92,7 +98,7 @@ bool handle_post(t_client &cli, char **env, t_location *loc, bool is_file, std::
 		std::string filename = req.path.substr(req.path.find_last_of("/") + 1);
 		if (filename.empty())
 		{
-			set_http_status(cli, 200);
+			set_http_status(cli, 400); // bad request
 			cli.res_sent = true;
 			return true;
 		}

@@ -51,7 +51,6 @@ int file_check(std::string file_path)
 	struct stat info;
 	errno = 0;
 	int ret = stat(file_path.c_str(), &info);
-	// std::cout<<"FILEPATHHH." << file_path << std::endl;
 	if (ret < 0)
 	{
 		if (errno == ENOENT) // not exist
@@ -59,8 +58,9 @@ int file_check(std::string file_path)
 		if (errno == EACCES)
 			return 403;
 	}
-	if (!S_ISREG(info.st_mode))
+	if (!S_ISREG(info.st_mode)) {
 		return 404;
+	}
 	return OK;
 }
 
