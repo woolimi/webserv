@@ -87,7 +87,7 @@ void ConfigParser::parsing(int fd)
 	std::list<t_server>::iterator s;
 	for (s = srvs.begin(); s != srvs.end() ; ++s)
 	{
-		if (s->location.empty())
+		if (s->location.empty() || s->location.find("/") == s->location.end())
 		{
 			t_location lc;
 			default_location_config(lc);
@@ -344,7 +344,7 @@ bool ConfigParser::is_http_method(std::string &token)
 	return false;
 }
 
-size_t ConfigParser::str_to_size(std::string const &str)
+ssize_t ConfigParser::str_to_size(std::string const &str)
 {
 	for (std::string::const_iterator it = str.begin(); it != str.end() - 1; ++it)
 	{
@@ -355,7 +355,7 @@ size_t ConfigParser::str_to_size(std::string const &str)
 	char last_char = *str.rbegin();
 	int tmp = atoi(str.c_str());
 	if (tmp <= 0)
-		return (0);
+		return (-1);
 
 	if (last_char == 'm' || last_char == 'M')
 		return (tmp * 1000 * 1000);
@@ -364,7 +364,7 @@ size_t ConfigParser::str_to_size(std::string const &str)
 	if (ft_isdigit(last_char))
 		return (tmp);
 	else
-		return (0);
+		return (-1);
 }
 
 void ConfigParser::default_server_config(t_server &sv)

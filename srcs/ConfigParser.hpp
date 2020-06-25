@@ -25,7 +25,7 @@ private:
 		const std::vector<std::string>::iterator &end, int &block_level);
 	void block_level_2(t_server &sv, std::vector<std::string>::iterator &it,
 		const std::vector<std::string>::iterator &end, int &block_level);
-	size_t str_to_size(std::string const &str);
+	ssize_t str_to_size(std::string const &str);
 	void verify_server_settings();
 	std::string server_attr[5] = {
 		"listen",
