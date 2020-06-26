@@ -46,7 +46,6 @@ $(OBJ_PATH)/%.o: $(SRC_PATH)/%.cpp
 clean:
 	@$(MAKE) -C ./lib clean
 	@rm -rf ./obj
-	@rm -rf ./www/upload/*
 	@rm -rf ./www/post_body
 
 fclean: clean

@@ -492,3 +492,14 @@ std::list<t_server> &HTTP::get_servers()
 {
 	return this->servers;
 }
+
+HTTP::HTTP(HTTP const &other)
+{
+	(void)other;
+}
+
+HTTP &HTTP::operator=(HTTP const &other)
+{
+	(void)other;
+	return (*this);
+}

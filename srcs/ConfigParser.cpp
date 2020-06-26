@@ -513,3 +513,14 @@ std::list<t_server> &ConfigParser::servers()
 {
 	return srvs;
 }
+
+ConfigParser::ConfigParser(ConfigParser const &other)
+{
+	(void)other;
+}
+
+ConfigParser &ConfigParser::operator=(ConfigParser const &other)
+{
+	(void)other;
+	return (*this);
+}

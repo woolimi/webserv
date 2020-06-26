@@ -56,8 +56,8 @@ private:
 
 public:
 	ConfigParser(int ac, char **av);
-	// ConfigParser(ConfigParser const &other);
-	// ConfigParser &operator=(ConfigParser const &other);
+	ConfigParser(ConfigParser const &other);
+	ConfigParser &operator=(ConfigParser const &other);
 	~ConfigParser();
 
 	std::list<t_server> &servers();

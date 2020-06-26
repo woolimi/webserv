@@ -23,8 +23,8 @@ private:
 public:
 	HTTP();
 	HTTP(std::list<t_server> &srvs);
-	// HTTP(HTTP const &other);
-	// HTTP &operator=(HTTP const &other);
+	HTTP(HTTP const &other);
+	HTTP &operator=(HTTP const &other);
 	~HTTP();
 
 	void run(char **env);
